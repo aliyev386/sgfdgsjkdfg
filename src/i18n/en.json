@@ -156,5 +156,35 @@
     "all_collections": "All Collections",
     "collection_products": "Collection Products",
     "no_products": "No products in this collection yet."
+  },  "cat_list": {
+    "page_title": "Collections",
+    "page_subtitle": "Find furniture that matches your style",
+    "search_placeholder": "Search categories...",
+    "all_rooms": "All rooms",
+    "products_count": "products",
+    "explore_btn": "Explore",
+    "no_results": "No categories found",
+    "no_results_hint": "Try clearing the search or filters",
+    "reset": "Reset",
+    "show_more": "Show more",
+    "show_less": "Show less",
+    "filter_by_room": "Filter by room",
+    "sort_label": "Sort",
+    "sort_alpha": "A → Z",
+    "sort_alpha_desc": "Z → A",
+    "sort_products": "By product count",
+    "total_categories": "categories",
+    "rooms": {
+      "all":         "All",
+      "living_room": "Living Room",
+      "bedroom":     "Bedroom",
+      "kitchen":     "Kitchen",
+      "office":      "Home Office",
+      "dining":      "Dining Room",
+      "outdoor":     "Outdoor",
+      "kids":        "Kids Room",
+      "hallway":     "Hallway",
+      "bathroom":    "Bathroom"
+    }
   }
 }

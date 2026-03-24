@@ -156,6 +156,36 @@
     "all_collections": "Bütün kolleksiyalar",
     "collection_products": "Kolleksiya məhsulları",
     "no_products": "Bu kolleksiyada hələ məhsul yoxdur."
+  },  "cat_list": {
+    "page_title": "Kolleksiyalar",
+    "page_subtitle": "Zövqünüzə uyğun mebel seçin",
+    "search_placeholder": "Kateqoriya axtar...",
+    "all_rooms": "Bütün otaqlar",
+    "products_count": "məhsul",
+    "explore_btn": "Kəşf et",
+    "no_results": "Kateqoriya tapılmadı",
+    "no_results_hint": "Axtarış və ya filtrləri sıfırlayın",
+    "reset": "Sıfırla",
+    "show_more": "Daha çox göstər",
+    "show_less": "Daha az göstər",
+    "filter_by_room": "Otağa görə",
+    "sort_label": "Sırala",
+    "sort_alpha": "A → Z",
+    "sort_alpha_desc": "Z → A",
+    "sort_products": "Məhsul sayına görə",
+    "total_categories": "kateqoriya",
+    "rooms": {
+      "all":         "Hamısı",
+      "living_room": "Qonaq otağı",
+      "bedroom":     "Yataq otağı",
+      "kitchen":     "Mətbəx",
+      "office":      "İş otağı",
+      "dining":      "Yemək otağı",
+      "outdoor":     "Açıq hava",
+      "kids":        "Uşaq otağı",
+      "hallway":     "Dəhliz",
+      "bathroom":    "Vanna otağı"
+    }
   }
 
 }

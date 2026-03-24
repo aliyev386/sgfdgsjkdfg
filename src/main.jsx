@@ -6,6 +6,7 @@ import { StrictMode } from "react";
 import HomePage from "./pages/public/HomePage.jsx";
 import CategoryPage from "./pages/public/CategoryPage.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
+import CollectionsPage from "./pages/public/CategoryPage.jsx";
 
 const router=createBrowserRouter([{
   element:<HomePage/>,
@@ -15,8 +16,8 @@ const router=createBrowserRouter([{
   }],
 },
 {
-  element:<CategoryPage/>,
-  path:'/category',
+  element:<CollectionsPage/>,
+  path:'/collections',
   children:[{}]
 },
 {

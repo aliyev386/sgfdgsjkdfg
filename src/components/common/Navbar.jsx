@@ -56,21 +56,16 @@ export default function Navbar() {
     <>
       <nav className={`arv-nav${scrolled ? " scrolled" : ""}`}>
 
-        {/* Logo */}
         <Link to="/" className="arv-logo">ARV<span>A</span>NA</Link>
 
-        {/* Nav Links */}
         <ul className="arv-nav-links">
           <li><Link to="/collections" className={isActive("/collections")}>{t("nav.collections")}</Link></li>
           <li><Link to="/shop"        className={isActive("/shop")}>{t("nav.shop")}</Link></li>
           <li><Link to="/about"       className={isActive("/about")}>{t("nav.story")}</Link></li>
           <li><Link to="/contact"     className={isActive("/contact")}>{t("nav.contact")}</Link></li>
         </ul>
-
-        {/* Right side: Lang + Icons */}
         <div className="arv-nav-right">
 
-          {/* Language Switcher */}
           <div className="arv-lang-switcher">
             {LANGUAGES.map((lng) => (
               <button
@@ -84,14 +79,12 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Search */}
           <button
             className="arv-nav-icon"
             aria-label={t("nav.search")}
             onClick={() => navigate("/search")}
           >🔍</button>
 
-          {/* Cart */}
           <button
             className="arv-nav-icon"
             aria-label={t("nav.cart")}
@@ -104,7 +97,6 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Profile / Login */}
           {isAuth
             ? <button className="arv-nav-icon" onClick={() => navigate("/profile")}>👤</button>
             : <button className="arv-nav-icon" onClick={() => navigate("/login")}>👤</button>

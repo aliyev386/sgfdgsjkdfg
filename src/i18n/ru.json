@@ -156,6 +156,37 @@
     "all_collections": "Все коллекции",
     "collection_products": "Товары коллекции",
     "no_products": "В этой коллекции пока нет товаров."
+  },
+    "cat_list": {
+    "page_title": "Коллекции",
+    "page_subtitle": "Найдите мебель, которая подходит именно вам",
+    "search_placeholder": "Поиск категорий...",
+    "all_rooms": "Все комнаты",
+    "products_count": "товаров",
+    "explore_btn": "Смотреть",
+    "no_results": "Категории не найдены",
+    "no_results_hint": "Попробуйте сбросить поиск или фильтры",
+    "reset": "Сбросить",
+    "show_more": "Показать больше",
+    "show_less": "Показать меньше",
+    "filter_by_room": "По комнате",
+    "sort_label": "Сортировка",
+    "sort_alpha": "А → Я",
+    "sort_alpha_desc": "Я → А",
+    "sort_products": "По количеству товаров",
+    "total_categories": "категорий",
+    "rooms": {
+      "all":         "Все",
+      "living_room": "Гостиная",
+      "bedroom":     "Спальня",
+      "kitchen":     "Кухня",
+      "office":      "Кабинет",
+      "dining":      "Столовая",
+      "outdoor":     "На улице",
+      "kids":        "Детская",
+      "hallway":     "Прихожая",
+      "bathroom":    "Ванная"
+    }
   }
 }
 
