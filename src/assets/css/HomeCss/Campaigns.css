@@ -1,0 +1,15 @@
+
+  .hp-camp-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:24px }
+  .hp-camp-card { position:relative;overflow:hidden;cursor:pointer;background:#EDE7DC;min-height:280px;display:flex;flex-direction:column;justify-content:flex-end;animation:campIn .6s cubic-bezier(.25,.46,.45,.94) both }
+  .hp-camp-img  { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.25,.46,.45,.94) }
+  .hp-camp-card:hover .hp-camp-img { transform:scale(1.06) }
+  .hp-camp-ov   { position:absolute;inset:0;background:linear-gradient(to top,rgba(28,28,28,.7) 0%,rgba(28,28,28,.1) 60%,transparent 100%);transition:opacity .4s }
+  .hp-camp-card:hover .hp-camp-ov  { opacity:.9 }
+  .hp-camp-inf  { position:relative;z-index:1;padding:28px 24px }
+  .hp-camp-badge{ display:inline-block;padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.5px;color:#fff;margin-bottom:10px }
+  .hp-camp-name { font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:#fff;margin-bottom:6px }
+  .hp-camp-desc { font-size:13px;color:rgba(255,255,255,.7);margin-bottom:16px;line-height:1.5 }
+  .hp-camp-until{ font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:16px }
+  .hp-camp-cta  { display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#fff;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s }
+  .hp-camp-card:hover .hp-camp-cta { opacity:1;transform:translateY(0) }
+

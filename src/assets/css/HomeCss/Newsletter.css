@@ -1,0 +1,9 @@
+  .hp-nl       { background:#fff;padding:80px 60px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #E5DDD4 }
+  .hp-nl-t     { font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:#1C1C1C }
+  .hp-nl-s     { font-size:14px;color:#6B6B6B;margin-top:6px }
+  .hp-nl-f     { display:flex }
+  .hp-nl-i     { padding:14px 24px;font-size:13px;border:1px solid #E5DDD4;border-right:none;outline:none;font-family:'DM Sans',sans-serif;color:#1C1C1C;width:280px;background:#F7F3EE;transition:border-color .3s }
+  .hp-nl-i:focus { border-color:#7A9E7E }
+  .hp-nl-i::placeholder { color:#A8A8A8 }
+  .hp-nl-b     { padding:14px 28px;background:#1C1C1C;color:#fff;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .3s }
+  .hp-nl-b:hover { background:#7A9E7E }

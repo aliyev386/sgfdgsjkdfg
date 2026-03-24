@@ -19,7 +19,11 @@ export const MOCK_SLIDES = [
     subheading: "Discover our latest collection of sustainably sourced oak furniture.",
   },
 ];
-
+export const BADGE_COLORS = {
+  best_seller: "#D4714A",
+  new_in:      "#7A9E7E",
+  sale:        "#C9A84C",
+};
 export const MOCK_CAMPAIGNS = [
   {
     id: 1,
