@@ -122,5 +122,39 @@
     "out_of_stock": "Out of Stock",
     "add_to_cart": "Add to Cart",
     "view_details": "View Details"
+  },
+    "category_page": {
+    "products_found": "products found",
+    "no_products": "No products found in this category.",
+    "no_products_hint": "Try resetting the filters.",
+    "reset_filters": "Reset filters",
+    "filter_title": "Filters",
+    "price_range": "Price range",
+    "price_min": "Min",
+    "price_max": "Max",
+    "colors": "Colors",
+    "materials": "Materials",
+    "sort_label": "Sort",
+    "sort_featured": "Featured",
+    "sort_price_asc": "Price: Low to High",
+    "sort_price_desc": "Price: High to Low",
+    "sort_newest": "Newest",
+    "sort_popular": "Most Popular",
+    "showing": "Showing",
+    "of": "of",
+    "filter_apply": "Apply",
+    "filter_close": "Close",
+    "mobile_filter_btn": "Filters"
+  },
+  "collection_page": {
+    "pieces": "pieces",
+    "add_to_cart": "Add to Cart",
+    "added_to_cart": "Added to Cart ✓",
+    "adding": "Adding...",
+    "out_of_stock": "Out of Stock",
+    "view_details": "View Details",
+    "all_collections": "All Collections",
+    "collection_products": "Collection Products",
+    "no_products": "No products in this collection yet."
   }
 }

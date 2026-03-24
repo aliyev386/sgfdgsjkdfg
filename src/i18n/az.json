@@ -122,5 +122,40 @@
     "out_of_stock": "Stokda yoxdur",
     "add_to_cart": "Səbətə əlavə et",
     "view_details": "Ətraflı bax"
+  },
+    "category_page": {
+    "products_found": "məhsul tapıldı",
+    "no_products": "Bu kateqoriyada məhsul tapılmadı.",
+    "no_products_hint": "Filtrləri sıfırlayıb yenidən cəhd edin.",
+    "reset_filters": "Filtrləri sıfırla",
+    "filter_title": "Filtrlər",
+    "price_range": "Qiymət aralığı",
+    "price_min": "Min",
+    "price_max": "Maks",
+    "colors": "Rənglər",
+    "materials": "Materiallar",
+    "sort_label": "Sırala",
+    "sort_featured": "Seçilmiş",
+    "sort_price_asc": "Qiymət: Artanla",
+    "sort_price_desc": "Qiymət: Azalanla",
+    "sort_newest": "Ən yeni",
+    "sort_popular": "Ən populyar",
+    "showing": "Göstərilir",
+    "of": "/",
+    "filter_apply": "Tətbiq et",
+    "filter_close": "Bağla",
+    "mobile_filter_btn": "Filtrlər"
+  },
+  "collection_page": {
+    "pieces": "parça",
+    "add_to_cart": "Səbətə əlavə et",
+    "added_to_cart": "Səbətə əlavə edildi ✓",
+    "adding": "Əlavə edilir...",
+    "out_of_stock": "Stokda yoxdur",
+    "view_details": "Ətraflı bax",
+    "all_collections": "Bütün kolleksiyalar",
+    "collection_products": "Kolleksiya məhsulları",
+    "no_products": "Bu kolleksiyada hələ məhsul yoxdur."
   }
+
 }

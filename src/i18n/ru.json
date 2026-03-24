@@ -122,5 +122,40 @@
     "out_of_stock": "Нет в наличии",
     "add_to_cart": "В корзину",
     "view_details": "Подробнее"
+  },
+  "category_page": {
+    "products_found": "товаров найдено",
+    "no_products": "В этой категории нет товаров.",
+    "no_products_hint": "Попробуйте сбросить фильтры.",
+    "reset_filters": "Сбросить фильтры",
+    "filter_title": "Фильтры",
+    "price_range": "Ценовой диапазон",
+    "price_min": "Мин",
+    "price_max": "Макс",
+    "colors": "Цвета",
+    "materials": "Материалы",
+    "sort_label": "Сортировка",
+    "sort_featured": "Рекомендуемые",
+    "sort_price_asc": "Цена: По возрастанию",
+    "sort_price_desc": "Цена: По убыванию",
+    "sort_newest": "Новинки",
+    "sort_popular": "Популярные",
+    "showing": "Показано",
+    "of": "из",
+    "filter_apply": "Применить",
+    "filter_close": "Закрыть",
+    "mobile_filter_btn": "Фильтры"
+  },
+  "collection_page": {
+    "pieces": "позиций",
+    "add_to_cart": "В корзину",
+    "added_to_cart": "Добавлено в корзину ✓",
+    "adding": "Добавляю...",
+    "out_of_stock": "Нет в наличии",
+    "view_details": "Подробнее",
+    "all_collections": "Все коллекции",
+    "collection_products": "Товары коллекции",
+    "no_products": "В этой коллекции пока нет товаров."
   }
 }
+
