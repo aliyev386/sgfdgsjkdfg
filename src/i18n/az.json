@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "collections": "Kolleksiyalar",
+    "shop": "Mağaza",
+    "story": "Haqqımızda",
+    "contact": "Əlaqə",
+    "search": "Axtar",
+    "cart": "Səbət",
+    "profile": "Profil",
+    "login": "Daxil ol",
+    "logout": "Çıxış"
+  },
+
+  "hero": {
+    "badge": "Yeni Kolleksiya 2025",
+    "cta_primary": "Kolleksiyaya bax",
+    "cta_secondary": "Haqqımızda"
+  },
+
+  "campaigns": {
+    "title": "Xüsusi Təkliflər",
+    "subtitle": "Mövsümi endirimlər",
+    "cta": "Kampaniyaya bax",
+    "until": "Bitiş:"
+  },
+
+  "featured_products": {
+    "eyebrow": "Əl ilə seçilmiş",
+    "title": "Ən çox",
+    "title_em": "Satılanlar",
+    "view_all": "Hamısına bax",
+    "add_to_cart": "Səbətə əlavə et",
+    "wishlist": "İstək siyahısı",
+    "tabs": {
+      "all": "Hamısı",
+      "sofas": "Divanlar",
+      "chairs": "Kreslolar",
+      "tables": "Masalar"
+    }
+  },
+
+  "categories": {
+    "eyebrow": "Otağa görə seç",
+    "title": "Seçilmiş",
+    "title_em": "Kolleksiyalar",
+    "view_all": "Bütün otaqlara bax",
+    "explore": "Kolleksiyaya bax"
+  },
+
+  "collections": {
+    "eyebrow": "Seçilmiş kolleksiyalar",
+    "title": "Yeni",
+    "title_em": "Kolleksiyalar",
+    "view_all": "Hamısına bax",
+    "explore": "Kəşf et"
+  },
+
+  "why_us": {
+    "eyebrow": "Arvana Zəmanəti",
+    "title": "Niyə bizi",
+    "title_em": "seçirsiniz?",
+    "items": [
+      {
+        "icon": "🌿",
+        "title": "Dayanıqlı Dizayn",
+        "desc": "Hər parça məsuliyyətlə əldə edilmiş materiallardan istehsal olunur."
+      },
+      {
+        "icon": "✏️",
+        "title": "Xüsusi İstehsal",
+        "desc": "Sifarişli konfiqurasiya, parça və bitirmə, sizin zövqünüzə uyğun."
+      },
+      {
+        "icon": "🚚",
+        "title": "Ağ Əlcəkli Çatdırılma",
+        "desc": "Evinizə peşəkar quraşdırma və yerləşdirmə xidməti."
+      },
+      {
+        "icon": "🛡️",
+        "title": "10 İllik Zəmanət",
+        "desc": "Hər parçaya onillik konstruktiv zəmanət verilir."
+      }
+    ]
+  },
+
+  "newsletter": {
+    "title": "İlhamlı Qalın",
+    "subtitle": "Yeni gələnlər, dizayn hekayələri və eksklüziv təkliflər — poçt qutunuzda.",
+    "placeholder": "E-poçt ünvanınız",
+    "cta": "Abunə ol"
+  },
+
+  "cta_banner": {
+    "eyebrow": "Məkanınızı dəyişdirməyə hazırsınız?",
+    "title": "Birlikdə",
+    "title_em": "Gözəl bir şey yaradaq",
+    "subtitle": "Bu gün pulsuz dizayn konsultasiyası sifariş edin.",
+    "btn_primary": "İndi sifariş et",
+    "btn_secondary": "Bizimlə əlaqə"
+  },
+
+  "footer": {
+    "tagline": "Qayğı ilə hazırlanmış mebel,\ngələcəyin evləri üçün dizayn edilib.",
+    "collections": "Kolleksiyalar",
+    "company": "Şirkət",
+    "contact": "Əlaqə",
+    "company_links": ["Haqqımızda", "Sənətkarlıq", "Dayanıqlılıq", "Karyera", "Mətbuat"],
+    "rights": "© 2025 Arvana Furniture Ltd. Bütün hüquqlar qorunur.",
+    "privacy": "Məxfilik Siyasəti",
+    "terms": "İstifadə Şərtləri",
+    "cookies": "Cookie Parametrləri"
+  },
+
+  "common": {
+    "loading": "Yüklənir...",
+    "error": "Xəta baş verdi. Yenidən cəhd edin.",
+    "no_data": "Məlumat tapılmadı.",
+    "back": "Geri",
+    "new_in": "Yeni",
+    "sale": "Endirim",
+    "best_seller": "Ən çox satan",
+    "out_of_stock": "Stokda yoxdur",
+    "add_to_cart": "Səbətə əlavə et",
+    "view_details": "Ətraflı bax"
+  }
+}

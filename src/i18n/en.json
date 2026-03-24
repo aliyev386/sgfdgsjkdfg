@@ -1,0 +1,126 @@
+{
+  "nav": {
+    "collections": "Collections",
+    "shop": "Shop",
+    "story": "Our Story",
+    "contact": "Contact",
+    "search": "Search",
+    "cart": "Cart",
+    "profile": "Profile",
+    "login": "Sign In",
+    "logout": "Sign Out"
+  },
+
+  "hero": {
+    "badge": "New Collection 2025",
+    "cta_primary": "Explore Collection",
+    "cta_secondary": "Our Story"
+  },
+
+  "campaigns": {
+    "title": "Special Offers",
+    "subtitle": "Seasonal discounts",
+    "cta": "View Campaign",
+    "until": "Ends:"
+  },
+
+  "featured_products": {
+    "eyebrow": "Handpicked",
+    "title": "Best",
+    "title_em": "Sellers",
+    "view_all": "View All",
+    "add_to_cart": "Add to Cart",
+    "wishlist": "Wishlist",
+    "tabs": {
+      "all": "All",
+      "sofas": "Sofas",
+      "chairs": "Chairs",
+      "tables": "Tables"
+    }
+  },
+
+  "categories": {
+    "eyebrow": "Shop by Room",
+    "title": "Curated",
+    "title_em": "Collections",
+    "view_all": "View All Rooms",
+    "explore": "Explore Collection"
+  },
+
+  "collections": {
+    "eyebrow": "Featured Collections",
+    "title": "New",
+    "title_em": "Collections",
+    "view_all": "View All",
+    "explore": "Discover"
+  },
+
+  "why_us": {
+    "eyebrow": "The Arvana Promise",
+    "title": "Why Choose",
+    "title_em": "Us",
+    "items": [
+      {
+        "icon": "🌿",
+        "title": "Sustainable Design",
+        "desc": "Every piece crafted from responsibly sourced materials."
+      },
+      {
+        "icon": "✏️",
+        "title": "Custom Craftsmanship",
+        "desc": "Bespoke configurations, fabrics, and finishes tailored to your space."
+      },
+      {
+        "icon": "🚚",
+        "title": "White-Glove Delivery",
+        "desc": "Professional assembly and placement in your home."
+      },
+      {
+        "icon": "🛡️",
+        "title": "10-Year Guarantee",
+        "desc": "Every piece backed by a decade-long structural warranty."
+      }
+    ]
+  },
+
+  "newsletter": {
+    "title": "Stay Inspired",
+    "subtitle": "New arrivals, design stories, and exclusive offers — in your inbox.",
+    "placeholder": "Your email address",
+    "cta": "Subscribe"
+  },
+
+  "cta_banner": {
+    "eyebrow": "Ready to Transform Your Space?",
+    "title": "Let's Create",
+    "title_em": "Something Beautiful",
+    "subtitle": "Book a complimentary design consultation today.",
+    "btn_primary": "Order Now",
+    "btn_secondary": "Contact Us"
+  },
+
+  "footer": {
+    "tagline": "Artisan furniture crafted with care,\ndesigned for the homes of tomorrow.",
+    "collections": "Collections",
+    "company": "Company",
+    "contact": "Contact",
+    "company_links": ["Our Story", "Craftsmanship", "Sustainability", "Careers", "Press"],
+    "rights": "© 2025 Arvana Furniture Ltd. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Settings"
+  },
+
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong. Please try again.",
+    "no_data": "No data found.",
+    "back": "Back",
+    "new_in": "New In",
+    "sale": "Sale",
+    "best_seller": "Best Seller",
+    "out_of_stock": "Out of Stock",
+    "add_to_cart": "Add to Cart",
+    "view_details": "View Details"
+  }
+}
