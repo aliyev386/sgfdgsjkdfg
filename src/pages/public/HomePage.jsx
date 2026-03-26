@@ -31,6 +31,7 @@ import CTABanner from "../../components/home/CtaBanner";
 import NewsletterSection from "../../components/home/Newsletter";
 import useScrollReveal from "../../hooks/useScrollReveal";
 import CampaignsSection from "../../components/home/CampaignsSection";
+import "../../assets/css/HomeCss/HomeMain.css";
 
 // ── Components ────────────────────────────────────────────────
 // import Navbar          from "@/components/common/Navbar";        // App.jsx-də qlobal render olunur
@@ -186,7 +187,6 @@ export default function HomePage() {
 
   return (
     <>
-      <style>{CSS}</style>
       <main className="hp">
 <Navbar/>
         {/* ── 1. HERO SLIDER ──────────────────────────── */}
