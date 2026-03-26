@@ -3,8 +3,6 @@ import {  createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./i18n";
 import { StrictMode } from "react";
 import HomePage from "./pages/public/HomePage.jsx";
-import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
-import ProductDetailPage from "./pages/public/ProductDetailPage.jsx";
 import AdminPanel from "./pages/admin/AdminPage.jsx";
 import './index.css'
 import './App.css'
@@ -23,21 +21,22 @@ const router=createBrowserRouter([{
   path:'/categories',
   children:[{}]
 },
-{
-  element:<CollectionDetailPage/>,
-  path:'/detail',
-  children:[{}]
-},
+// {
+//   element:<CollectionDetailPage/>,
+//   path:'/detail',
+//   children:[{}]
+// },
 {
   element:<CategoryPage/>,
   path:'/furnitures',
   children:[{}]
 },
+// {
+//   element:<ProductDetailPage/>,
+//   path: "/products/:slug",
+//   children:[{}]
+// },
 {
-  element:<ProductDetailPage/>,
-  path: "/products/:slug",
-  children:[{}]
-},{
   element:<AdminPanel/>,
   path: "/admin",
   children:[{}]
