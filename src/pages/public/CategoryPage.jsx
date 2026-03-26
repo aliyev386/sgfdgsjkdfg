@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import categoryApi from "../../api/categoryApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import CategoriesGrid from "../../components/categoriespage/CategoriesGrid";
 
 // ── Neçə kart göstərilsin collapse-dan əvvəl ──────────────────
 const INITIAL_VISIBLE = 8;
@@ -62,10 +63,10 @@ const CSS = `
 
   /* Search */
   .cl-search-wrap { position:relative; flex:1; min-width:200px; max-width:360px; }
-  .cl-search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:14px; color:#A8A8A8; pointer-events:none; }
+  .cl-search-icon img{ width:30px; position:absolute; left:13px;right:90px; padding-right:9px; top:50%; transform:translateY(-50%); font-size:14px; color:#A8A8A8; pointer-events:none; }
   .cl-search      { width:100%; padding:12px 14px 12px 40px; border:1px solid #E5DDD4; font-size:13px; font-family:'DM Sans',sans-serif; color:#1C1C1C; background:#F7F3EE; outline:none; transition:border-color .3s; }
   .cl-search:focus { border-color:#7A9E7E; background:#fff; }
-  .cl-search::placeholder { color:#A8A8A8; }
+  .cl-search::placeholder {color:#A8A8A8; }
   .cl-search-clear { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:16px; color:#A8A8A8; line-height:1; padding:0; transition:color .2s; }
   .cl-search-clear:hover { color:#D4714A; }
 
@@ -98,23 +99,174 @@ const CSS = `
   .cl-reset-link:hover { opacity:.7; }
 
   /* ── CATEGORY GRID ── */
-  .cl-grid        { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+/* Container */
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-  /* ── CATEGORY CARD ── */
-  .cl-card        { position:relative; overflow:hidden; text-decoration:none; background:#EDE7DC; display:block; cursor:pointer; }
-  .cl-card.anim   { animation:clCardIn .5s cubic-bezier(.25,.46,.45,.94) both; }
-  .cl-card-iw     { position:relative; aspect-ratio:3/4; overflow:hidden; }
-  .cl-card-img    { width:100%; height:100%; object-fit:cover; transition:transform .75s cubic-bezier(.25,.46,.45,.94); display:block; }
-  .cl-card:hover .cl-card-img { transform:scale(1.07); }
-  .cl-card-ov     { position:absolute; inset:0; background:linear-gradient(to top, rgba(28,28,28,.68) 0%, rgba(28,28,28,.05) 55%, transparent 100%); transition:opacity .4s; }
-  .cl-card:hover .cl-card-ov { opacity:.9; }
+/* Card Base */
+.cl-card {
+  display: flex;
+  background: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+ min-width:500px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 200px;
+  position: relative;
+}
 
-  /* Card info — always visible */
-  .cl-card-info   { position:absolute; bottom:0; left:0; right:0; padding:24px 20px; }
-  .cl-card-room   { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:rgba(255,255,255,.55); margin-bottom:6px; }
-  .cl-card-name   { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:300; color:#fff; line-height:1.15; margin-bottom:6px; }
-  .cl-card-cnt    { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,.5); }
+.cl-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
 
+/* Animation */
+.cl-card.anim {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideUp 0.5s ease forwards;
+}
+
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Left Colored Strip - Şəkildəki kimi sol tərəfdə rəngli şerit */
+.cl-card::before {
+  content: '';
+  width: 12px;
+  flex-shrink: 0;
+  background: var(--card-color, #f5d5c8);
+}
+.cl-card-iw {
+  flex: 1;
+  
+  display: block; /* flex mərkəzləməni silirik */
+  position: relative;
+  background: #fafafa;
+}
+
+.cl-card-img {
+  width: 100%;      /* eni 100% */
+  object-fit: cover; /* şəkili bütün sahəyə doldur */
+  filter: grayscale(20%);
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+.cl-card:hover .cl-card-img {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* Overlay - hover effekti üçün */
+.cl-card-ov {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cl-card:hover .cl-card-ov {
+  opacity: 1;
+}
+
+/* Card Info - Sağ tərəf mətn */
+.cl-card-info {
+  width: 45%;
+  padding: 30px 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.cl-card-room {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #999;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.cl-card-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+  font-family: 'Georgia', 'Times New Roman', serif; /* Şəkildəki serif stil */
+}
+
+.cl-card-cnt {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 20px 0;
+  font-weight: 400;
+}
+
+/* CTA Button */
+.cl-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  margin-top: auto;
+}
+
+.cl-card-cta-arrow {
+  transition: transform 0.3s ease;
+}
+
+.cl-card:hover .cl-card-cta {
+  color: #333;
+}
+
+.cl-card:hover .cl-card-cta-arrow {
+  transform: translateX(4px);
+}
+
+/* Hər kateqoriya üçün fərqli rənglər - şəkildəki pastel tonlar */
+.cl-card:nth-child(4n+1)::before { --card-color: #f5d5c8; background: #f5d5c8; } /* Chairs - Peach */
+.cl-card:nth-child(4n+2)::before { --card-color: #e8e4dc; background: #e8e4dc; } /* Sofas - Beige */
+.cl-card:nth-child(4n+3)::before { --card-color: #f5e6a3; background: #f5e6a3; } /* Tables - Yellow */
+.cl-card:nth-child(4n+4)::before { --card-color: #f0e0e0; background: #f0e0e0; } /* Drawers - Pink */
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cl-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .cl-card-info {
+    width: 50%;
+    padding: 20px;
+  }
+  
+  .cl-card-name {
+    font-size: 18px;
+  }
+}
   /* Explore CTA — hover-da çıxır */
   .cl-card-cta    { display:inline-flex; align-items:center; gap:7px; font-size:11px; letter-spacing:1.8px; text-transform:uppercase; color:#fff; margin-top:12px; opacity:0; transform:translateY(8px); transition:opacity .3s, transform .3s; }
   .cl-card:hover .cl-card-cta { opacity:1; transform:translateY(0); }
@@ -202,7 +354,7 @@ const PLACEHOLDER_IMGS = [
 // ─────────────────────────────────────────────────────────────
 //  MAIN PAGE
 // ─────────────────────────────────────────────────────────────
-export default function CollectionsPage() {
+export default function CategoriesPage() {
   const { t } = useTranslation();
 
   // ── Data state ────────────────────────────────────────────
@@ -219,24 +371,51 @@ export default function CollectionsPage() {
   const searchRef = useRef(null);
 
   // ── Fetch ─────────────────────────────────────────────────
-  const fetchCategories = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  // const fetchCategories = useCallback(() => {
+  //   setLoading(true);
+  //   setError(null);
 
-    categoryApi.getAll()
-      .then(res => {
-        // Backend: res.data massiv gətirir
-        setAllCategories(res.data || []);
-      })
-      .catch(err => setError(err.userMessage || err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  //   categoryApi.getAll()
+  //     .then(res => {
+  //       // Backend: res.data massiv gətirir
+  //       setAllCategories(res.data || []);
+  //     })
+  //     .catch(err => setError(err.userMessage || err.message))
+  //     .finally(() => setLoading(false));
+  // }, []);
 
-  useEffect(() => {
-    fetchCategories();
-    window.scrollTo({ top: 0 });
-  }, [fetchCategories]);
+  // useEffect(() => {
+  //   fetchCategories();
+  //   window.scrollTo({ top: 0 });
+  // }, [fetchCategories]);
 
+const fetchCategories = useCallback(() => {
+  setLoading(true);
+  setError(null);
+
+  // ── MOCK DATA ──
+  const mockData = [
+    { id: 1, name: "Divan", room_type: "living_room", product_count: 12, description: "Comfortable sofa", image_url: PLACEHOLDER_IMGS[0] },
+    { id: 2, name: "Stol", room_type: "dining", product_count: 8, description: "Dining table", image_url: PLACEHOLDER_IMGS[1] },
+    { id: 3, name: "Çarpayı", room_type: "bedroom", product_count: 15, description: "Cozy bed", image_url: PLACEHOLDER_IMGS[2] },
+    { id: 4, name: "Kreslo", room_type: "living_room", product_count: 5, description: "Soft armchair", image_url: PLACEHOLDER_IMGS[3] },
+    { id: 5, name: "Masa", room_type: "office", product_count: 7, description: "Office desk", image_url: PLACEHOLDER_IMGS[4] },
+    { id: 6, name: "Stul", room_type: "office", product_count: 10, description: "Comfortable chair", image_url: PLACEHOLDER_IMGS[5] },
+    { id: 7, name: "Dolab", room_type: "bedroom", product_count: 9, description: "Wardrobe", image_url: PLACEHOLDER_IMGS[6] },
+    { id: 8, name: "Kitab rəfi", room_type: "kids", product_count: 4, description: "Bookshelf for kids", image_url: PLACEHOLDER_IMGS[7] },
+    { id: 9, name: "Tualet masası", room_type: "bathroom", product_count: 3, description: "Bathroom vanity", image_url: PLACEHOLDER_IMGS[0] },
+  ];
+
+  setTimeout(() => {
+    setAllCategories(mockData);
+    setLoading(false);
+  }, 200);
+
+}, []);
+useEffect(() => {
+  fetchCategories();
+  window.scrollTo({ top: 0 });
+}, [fetchCategories]);
   // ── Tab counts — hər otaqda neçə kateqoriya var ───────────
   const tabCounts = useMemo(() => {
     const counts = { all: allCategories.length };
@@ -344,7 +523,7 @@ export default function CollectionsPage() {
         <div className="cl-toolbar">
           {/* Search */}
           <div className="cl-search-wrap">
-            <span className="cl-search-icon">🔍</span>
+            <span className="cl-search-icon"><img src="/images/search.png" alt="" /></span>
             <input
               ref={searchRef}
               className="cl-search"
@@ -466,78 +645,8 @@ export default function CollectionsPage() {
 
           {/* ── CATEGORY GRID ── */}
           {!loading && !error && visibleCategories.length > 0 && (
-            <>
-              <div className="cl-grid">
-                {visibleCategories.map((cat, i) => (
-                  <Link
-                    key={cat.id}
-                    to={`/furniture-categories/${cat.id}`}
-                    className="cl-card anim"
-                    style={{ animationDelay: `${(i % INITIAL_VISIBLE) * 0.06}s` }}
-                  >
-                    <div className="cl-card-iw">
-                      {/* DB-dən gəlir — şəkil TƏRCÜMƏ OLUNMUR */}
-                      <img
-                        className="cl-card-img"
-                        src={
-                          cat.image ||
-                          cat.cover_image ||
-                          PLACEHOLDER_IMGS[i % PLACEHOLDER_IMGS.length]
-                        }
-                        alt={cat.name}
-                        loading="lazy"
-                      />
-                      <div className="cl-card-ov" />
-                    </div>
-                    <div className="cl-card-info">
-                      {/* Otaq tipi varsa — i18n ilə göstər */}
-                      {cat.room_type && cat.room_type !== "other" && (
-                        <p className="cl-card-room">
-                          {t(`cat_list.rooms.${cat.room_type}`, cat.room_type)}
-                        </p>
-                      )}
-                      {/* DB-dən gəlir — TƏRCÜMƏ OLUNMUR */}
-                      <h3 className="cl-card-name">{cat.name}</h3>
-                      {cat.product_count != null && (
-                        <p className="cl-card-cnt">
-                          {cat.product_count} {t("cat_list.products_count")}
-                        </p>
-                      )}
-                      {/* CTA — i18n */}
-                      <span className="cl-card-cta">
-                        {t("cat_list.explore_btn")}
-                        <span className="cl-card-cta-arrow">→</span>
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* ── SHOW MORE / SHOW LESS ── */}
-              {showToggle && (
-                <div className="cl-toggle-wrap">
-                  <div className="cl-toggle-line" />
-                  <button
-                    className={`cl-toggle-btn${expanded ? " expanded" : ""}`}
-                    onClick={() => setExpanded(prev => !prev)}
-                  >
-                    {/* Icon */}
-                    <span className="cl-toggle-icon">▾</span>
-
-                    {/* Mətn — i18n */}
-                    {expanded
-                      ? t("cat_list.show_less")
-                      : t("cat_list.show_more")}
-
-                    {/* Neçə kateqoriya gizlənib / göstərilib */}
-                    {!expanded && hiddenCount > 0 && (
-                      <span className="cl-toggle-count">+{hiddenCount}</span>
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+            <CategoriesGrid t={t} visibleCategories={visibleCategories} INITIAL_VISIBLE={INITIAL_VISIBLE} PLACEHOLDER_IMGS={PLACEHOLDER_IMGS}/>
+)}
         </div>
 
         <Footer />

@@ -56,11 +56,11 @@ export default function Navbar() {
     <>
       <nav className={`arv-nav${scrolled ? " scrolled" : ""}`}>
 
-        <Link to="/" className="arv-logo">ARV<span>A</span>NA</Link>
+        <Link to="/" className="arv-logo"><span>AMORE</span> MEBEL</Link>
 
         <ul className="arv-nav-links">
           <li><Link to="/collections" className={isActive("/collections")}>{t("nav.collections")}</Link></li>
-          <li><Link to="/shop"        className={isActive("/shop")}>{t("nav.shop")}</Link></li>
+          <li><Link to="/categories"        className={isActive("/shop")}>{t("nav.shop")}</Link></li>
           <li><Link to="/about"       className={isActive("/about")}>{t("nav.story")}</Link></li>
           <li><Link to="/contact"     className={isActive("/contact")}>{t("nav.contact")}</Link></li>
         </ul>
@@ -78,28 +78,21 @@ export default function Navbar() {
               </button>
             ))}
           </div>
-
-          <button
-            className="arv-nav-icon"
-            aria-label={t("nav.search")}
-            onClick={() => navigate("/search")}
-          >🔍</button>
-
           <button
             className="arv-nav-icon"
             aria-label={t("nav.cart")}
             onClick={() => navigate("/cart")}
             style={{ position: "relative" }}
           >
-            🛍
+            <img src="\images\online-shopping (1).png" alt="" />
             {cartCount > 0 && (
               <span className="arv-cart-badge">{cartCount > 99 ? "99+" : cartCount}</span>
             )}
           </button>
 
           {isAuth
-            ? <button className="arv-nav-icon" onClick={() => navigate("/profile")}>👤</button>
-            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>👤</button>
+            ? <button className="arv-nav-icon" onClick={() => navigate("/profile")}><img src="\images\user (1).png"/></button>
+            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>Login</button>
           }
 
           <button className="arv-nav-mobile-toggle">☰</button>

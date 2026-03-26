@@ -1,7 +1,7 @@
 {
   "nav": {
     "collections": "Collections",
-    "shop": "Shop",
+    "shop": "CATEGORIES",
     "story": "Our Story",
     "contact": "Contact",
     "search": "Search",
@@ -56,27 +56,27 @@
   },
 
   "why_us": {
-    "eyebrow": "The Arvana Promise",
+    "eyebrow": "The Amoremebel Promise",
     "title": "Why Choose",
     "title_em": "Us",
     "items": [
       {
-        "icon": "🌿",
+        "icon": "/images/leaves.png",
         "title": "Sustainable Design",
         "desc": "Every piece crafted from responsibly sourced materials."
       },
       {
-        "icon": "✏️",
+        "icon": "/images/hands-wrench.png",
         "title": "Custom Craftsmanship",
         "desc": "Bespoke configurations, fabrics, and finishes tailored to your space."
       },
       {
-        "icon": "🚚",
+        "icon": "/images/delivery.png",
         "title": "White-Glove Delivery",
         "desc": "Professional assembly and placement in your home."
       },
       {
-        "icon": "🛡️",
+        "icon": "/images/shield.png",
         "title": "10-Year Guarantee",
         "desc": "Every piece backed by a decade-long structural warranty."
       }
@@ -105,7 +105,7 @@
     "company": "Company",
     "contact": "Contact",
     "company_links": ["Our Story", "Craftsmanship", "Sustainability", "Careers", "Press"],
-    "rights": "© 2025 Arvana Furniture Ltd. All rights reserved.",
+    "rights": "© 2025 Amoremebel Furniture Ltd. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "cookies": "Cookie Settings"

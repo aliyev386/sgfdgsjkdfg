@@ -1,7 +1,7 @@
   .hp-why-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:40px }
   .hp-why-card { text-align:center;padding:48px 28px;border:1px solid #E5DDD4;transition:border-color .4s,transform .4s,box-shadow .4s }
   .hp-why-card:hover { border-color:#C8DBC9;transform:translateY(-6px);box-shadow:0 20px 48px rgba(122,158,126,.12) }
-  .hp-why-ic   { width:56px;height:56px;border-radius:50%;background:#F7F3EE;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:24px;transition:background .4s,transform .4s }
+  .hp-why-ic img{width: 45px;}
   .hp-why-card:hover .hp-why-ic { background:#7A9E7E;transform:scale(1.1) rotate(-5deg) }
   .hp-why-t    { font-family:'Cormorant Garamond',serif;font-size:20px;color:#1C1C1C;margin-bottom:12px }
   .hp-why-d    { font-size:13px;color:#6B6B6B;line-height:1.75 }

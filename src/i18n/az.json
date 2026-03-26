@@ -1,7 +1,7 @@
 {
   "nav": {
     "collections": "Kolleksiyalar",
-    "shop": "Mağaza",
+    "shop": "KATEQORİYALAR",
     "story": "Haqqımızda",
     "contact": "Əlaqə",
     "search": "Axtar",
@@ -56,27 +56,27 @@
   },
 
   "why_us": {
-    "eyebrow": "Arvana Zəmanəti",
+    "eyebrow": "Amoremebel Zəmanəti",
     "title": "Niyə bizi",
     "title_em": "seçirsiniz?",
     "items": [
       {
-        "icon": "🌿",
+        "icon": "/images/leaves.png",
         "title": "Dayanıqlı Dizayn",
         "desc": "Hər parça məsuliyyətlə əldə edilmiş materiallardan istehsal olunur."
       },
       {
-        "icon": "✏️",
+        "icon": "/images/hands-wrench.png",
         "title": "Xüsusi İstehsal",
         "desc": "Sifarişli konfiqurasiya, parça və bitirmə, sizin zövqünüzə uyğun."
       },
       {
-        "icon": "🚚",
+        "icon": "/images/delivery.png",
         "title": "Ağ Əlcəkli Çatdırılma",
         "desc": "Evinizə peşəkar quraşdırma və yerləşdirmə xidməti."
       },
       {
-        "icon": "🛡️",
+        "icon": "/images/shield.png",
         "title": "10 İllik Zəmanət",
         "desc": "Hər parçaya onillik konstruktiv zəmanət verilir."
       }
@@ -105,7 +105,7 @@
     "company": "Şirkət",
     "contact": "Əlaqə",
     "company_links": ["Haqqımızda", "Sənətkarlıq", "Dayanıqlılıq", "Karyera", "Mətbuat"],
-    "rights": "© 2025 Arvana Furniture Ltd. Bütün hüquqlar qorunur.",
+    "rights": "© 2025 Amoremebel Furniture Ltd. Bütün hüquqlar qorunur.",
     "privacy": "Məxfilik Siyasəti",
     "terms": "İstifadə Şərtləri",
     "cookies": "Cookie Parametrləri"

@@ -2,7 +2,6 @@
 import "../../assets/css/HomeCss/WhyUs.css";
 
 export default function WhyUsSection({ t }) {
-  // returnObjects: true — JSON array-i birbaşa qaytarır
   const items = t("why_us.items", { returnObjects: true });
 
   return (
@@ -17,7 +16,7 @@ export default function WhyUsSection({ t }) {
       <div className="hp-why-grid">
         {Array.isArray(items) && items.map((item, i) => (
           <div key={i} className="hp-why-card">
-            <div className="hp-why-ic">{item.icon}</div>
+            <div className="hp-why-ic"><img src={item.icon} alt="" /></div>
             <h3 className="hp-why-t">{item.title}</h3>
             <p className="hp-why-d">{item.desc}</p>
           </div>
