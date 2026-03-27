@@ -1,9 +1,0 @@
-  .hp-cta      { background:#7A9E7E;padding:100px 60px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden }
-  .hp-cta::before { content:'';position:absolute;top:-80px;right:-80px;width:380px;height:380px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none }
-  .hp-cta::after  { content:'';position:absolute;bottom:-120px;left:20%;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none }
-  .hp-cta-ey   { font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:16px }
-  .hp-cta-h    { font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,58px);font-weight:300;color:#fff;line-height:1.1 }
-  .hp-cta-h em { font-style:italic }
-  .hp-cta-sub  { font-size:15px;color:rgba(255,255,255,.72);margin-top:16px }
-  .hp-cta-acts { display:flex;gap:16px;flex-wrap:wrap;position:relative;z-index:1 }
-  .hp-cta-t    { position:relative;z-index:1 }

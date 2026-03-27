@@ -1,7 +1,6 @@
 // src/components/home/FeaturedProducts.jsx
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/FeaturedProducts.css";
 
 const BADGE_COLORS = {
   best_seller: "#D4714A",

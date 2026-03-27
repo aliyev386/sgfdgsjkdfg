@@ -10,20 +10,17 @@
     "login": "Sign In",
     "logout": "Sign Out"
   },
-
   "hero": {
     "badge": "New Collection 2025",
     "cta_primary": "Explore Collection",
     "cta_secondary": "Our Story"
   },
-
   "campaigns": {
     "title": "Special Offers",
     "subtitle": "Seasonal discounts",
     "cta": "View Campaign",
     "until": "Ends:"
   },
-
   "featured_products": {
     "eyebrow": "Handpicked",
     "title": "Best",
@@ -38,7 +35,6 @@
       "tables": "Tables"
     }
   },
-
   "categories": {
     "eyebrow": "Shop by Room",
     "title": "Curated",
@@ -46,7 +42,6 @@
     "view_all": "View All Rooms",
     "explore": "Explore Collection"
   },
-
   "collections": {
     "eyebrow": "Featured Collections",
     "title": "New",
@@ -54,7 +49,6 @@
     "view_all": "View All",
     "explore": "Discover"
   },
-
   "why_us": {
     "eyebrow": "The Amoremebel Promise",
     "title": "Why Choose",
@@ -82,14 +76,12 @@
       }
     ]
   },
-
   "newsletter": {
     "title": "Stay Inspired",
     "subtitle": "New arrivals, design stories, and exclusive offers — in your inbox.",
     "placeholder": "Your email address",
     "cta": "Subscribe"
   },
-
   "cta_banner": {
     "eyebrow": "Ready to Transform Your Space?",
     "title": "Let's Create",
@@ -98,19 +90,23 @@
     "btn_primary": "Order Now",
     "btn_secondary": "Contact Us"
   },
-
   "footer": {
     "tagline": "Artisan furniture crafted with care,\ndesigned for the homes of tomorrow.",
     "collections": "Collections",
     "company": "Company",
     "contact": "Contact",
-    "company_links": ["Our Story", "Craftsmanship", "Sustainability", "Careers", "Press"],
+    "company_links": [
+      "Our Story",
+      "Craftsmanship",
+      "Sustainability",
+      "Careers",
+      "Press"
+    ],
     "rights": "© 2025 Amoremebel Furniture Ltd. All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "cookies": "Cookie Settings"
   },
-
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong. Please try again.",
@@ -123,7 +119,7 @@
     "add_to_cart": "Add to Cart",
     "view_details": "View Details"
   },
-    "category_page": {
+  "category_page": {
     "products_found": "products found",
     "no_products": "No products found in this category.",
     "no_products_hint": "Try resetting the filters.",
@@ -156,8 +152,9 @@
     "all_collections": "All Collections",
     "collection_products": "Collection Products",
     "no_products": "No products in this collection yet."
-  },  "cat_list": {
-    "page_title": "Collections",
+  },
+  "cat_list": {
+    "page_title": "Categories",
     "page_subtitle": "Find furniture that matches your style",
     "search_placeholder": "Search categories...",
     "all_rooms": "All rooms",
@@ -175,16 +172,185 @@
     "sort_products": "By product count",
     "total_categories": "categories",
     "rooms": {
-      "all":         "All",
+      "all": "All",
       "living_room": "Living Room",
-      "bedroom":     "Bedroom",
-      "kitchen":     "Kitchen",
-      "office":      "Home Office",
-      "dining":      "Dining Room",
-      "outdoor":     "Outdoor",
-      "kids":        "Kids Room",
-      "hallway":     "Hallway",
-      "bathroom":    "Bathroom"
+      "bedroom": "Bedroom",
+      "kitchen": "Kitchen",
+      "office": "Home Office",
+      "dining": "Dining Room",
+      "outdoor": "Outdoor",
+      "kids": "Kids Room",
+      "hallway": "Hallway",
+      "bathroom": "Bathroom"
     }
+  },
+  "fcp": {
+    "filter_title": "Filters",
+    "clear_all": "Clear All",
+    "price_range": "Price Range",
+    "price_min": "Min",
+    "price_max": "Max",
+    "availability": "Availability",
+    "in_stock_only": "In Stock Only",
+    "colors": "Color",
+    "materials": "Material",
+    "brand": "Brand",
+    "style": "Style",
+    "min_rating": "Minimum Rating",
+    "and_above": "& above",
+    "apply_filters": "Apply Filters",
+    "sort_label": "Sort by",
+    "sort_featured": "Featured",
+    "sort_price_asc": "Price: Low to High",
+    "sort_price_desc": "Price: High to Low",
+    "sort_newest": "Newest First",
+    "sort_popular": "Most Popular",
+    "sort_rating": "Top Rated",
+    "showing": "Showing",
+    "of": "of",
+    "products": "products",
+    "view_details": "View Details",
+    "add_to_cart": "Add to Cart",
+    "added_to_cart": "added to cart",
+    "home": "Home",
+    "categories": "Categories"
+  },
+  "cart": {
+    "title": "My Cart",
+    "empty_title": "Your cart is empty",
+    "empty_desc": "You haven't added any items yet. Explore our collections.",
+    "go_shopping": "Start Shopping",
+    "items": "items",
+    "item": "item",
+    "remove": "Remove",
+    "clear_cart": "Clear Cart",
+    "quantity": "Qty",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "shipping_free": "Free",
+    "shipping_calc": "Calculated at checkout",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continue_shopping": "Continue Shopping",
+    "loading": "Loading cart...",
+    "error": "Failed to load cart.",
+    "update_error": "Failed to update quantity.",
+    "remove_error": "Failed to remove item.",
+    "order_summary": "Order Summary",
+    "free_shipping_msg": "Free shipping on orders over ₼500",
+    "added": "Added",
+    "out_of_stock": "Out of Stock",
+    "price_each": "each",
+    "checkout_title": "Checkout",
+    "delivery_info": "Delivery Information",
+    "full_name": "Full Name",
+    "full_name_ph": "Your Name",
+    "phone": "Phone",
+    "phone_ph": "+994 50 000 00 00",
+    "city": "City",
+    "city_ph": "Baku",
+    "address": "Address",
+    "address_ph": "Street, house, apartment...",
+    "payment_method": "Payment Method",
+    "pay_cash": "Cash",
+    "pay_credit": "Installment",
+    "cash_desc": "Pay cash on delivery",
+    "credit_desc": "Pay monthly in installments",
+    "select_bank": "Select Bank",
+    "installment_period": "Period",
+    "months": "months",
+    "monthly_payment": "Monthly Payment",
+    "total_credit": "Total with Credit",
+    "interest_rate": "Interest Rate",
+    "place_order": "Place Order",
+    "order_placed": "Order Placed!",
+    "order_placed_desc": "We will contact you shortly.",
+    "back": "Back",
+    "required": "Required",
+    "name_required": "Full name is required",
+    "phone_required": "Phone is required",
+    "address_required": "Address is required",
+    "bank_required": "Please select a bank",
+    "step_delivery": "Delivery",
+    "step_payment": "Payment",
+    "step_confirm": "Confirm",
+    "confirm_order": "Order Details",
+    "agree_terms": "I agree to the terms",
+    "processing": "Processing..."
+  },  "pdp": {
+    "home": "Home",
+    "categories": "Categories",
+    "zoom": "Zoom",
+    "tab_description": "Description",
+    "tab_specs": "Dimensions & Specs",
+    "tab_reviews": "Reviews",
+    "reviews": "reviews",
+    "save": "Save",
+    "inc_vat": "Inc. VAT · Free delivery on all orders",
+    "in_stock": "In Stock",
+    "left": "left",
+    "color": "Color",
+    "size": "Size",
+    "select": "Select",
+    "buy_now": "Buy Now",
+    "add_to_cart": "Add to Cart",
+    "added": "Added",
+    "added_to_cart": "added to cart",
+    "save_wishlist": "Save to Wishlist",
+    "saved": "Saved to Wishlist",
+    "share": "Share",
+    "perk_delivery_title": "Free white-glove delivery",
+    "perk_delivery_desc": "Professional assembly included",
+    "perk_guarantee_title": "10-year guarantee",
+    "perk_guarantee_desc": "Structural warranty",
+    "perk_returns_title": "30-day returns",
+    "perk_returns_desc": "Hassle-free returns",
+    "explore_more_pre": "You May Also",
+    "explore_more_em": "Like",
+    "see_all": "View All",
+    "view_product": "View Product",
+    "based_on": "Based on"
+  } ,
+   "rooms_page": {
+    "eyebrow": "Shop by Room",
+    "title_pre": "Design Your",
+    "title_em": "Space",
+    "subtitle": "Curated collections for every room in your home — find furniture that fits your life.",
+    "stat_label": "room types",
+    "collections": "collections",
+    "shop_room": "Shop Room",
+    "explore_room": "Explore",
+    "banner_eyebrow": "Designed for you",
+    "banner_title": "Perfect Furniture",
+    "banner_title_em": "For Every Room",
+    "banner_btn_p": "Shop All Products",
+    "banner_btn_s": "Contact Us"
+  },
+  "rooms_coll": {
+    "collections_for": "Collections for",
+    "collections": "collections",
+    "section_title_pre": "Collections for",
+    "view_collection": "View Collection",
+    "explore": "Explore",
+    "no_collections": "No collections found for this room",
+    "no_collections_hint": "Check out other room types",
+    "back_to_rooms": "Back to All Rooms"
+  },
+  "cdp": {
+    "collection": "Collection",
+    "shop_collection": "Shop This Collection",
+    "gallery": "Photo Gallery",
+    "photos": "photos",
+    "more_photos": "more photos",
+    "about_pre": "About",
+    "meta_room": "Room",
+    "meta_designer": "Designer",
+    "meta_year": "Year",
+    "meta_pieces": "Pieces",
+    "meta_availability": "Availability",
+    "meta_available": "In stock & available",
+    "products_in": "Products in This",
+    "collection_short": "Collection"
   }
 }
+

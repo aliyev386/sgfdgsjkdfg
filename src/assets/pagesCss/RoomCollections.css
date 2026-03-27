@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap');
+
+@keyframes rcpFadeUp  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:none} }
+@keyframes rcpCardIn  { from{opacity:0;transform:translateY(16px) scale(.98)} to{opacity:1;transform:none} }
+@keyframes rcpHeroIn  { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+@keyframes rcpShimmer { 0%,100%{opacity:1} 50%{opacity:.38} }
+@keyframes rcpPulse   { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.02)} }
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#f8f6f3}
+::-webkit-scrollbar-thumb{background:#c4b49a;border-radius:10px}
+::selection{background:#b5cdb8;color:#1a1a1a}
+img{display:block}
+
+.rcp-page{font-family:'Outfit',sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh}
+
+/* HERO */
+.rcp-hero{position:relative;height:460px;overflow:hidden;margin-top:72px;display:flex;align-items:flex-end}
+.rcp-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;transform:scale(1.05);transition:transform 1.4s cubic-bezier(.25,.46,.45,.94);filter:brightness(.72)}
+.rcp-hero.loaded .rcp-hero-bg{transform:scale(1)}
+.rcp-hero-ov{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,10,10,.82) 0%,rgba(10,10,10,.2) 55%,transparent 100%)}
+.rcp-hero-content{position:relative;z-index:2;padding:0 72px 60px;width:100%;animation:rcpHeroIn .9s cubic-bezier(.25,.46,.45,.94) both}
+
+/* Breadcrumb */
+.rcp-breadcrumb{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.rcp-breadcrumb a{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.42);text-decoration:none;font-weight:400;transition:color .25s}
+.rcp-breadcrumb a:hover{color:rgba(255,255,255,.85)}
+.rcp-bc-sep{color:rgba(255,255,255,.2);font-size:12px}
+.rcp-bc-cur{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.65)}
+
+.rcp-hero-tag{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;margin-bottom:14px;display:block;animation:rcpHeroIn .9s .1s both}
+.rcp-hero-title{font-family:'Playfair Display',serif;font-size:clamp(52px,7.5vw,100px);font-weight:500;color:#fff;line-height:.9;letter-spacing:-2px;animation:rcpHeroIn .9s .05s both}
+.rcp-hero-title em{font-style:italic}
+
+.rcp-hero-stats{position:absolute;bottom:60px;right:72px;z-index:2;text-align:right;animation:rcpHeroIn .9s .2s both}
+.rcp-hero-stat-n{font-family:'Playfair Display',serif;font-size:60px;font-weight:400;color:rgba(255,255,255,.9);line-height:1;display:block}
+.rcp-hero-stat-l{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.32)}
+
+/* ROOMS NAV (other rooms quick links) */
+.rcp-rooms-nav{background:#fff;border-bottom:1px solid #ede8e0;position:sticky;top:72px;z-index:50}
+.rcp-rooms-nav-inner{max-width:1400px;margin:0 auto;padding:0 60px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.rcp-rooms-nav-inner::-webkit-scrollbar{display:none}
+.rcp-room-tab{padding:16px 20px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:600;font-family:'Outfit',sans-serif;background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;color:#8a8279;transition:color .25s,border-color .25s;text-decoration:none;display:block;margin-bottom:-1px}
+.rcp-room-tab:hover{color:#1a1a1a}
+.rcp-room-tab.active{color:#1a1a1a;border-bottom-color:var(--accent,#7a9e7e)}
+
+/* MAIN */
+.rcp-main{max-width:1400px;margin:0 auto;padding:52px 60px 80px}
+
+/* Section header */
+.rcp-section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;gap:20px;flex-wrap:wrap}
+.rcp-section-title{font-family:'Playfair Display',serif;font-size:clamp(28px,3.5vw,44px);font-weight:500;color:#1a1a1a;line-height:1;letter-spacing:-.5px}
+.rcp-section-title em{font-style:italic;color:var(--accent,#7a9e7e)}
+.rcp-section-count{font-size:13px;color:#a8a09a;font-weight:400}
+
+/* GRID */
+.rcp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+
+/* CARD */
+.rcp-card{background:#fff;border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid #f0ebe2;transition:transform .4s cubic-bezier(.25,.46,.45,.94),box-shadow .4s;animation:rcpCardIn .55s cubic-bezier(.25,.46,.45,.94) both}
+.rcp-card:hover{transform:translateY(-8px);box-shadow:0 28px 64px rgba(26,26,26,.11)}
+.rcp-card-img-box{position:relative;overflow:hidden;aspect-ratio:16/10;background:#f4f1ec}
+.rcp-card-img{width:100%;height:100%;object-fit:cover;transition:transform .75s cubic-bezier(.25,.46,.45,.94)}
+.rcp-card:hover .rcp-card-img{transform:scale(1.08)}
+.rcp-badge{position:absolute;top:12px;left:12px;color:#fff;font-size:9px;letter-spacing:1.8px;text-transform:uppercase;padding:5px 12px;border-radius:22px;font-weight:700;z-index:2}
+.rcp-card-hover{position:absolute;inset:0;background:rgba(10,10,10,.68);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .35s cubic-bezier(.25,.46,.45,.94)}
+.rcp-card:hover .rcp-card-hover{opacity:1}
+.rcp-hover-inner{display:flex;align-items:center;gap:10px;padding:13px 22px;border:1.5px solid rgba(255,255,255,.55);border-radius:12px;background:rgba(255,255,255,.1);backdrop-filter:blur(6px);transition:background .25s}
+.rcp-hover-inner:hover{background:rgba(255,255,255,.2)}
+.rcp-hover-label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#fff;font-weight:600}
+.rcp-hover-arrow{color:#fff;font-size:16px}
+
+.rcp-card-body{padding:18px 20px 22px}
+.rcp-card-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:500;color:#1a1a1a;margin-bottom:8px;line-height:1.25;transition:color .3s}
+.rcp-card:hover .rcp-card-name{color:var(--accent,#7a9e7e)}
+.rcp-card-desc{font-size:13px;color:#7a7269;line-height:1.6;margin-bottom:16px}
+.rcp-card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rcp-pieces{font-size:13px;color:#a8a09a}
+.rcp-pieces-n{font-size:18px;font-weight:700;color:#1a1a1a;font-family:'Playfair Display',serif}
+.rcp-explore-btn{padding:9px 18px;background:transparent;border:1.5px solid var(--accent,#7a9e7e);border-radius:22px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent,#7a9e7e);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;transition:all .3s}
+.rcp-explore-btn:hover{background:var(--accent,#7a9e7e);color:#fff;transform:translateY(-1px)}
+
+/* SKELETON */
+.rcp-sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.rcp-sk-card{border-radius:20px;overflow:hidden;background:#fff;border:1px solid #f0ebe2}
+.rcp-sk-img{aspect-ratio:16/10;background:#f0ebe2;animation:rcpShimmer 1.6s ease-in-out infinite}
+.rcp-sk-line{height:14px;background:#f0ebe2;border-radius:8px;margin:14px 18px 0;animation:rcpShimmer 1.6s ease-in-out infinite}
+.rcp-sk-line.sm{width:50%;margin-top:8px}
+
+/* EMPTY */
+.rcp-empty{padding:80px 0;text-align:center}
+.rcp-empty-ic{font-size:54px;opacity:.25;display:block;margin-bottom:18px}
+.rcp-empty-t{font-family:'Playfair Display',serif;font-size:28px;font-weight:500;margin-bottom:10px}
+.rcp-empty-s{font-size:14px;color:#7a7269;margin-bottom:28px}
+.rcp-empty-btn{display:inline-flex;align-items:center;gap:8px;background:#1a1a1a;color:#fff;padding:13px 30px;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:14px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;text-decoration:none;transition:background .3s,transform .2s}
+.rcp-empty-btn:hover{background:#7a9e7e;transform:translateY(-2px)}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.rcp-grid,.rcp-sk-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  .rcp-hero-content{padding:0 40px 48px}
+  .rcp-hero-stats{right:40px;bottom:48px}
+  .rcp-main{padding:40px 40px 72px}
+  .rcp-rooms-nav-inner{padding:0 40px}
+}
+@media(max-width:640px){
+  .rcp-hero{height:380px}
+  .rcp-hero-content{padding:0 24px 40px}
+  .rcp-hero-stats{right:24px;bottom:40px}
+  .rcp-grid,.rcp-sk-grid{grid-template-columns:1fr}
+  .rcp-main{padding:32px 20px 60px}
+  .rcp-rooms-nav-inner{padding:0 20px}
+}

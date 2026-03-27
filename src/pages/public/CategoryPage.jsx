@@ -19,13 +19,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import categoryApi from "../../api/categoryApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import CategoriesGrid from "../../components/categoriespage/CategoriesGrid";
-import "../../assets/css/CategoryPageCss/CategoryPage.css";
+import "../../assets/PagesCss/CategoryPage.css";
 
 // ── Neçə kart göstərilsin collapse-dan əvvəl ──────────────────
 const INITIAL_VISIBLE = 5;

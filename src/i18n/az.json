@@ -10,20 +10,17 @@
     "login": "Daxil ol",
     "logout": "Çıxış"
   },
-
   "hero": {
     "badge": "Yeni Kolleksiya 2025",
     "cta_primary": "Kolleksiyaya bax",
     "cta_secondary": "Haqqımızda"
   },
-
   "campaigns": {
     "title": "Xüsusi Təkliflər",
     "subtitle": "Mövsümi endirimlər",
     "cta": "Kampaniyaya bax",
     "until": "Bitiş:"
   },
-
   "featured_products": {
     "eyebrow": "Əl ilə seçilmiş",
     "title": "Ən çox",
@@ -38,7 +35,6 @@
       "tables": "Masalar"
     }
   },
-
   "categories": {
     "eyebrow": "Otağa görə seç",
     "title": "Seçilmiş",
@@ -46,7 +42,6 @@
     "view_all": "Bütün otaqlara bax",
     "explore": "Kolleksiyaya bax"
   },
-
   "collections": {
     "eyebrow": "Seçilmiş kolleksiyalar",
     "title": "Yeni",
@@ -54,7 +49,6 @@
     "view_all": "Hamısına bax",
     "explore": "Kəşf et"
   },
-
   "why_us": {
     "eyebrow": "Amoremebel Zəmanəti",
     "title": "Niyə bizi",
@@ -82,14 +76,12 @@
       }
     ]
   },
-
   "newsletter": {
     "title": "İlhamlı Qalın",
     "subtitle": "Yeni gələnlər, dizayn hekayələri və eksklüziv təkliflər — poçt qutunuzda.",
     "placeholder": "E-poçt ünvanınız",
     "cta": "Abunə ol"
   },
-
   "cta_banner": {
     "eyebrow": "Məkanınızı dəyişdirməyə hazırsınız?",
     "title": "Birlikdə",
@@ -98,19 +90,23 @@
     "btn_primary": "İndi sifariş et",
     "btn_secondary": "Bizimlə əlaqə"
   },
-
   "footer": {
     "tagline": "Qayğı ilə hazırlanmış mebel,\ngələcəyin evləri üçün dizayn edilib.",
     "collections": "Kolleksiyalar",
     "company": "Şirkət",
     "contact": "Əlaqə",
-    "company_links": ["Haqqımızda", "Sənətkarlıq", "Dayanıqlılıq", "Karyera", "Mətbuat"],
+    "company_links": [
+      "Haqqımızda",
+      "Sənətkarlıq",
+      "Dayanıqlılıq",
+      "Karyera",
+      "Mətbuat"
+    ],
     "rights": "© 2025 Amoremebel Furniture Ltd. Bütün hüquqlar qorunur.",
     "privacy": "Məxfilik Siyasəti",
     "terms": "İstifadə Şərtləri",
     "cookies": "Cookie Parametrləri"
   },
-
   "common": {
     "loading": "Yüklənir...",
     "error": "Xəta baş verdi. Yenidən cəhd edin.",
@@ -123,7 +119,7 @@
     "add_to_cart": "Səbətə əlavə et",
     "view_details": "Ətraflı bax"
   },
-    "category_page": {
+  "category_page": {
     "products_found": "məhsul tapıldı",
     "no_products": "Bu kateqoriyada məhsul tapılmadı.",
     "no_products_hint": "Filtrləri sıfırlayıb yenidən cəhd edin.",
@@ -156,7 +152,8 @@
     "all_collections": "Bütün kolleksiyalar",
     "collection_products": "Kolleksiya məhsulları",
     "no_products": "Bu kolleksiyada hələ məhsul yoxdur."
-  },  "cat_list": {
+  },
+  "cat_list": {
     "page_title": "Kolleksiyalar",
     "page_subtitle": "Zövqünüzə uyğun mebel seçin",
     "search_placeholder": "Kateqoriya axtar...",
@@ -175,17 +172,185 @@
     "sort_products": "Məhsul sayına görə",
     "total_categories": "kateqoriya",
     "rooms": {
-      "all":         "Hamısı",
+      "all": "Hamısı",
       "living_room": "Qonaq otağı",
-      "bedroom":     "Yataq otağı",
-      "kitchen":     "Mətbəx",
-      "office":      "İş otağı",
-      "dining":      "Yemək otağı",
-      "outdoor":     "Açıq hava",
-      "kids":        "Uşaq otağı",
-      "hallway":     "Dəhliz",
-      "bathroom":    "Vanna otağı"
+      "bedroom": "Yataq otağı",
+      "kitchen": "Mətbəx",
+      "office": "İş otağı",
+      "dining": "Yemək otağı",
+      "outdoor": "Açıq hava",
+      "kids": "Uşaq otağı",
+      "hallway": "Dəhliz",
+      "bathroom": "Vanna otağı"
     }
+  },
+  "fcp": {
+    "filter_title": "Filtrlər",
+    "clear_all": "Hamısını sil",
+    "price_range": "Qiymət aralığı",
+    "price_min": "Min",
+    "price_max": "Maks",
+    "availability": "Mövcudluq",
+    "in_stock_only": "Yalnız stokda olanlar",
+    "colors": "Rənglər",
+    "materials": "Materiallar",
+    "brand": "Brend",
+    "style": "Stil",
+    "min_rating": "Minimum reytinq",
+    "and_above": "və yuxarı",
+    "apply_filters": "Filtrlər tətbiq et",
+    "sort_label": "Sırala",
+    "sort_featured": "Seçilmiş",
+    "sort_price_asc": "Qiymət: Artanla",
+    "sort_price_desc": "Qiymət: Azalanla",
+    "sort_newest": "Ən yeni",
+    "sort_popular": "Ən populyar",
+    "sort_rating": "Ən yüksək reytinq",
+    "showing": "Göstərilir",
+    "of": "/",
+    "products": "məhsul",
+    "view_details": "Ətraflı bax",
+    "add_to_cart": "Səbətə əlavə et",
+    "added_to_cart": "səbətə əlavə edildi",
+    "home": "Ana Səhifə",
+    "categories": "Kateqoriyalar"
+  },
+  "cart": {
+    "title": "Səbətim",
+    "empty_title": "Səbətiniz boşdur",
+    "empty_desc": "Hələ heç bir məhsul əlavə etməmisiniz. Kolleksiyalarımızı kəşf edin.",
+    "go_shopping": "Alış-verişə başla",
+    "items": "məhsul",
+    "item": "məhsul",
+    "remove": "Sil",
+    "clear_cart": "Səbəti təmizlə",
+    "quantity": "Say",
+    "subtotal": "Aralıq cəm",
+    "shipping": "Çatdırılma",
+    "shipping_free": "Pulsuz",
+    "shipping_calc": "Hesablanır",
+    "total": "Ümumi cəm",
+    "checkout": "Sifarişi tamamla",
+    "continue_shopping": "Alış-verişə davam et",
+    "loading": "Səbət yüklənir...",
+    "error": "Səbət yüklənərkən xəta baş verdi.",
+    "update_error": "Kəmiyyət yenilənərkən xəta baş verdi.",
+    "remove_error": "Məhsul silinərkən xəta baş verdi.",
+    "order_summary": "Sifariş xülasəsi",
+    "free_shipping_msg": "₼500 üzərindən pulsuz çatdırılma",
+    "added": "Əlavə edildi",
+    "out_of_stock": "Stokda yoxdur",
+    "price_each": "vahid",
+    "checkout_title": "Sifarişi tamamla",
+    "delivery_info": "Çatdırılma məlumatları",
+    "full_name": "Ad Soyad",
+    "full_name_ph": "Adınız Soyadınız",
+    "phone": "Telefon",
+    "phone_ph": "+994 50 000 00 00",
+    "city": "Şəhər",
+    "city_ph": "Bakı",
+    "address": "Ünvan",
+    "address_ph": "Küçə, ev, mənzil...",
+    "payment_method": "Ödəniş üsulu",
+    "pay_cash": "Nağd",
+    "pay_credit": "Kreditlə",
+    "cash_desc": "Çatdırılma zamanı nağd ödəyin",
+    "credit_desc": "Aylıq hissə-hissə ödəyin",
+    "select_bank": "Bank seçin",
+    "installment_period": "Müddət",
+    "months": "ay",
+    "monthly_payment": "Aylıq ödəniş",
+    "total_credit": "Kredit üzrə cəm",
+    "interest_rate": "Faiz",
+    "place_order": "Sifarişi ver",
+    "order_placed": "Sifarişiniz qəbul edildi!",
+    "order_placed_desc": "Tezliklə sizinlə əlaqə saxlayacağıq.",
+    "back": "Geri",
+    "required": "Tələb olunur",
+    "name_required": "Ad Soyad tələb olunur",
+    "phone_required": "Telefon tələb olunur",
+    "address_required": "Ünvan tələb olunur",
+    "bank_required": "Bank seçin",
+    "step_delivery": "Çatdırılma",
+    "step_payment": "Ödəniş",
+    "step_confirm": "Təsdiq",
+    "confirm_order": "Sifariş təfsilatları",
+    "agree_terms": "Şərtləri qəbul edirəm",
+    "processing": "İşlənir..."
+  },  "pdp": {
+    "home": "Ana Səhifə",
+    "categories": "Kateqoriyalar",
+    "zoom": "Böyüt",
+    "tab_description": "Haqqında",
+    "tab_specs": "Ölçülər & Xüsusiyyətlər",
+    "tab_reviews": "Rəylər",
+    "reviews": "rəy",
+    "save": "Qənaət",
+    "inc_vat": "ƏDV daxil · Bütün sifarişlərə pulsuz çatdırılma",
+    "in_stock": "Stokda var",
+    "left": "ədəd qalıb",
+    "color": "Rəng",
+    "size": "Ölçü",
+    "select": "Seçin",
+    "buy_now": "İndi Al",
+    "add_to_cart": "Səbətə Əlavə Et",
+    "added": "Əlavə edildi",
+    "added_to_cart": "səbətə əlavə edildi",
+    "save_wishlist": "Saxla",
+    "saved": "Saxlanıldı",
+    "share": "Paylaş",
+    "perk_delivery_title": "Pulsuz çatdırılma",
+    "perk_delivery_desc": "Peşəkar quraşdırma ilə",
+    "perk_guarantee_title": "10 il zəmanət",
+    "perk_guarantee_desc": "Konstruktiv zəmanət",
+    "perk_returns_title": "30 günlük qaytarma",
+    "perk_returns_desc": "Asanlıqla qaytarın",
+    "explore_more_pre": "Daha çox",
+    "explore_more_em": "kəşf edin",
+    "see_all": "Hamısına bax",
+    "view_product": "Məhsula bax",
+    "based_on": "Əsasında"
+  },
+    "rooms_page": {
+    "eyebrow": "Otaqlar",
+    "title_pre": "Otağınızı",
+    "title_em": "Dizayn Edin",
+    "subtitle": "Hər otaq üçün xüsusi hazırlanmış mebel kolleksiyaları — zövqünüzə uyğun seçin.",
+    "stat_label": "otaq növü",
+    "collections": "kolleksiya",
+    "shop_room": "Kateqoriyaya bax",
+    "explore_room": "Kəşf et",
+    "banner_eyebrow": "Sizin üçün seçilmiş",
+    "banner_title": "Hər otaq üçün",
+    "banner_title_em": "Mükəmməl Mebel",
+    "banner_btn_p": "Bütün məhsullar",
+    "banner_btn_s": "Bizimlə əlaqə"
+  },
+    "rooms_coll": {
+    "collections_for": "Kolleksiyalar",
+    "collections": "kolleksiya",
+    "section_title_pre": "Kolleksiyalar —",
+    "view_collection": "Kolleksiyaya bax",
+    "explore": "Kəşf et",
+    "no_collections": "Bu otaq üçün kolleksiya tapılmadı",
+    "no_collections_hint": "Digər otaqları yoxlayın",
+    "back_to_rooms": "Bütün otaqlara qayıt"
+  },
+  "cdp": {
+    "collection": "Kolleksiya",
+    "shop_collection": "Kolleksiyaya bax",
+    "gallery": "Foto Qalereyası",
+    "photos": "foto",
+    "more_photos": "daha çox foto",
+    "about_pre": "Haqqında —",
+    "meta_room": "Otaq",
+    "meta_designer": "Dizayner",
+    "meta_year": "İl",
+    "meta_pieces": "Məhsul sayı",
+    "meta_availability": "Mövcudluq",
+    "meta_available": "Stokda mövcuddur",
+    "products_in": "Kolleksiya",
+    "collection_short": "Məhsulları"
   }
 
 }

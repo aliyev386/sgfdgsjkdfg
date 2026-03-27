@@ -1,8 +1,4 @@
-// src/components/home/CollectionCategorySection.jsx
-// Named export — HomePage.jsx-də belə import olunur:
-// import { CollectionCategorySection } from "../../components/home/CollectionCategorySection";
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/Categories.css";
 
 export function CollectionCategorySection({ categories = [], t, onNavigate }) {
   const [first, ...rest] = categories;

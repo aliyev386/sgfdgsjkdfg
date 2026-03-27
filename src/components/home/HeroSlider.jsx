@@ -1,7 +1,5 @@
-// src/components/home/HeroSlider.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/Hero.css";
 
 const SLIDE_DURATION = 6000;
 

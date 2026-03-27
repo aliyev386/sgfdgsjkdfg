@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login, googleAuth } from "../../api/authApi";
-import "../../assets/css/AuthPage.css";
+import "../../assets/PagesCss/AuthPage.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 

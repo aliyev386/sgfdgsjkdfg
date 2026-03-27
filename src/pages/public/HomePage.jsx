@@ -1,24 +1,11 @@
-// src/pages/public/HomePage.jsx
-// ═══════════════════════════════════════════════════════════════
-//  Ana Səhifə
-//
-//  Bölmələr (yuxarıdan aşağı):
-//  1. Hero Slider        ← heroApi.getHeroSlides()
-//  2. Kampaniyalar       ← campaignApi.getActiveCampaigns()
-//  3. Öne çıxan məhsullar← productApi.getFeaturedProducts()
-//  4. Otaq Kateqoriyaları← categoryApi.getRoomCategories()
-//  5. Kolleksiyalar      ← collectionApi.getFeaturedCollections()
-//  6. Niyə bizi seçirsiniz — statik (i18n)
-//  7. CTA Banner          — statik (i18n)
-//  8. Newsletter          — statik (i18n)
-//
+
 //  Bütün API çağırışları bu faylın altındakı custom hook-larda.
 //  DB-dən gələn mətnlər (ad, açıqlama, qiymət) TƏRCÜMƏ OLUNMUR.
 //  Yalnız statik UI mətnlər t() ilə tərcümə olunur.
 // ═══════════════════════════════════════════════════════════════
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import { BADGE_COLORS, MOCK_CAMPAIGNS, MOCK_CATEGORIES, MOCK_COLLECTIONS, MOCK_FEATURED_PRODUCTS, MOCK_SLIDES } from "../../components/mockdatas";
@@ -31,7 +18,7 @@ import CTABanner from "../../components/home/CtaBanner";
 import NewsletterSection from "../../components/home/Newsletter";
 import useScrollReveal from "../../hooks/useScrollReveal";
 import CampaignsSection from "../../components/home/CampaignsSection";
-import "../../assets/css/HomeCss/HomeMain.css";
+import "../../assets/PagesCss/HomeMain.css";
 
 // ── Components ────────────────────────────────────────────────
 // import Navbar          from "@/components/common/Navbar";        // App.jsx-də qlobal render olunur

@@ -1,5 +1,5 @@
 
-import "../../assets/css/common/Footer.css";
+import "../../assets/pagesCss/Footer.css";
 function Footer(){
 
 

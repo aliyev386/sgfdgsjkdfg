@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../../api/authApi";
-import "../../assets/css/AuthPage.css";
+import "../../assets/PagesCss/AuthPage.css";
 
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   id: i,

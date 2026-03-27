@@ -1,6 +1,4 @@
-// src/components/home/CollectionsSection.jsx
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/Collections.css";
 
 export default function CollectionsSection({ collections = [], t }) {
   return (

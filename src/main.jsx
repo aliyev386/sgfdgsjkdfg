@@ -10,6 +10,13 @@ import CategoryPage from "./pages/public/CategoryPage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
 import RegisterPage from "./pages/auth/RegisterPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
+import FurnitureCategoryPage from "./pages/public/FurnitureCategoryPage.jsx";
+import CartDrawer from "./components/cart/CartDrawer.jsx";
+import ProductDetailPage from "./pages/public/ProductDetailPage.jsx";
+import RoomsPage from "./pages/public/RoomsPage.jsx";
+import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
+import CollectionsSection from "./components/home/CollectionsSection.jsx";
+import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +34,30 @@ const router = createBrowserRouter([
   {
     element: <AdminPanel />,
     path: '/admin',
+  },
+  {
+    element:<FurnitureCategoryPage/>,
+    path:"/category"
+  },
+  {
+    element:<CartDrawer/>,
+    path:"/cart"
+  },
+  {
+    element:<RoomsPage/>,
+    path:"/rooms-cat"
+  },
+  {
+    element:<RoomCollectionsPage/>,
+    path:"/room-collections"
+  },
+  {
+    element:<CollectionDetailPage/>,
+    path:"/collection-detail"
+  },
+  {
+    element:<ProductDetailPage/>,
+    path:"/details"
   },
   // ── Auth Routes ──────────────────────────
   {

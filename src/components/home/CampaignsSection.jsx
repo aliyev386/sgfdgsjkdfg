@@ -1,6 +1,4 @@
-// src/components/home/CampaignsSection.jsx
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/Campaigns.css";
 
 const formatDate = (dateStr) => {
   try {

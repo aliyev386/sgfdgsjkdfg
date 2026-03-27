@@ -1,6 +1,4 @@
-// src/components/home/Newsletter.jsx
 import { useState } from "react";
-import "../../assets/css/HomeCss/Newsletter.css";
 
 export default function NewsletterSection({ t }) {
   const [email, setEmail] = useState("");

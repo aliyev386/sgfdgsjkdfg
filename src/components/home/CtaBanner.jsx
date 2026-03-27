@@ -1,6 +1,4 @@
-// src/components/home/CtaBanner.jsx
 import { Link } from "react-router-dom";
-import "../../assets/css/HomeCss/CtaBanner.css";
 
 export default function CTABanner({ t }) {
   return (

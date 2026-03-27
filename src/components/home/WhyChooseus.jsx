@@ -1,5 +1,3 @@
-// src/components/home/WhyChooseus.jsx
-import "../../assets/css/HomeCss/WhyUs.css";
 
 export default function WhyUsSection({ t }) {
   const items = t("why_us.items", { returnObjects: true });
