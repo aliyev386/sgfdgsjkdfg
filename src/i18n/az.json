@@ -213,7 +213,26 @@
     "add_to_cart": "Səbətə əlavə et",
     "added_to_cart": "səbətə əlavə edildi",
     "home": "Ana Səhifə",
-    "categories": "Kateqoriyalar"
+    "categories": "Kateqoriyalar",
+    "collection": "Kolleksiya",
+    "cat_all": "Bütün Məhsullar",
+    "cat_sofa": "Divanlar",
+    "cat_table": "Masalar",
+    "cat_bed": "Çarpayılar",
+    "cat_chair": "Kreslolar",
+    "cat_wardrobe": "Geyim Dolabı",
+    "cat_shelf": "Rəflər",
+    "cat_desk": "İş Masası",
+    "cat_decor": "Dekor",
+    "banner_all": "Zövqünüzə uyğun hər şeyi bir yerdə tapın",
+    "banner_sofa": "Ən rahat otururaq dincəlin",
+    "banner_table": "Hər məkana uyğun masalar",
+    "banner_bed": "Ən gözəl yuxu mühiti",
+    "banner_chair": "Oturmağın sənəti",
+    "banner_wardrobe": "Qaydaya salınmış həyat",
+    "banner_shelf": "Hər şeyin öz yeri var",
+    "banner_desk": "Məhsuldarlıq üçün mükəmməl məkan",
+    "banner_decor": "Detaylar fərq yaradır"
   },
   "cart": {
     "title": "Səbətim",
@@ -277,7 +296,8 @@
     "confirm_order": "Sifariş təfsilatları",
     "agree_terms": "Şərtləri qəbul edirəm",
     "processing": "İşlənir..."
-  },  "pdp": {
+  },
+  "pdp": {
     "home": "Ana Səhifə",
     "categories": "Kateqoriyalar",
     "zoom": "Böyüt",
@@ -311,7 +331,7 @@
     "view_product": "Məhsula bax",
     "based_on": "Əsasında"
   },
-    "rooms_page": {
+  "rooms_page": {
     "eyebrow": "Otaqlar",
     "title_pre": "Otağınızı",
     "title_em": "Dizayn Edin",
@@ -326,7 +346,7 @@
     "banner_btn_p": "Bütün məhsullar",
     "banner_btn_s": "Bizimlə əlaqə"
   },
-    "rooms_coll": {
+  "rooms_coll": {
     "collections_for": "Kolleksiyalar",
     "collections": "kolleksiya",
     "section_title_pre": "Kolleksiyalar —",
@@ -352,7 +372,7 @@
     "products_in": "Kolleksiya",
     "collection_short": "Məhsulları"
   },
-    "shop_by_cat": {
+  "shop_by_cat": {
     "eyebrow": "Məhsula görə seç",
     "title": "Kateqoriyaya",
     "title_em": "görə bax",
@@ -360,5 +380,4 @@
     "view_all": "Hamısını gör",
     "products": "məhsul"
   }
-
 }

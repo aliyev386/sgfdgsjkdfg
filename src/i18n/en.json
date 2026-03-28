@@ -213,7 +213,26 @@
     "add_to_cart": "Add to Cart",
     "added_to_cart": "added to cart",
     "home": "Home",
-    "categories": "Categories"
+    "categories": "Categories",
+    "collection": "Collection",
+    "cat_all": "All Products",
+    "cat_sofa": "Sofas & Couches",
+    "cat_table": "Tables",
+    "cat_bed": "Beds",
+    "cat_chair": "Chairs & Armchairs",
+    "cat_wardrobe": "Wardrobes",
+    "cat_shelf": "Shelves & Storage",
+    "cat_desk": "Desks",
+    "cat_decor": "Decor",
+    "banner_all": "Everything you need, beautifully made",
+    "banner_sofa": "Sink into comfort, stay in style",
+    "banner_table": "A table for every room and every story",
+    "banner_bed": "Sleep beautifully, live well",
+    "banner_chair": "The art of sitting well",
+    "banner_wardrobe": "A place for everything",
+    "banner_shelf": "Everything in its right place",
+    "banner_desk": "Your space to think and create",
+    "banner_decor": "Details that make the difference"
   },
   "cart": {
     "title": "My Cart",
@@ -277,7 +296,8 @@
     "confirm_order": "Order Details",
     "agree_terms": "I agree to the terms",
     "processing": "Processing..."
-  },  "pdp": {
+  },
+  "pdp": {
     "home": "Home",
     "categories": "Categories",
     "zoom": "Zoom",
@@ -310,8 +330,8 @@
     "see_all": "View All",
     "view_product": "View Product",
     "based_on": "Based on"
-  } ,
-   "rooms_page": {
+  },
+  "rooms_page": {
     "eyebrow": "Shop by Room",
     "title_pre": "Design Your",
     "title_em": "Space",
@@ -351,7 +371,8 @@
     "meta_available": "In stock & available",
     "products_in": "Products in This",
     "collection_short": "Collection"
-  },  "shop_by_cat": {
+  },
+  "shop_by_cat": {
     "eyebrow": "Browse by type",
     "title": "Shop by",
     "title_em": "Category",
@@ -360,4 +381,3 @@
     "products": "products"
   }
 }
-

@@ -213,7 +213,26 @@
     "add_to_cart": "В корзину",
     "added_to_cart": "добавлен в корзину",
     "home": "Главная",
-    "categories": "Категории"
+    "categories": "Категории",
+    "collection": "Коллекция",
+    "cat_all": "Все товары",
+    "cat_sofa": "Диваны",
+    "cat_table": "Столы",
+    "cat_bed": "Кровати",
+    "cat_chair": "Кресла и стулья",
+    "cat_wardrobe": "Шкафы",
+    "cat_shelf": "Полки и стеллажи",
+    "cat_desk": "Рабочий стол",
+    "cat_decor": "Декор",
+    "banner_all": "Всё для вашего уютного дома",
+    "banner_sofa": "Отдыхайте в комфорте и стиле",
+    "banner_table": "Стол для каждой истории",
+    "banner_bed": "Крепкий сон — лучшее начало дня",
+    "banner_chair": "Искусство правильно сидеть",
+    "banner_wardrobe": "Порядок в каждой детали",
+    "banner_shelf": "Всему своё место",
+    "banner_desk": "Ваше пространство для идей",
+    "banner_decor": "Детали решают всё"
   },
   "cart": {
     "title": "Моя корзина",
@@ -277,7 +296,8 @@
     "confirm_order": "Детали заказа",
     "agree_terms": "Я согласен с условиями",
     "processing": "Обработка..."
-  },  "pdp": {
+  },
+  "pdp": {
     "home": "Главная",
     "categories": "Категории",
     "zoom": "Увеличить",
@@ -311,7 +331,7 @@
     "view_product": "Смотреть",
     "based_on": "На основе"
   },
-    "rooms_page": {
+  "rooms_page": {
     "eyebrow": "По комнатам",
     "title_pre": "Оформите",
     "title_em": "Ваше Пространство",
@@ -336,7 +356,7 @@
     "no_collections_hint": "Посмотрите другие комнаты",
     "back_to_rooms": "Вернуться ко всем комнатам"
   },
-    "cdp": {
+  "cdp": {
     "collection": "Коллекция",
     "shop_collection": "Смотреть коллекцию",
     "gallery": "Фотогалерея",
@@ -352,7 +372,7 @@
     "products_in": "Товары в",
     "collection_short": "коллекции"
   },
-    "shop_by_cat": {
+  "shop_by_cat": {
     "eyebrow": "Выбрать по типу",
     "title": "Категории",
     "title_em": "мебели",

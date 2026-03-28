@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer-grid">
         <div>
-          <div className="footer-logo">Furni<span>Sphere</span></div>
+          <div className="footer-logo"><span>Amore</span>mebel</div>
           <p className="footer-desc">High quality, stylish and functional furniture designed to elevate your space with comfort and elegance.</p>
           <div className="footer-newsletter">
             <input placeholder="Enter your email" />
