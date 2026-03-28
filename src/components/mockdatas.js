@@ -82,3 +82,13 @@ export const MOCK_COLLECTIONS = [
   { id: 2, name: "Warm Minimalism",    slug: "warm-minimalism",    product_count: 24, image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=700&q=80", accent: "#C9A84C" },
   { id: 3, name: "Urban Industrial",   slug: "urban-industrial",   product_count: 15, image: "https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=700&q=80", accent: "#D4714A" },
 ];
+export const MOCK_PRODUCT_CATEGORIES = [
+  { id:1,  slug:"divanlar",      name:"Divanlar",        name_en:"Sofas",          count:48, color:"#C8DBC9", icon:"sofa",    image:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80" },
+  { id:2,  slug:"yataq-desti",   name:"Yataq dəstləri",  name_en:"Bedroom",        count:36, color:"#EDE7DC", icon:"bed",     image:"https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80" },
+  { id:3,  slug:"masalar",       name:"Masalar",         name_en:"Tables",         count:31, color:"#F7F3EE", icon:"table",   image:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&q=80" },
+  { id:4,  slug:"kreslolar",     name:"Kreslolar",       name_en:"Armchairs",      count:27, color:"#E8DDD4", icon:"chair",   image:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80" },
+  { id:5,  slug:"skafl-dolaplar",name:"Şkaf & Dolaplar", name_en:"Wardrobes",      count:22, color:"#DDE8DD", icon:"shelf",   image:"https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80" },
+  { id:6,  slug:"yemek-otagi",   name:"Yemək otağı",     name_en:"Dining",         count:29, color:"#EDE7DC", icon:"dining",  image:"https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80" },
+  { id:7,  slug:"is-otagi",      name:"İş otağı",        name_en:"Home Office",    count:18, color:"#E8E4F0", icon:"desk",    image:"https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80" },
+  { id:8,  slug:"aciq-hava",     name:"Açıq hava",       name_en:"Outdoor",        count:15, color:"#DCE8DC", icon:"outdoor", image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" },
+];

@@ -297,3 +297,214 @@
     .hp-nl-f { flex-direction:column }
     .hp-nl-i { width:100%;border-right:1px solid #E5DDD4;border-bottom:none }
   }
+/* ═══════════════════════════════════════════════════════════
+   SCROLL-REVEAL  (existing .rv + .rv-l already in file,
+   adding stagger helpers & entrance upgrades)
+═══════════════════════════════════════════════════════════ */
+.rv      { opacity:0 }
+.rv-l    { opacity:0 }
+.rv.visible   { animation:hpFadeUp .75s cubic-bezier(.22,1,.36,1) forwards }
+.rv-l.visible { animation:hpSlideIn .75s cubic-bezier(.22,1,.36,1) forwards }
+
+/* Stagger delays — add d1..d8 alongside rv */
+.rv.d1.visible,.rv-l.d1.visible { animation-delay:.08s }
+.rv.d2.visible,.rv-l.d2.visible { animation-delay:.15s }
+.rv.d3.visible,.rv-l.d3.visible { animation-delay:.22s }
+.rv.d4.visible,.rv-l.d4.visible { animation-delay:.30s }
+.rv.d5.visible,.rv-l.d5.visible { animation-delay:.38s }
+.rv.d6.visible,.rv-l.d6.visible { animation-delay:.46s }
+.rv.d7.visible,.rv-l.d7.visible { animation-delay:.54s }
+.rv.d8.visible,.rv-l.d8.visible { animation-delay:.62s }
+
+/* Keyframe upgrade — slightly springier */
+@keyframes hpFadeUp  { from{opacity:0;transform:translateY(36px)} to{opacity:1;transform:translateY(0)} }
+@keyframes hpSlideIn { from{opacity:0;transform:translateX(-32px)} to{opacity:1;transform:translateX(0)} }
+@keyframes hpScaleIn { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
+
+/* Section breathing room boost */
+.hp-sec { padding:120px 80px }
+@media(max-width:900px){ .hp-sec{padding:80px 28px} }
+
+/* ═══════════════════════════════════════════════════════════
+   SHOP BY CATEGORY  (.sbc-*)
+═══════════════════════════════════════════════════════════ */
+.sbc-subtitle {
+  font-size:14px; color:#6B6B6B; margin-top:8px; font-weight:300
+}
+
+/* 4-col grid, 2 rows */
+.sbc-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.sbc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  background: #F7F3EE;
+  border: 1px solid #E5DDD4;
+  transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s, border-color .3s;
+  min-height: 200px;
+}
+.sbc-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 24px 56px rgba(28,28,28,.12);
+  border-color: #C8DBC9;
+}
+
+/* Background image — subtle, shows on hover */
+.sbc-img-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.sbc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .5s ease, transform .6s cubic-bezier(.25,.46,.45,.94);
+  transform: scale(1.08);
+  display: block;
+}
+.sbc-img-ov {
+  position: absolute;
+  inset: 0;
+  background: rgba(28,28,28,.45);
+  opacity: 0;
+  transition: opacity .4s;
+}
+.sbc-card:hover .sbc-img    { opacity: 1; transform: scale(1); }
+.sbc-card:hover .sbc-img-ov { opacity: 1; }
+.sbc-card:hover .sbc-name   { color: #fff; }
+.sbc-card:hover .sbc-count  { color: rgba(255,255,255,.65); }
+.sbc-card:hover .sbc-arrow  { color: #fff; opacity: 1; transform: translateX(0); }
+.sbc-card:hover .sbc-num    { opacity: .12; color: #fff; }
+
+/* Body row */
+.sbc-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 22px;
+  flex: 1;
+}
+
+/* Colored icon box */
+.sbc-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .35s, transform .35s;
+}
+.sbc-icon svg {
+  width: 26px;
+  height: 26px;
+  color: #1C1C1C;
+  transition: color .3s;
+}
+.sbc-card:hover .sbc-icon {
+  background: rgba(255,255,255,.15) !important;
+  transform: scale(1.08) rotate(-3deg);
+}
+.sbc-card:hover .sbc-icon svg { color: #fff; }
+
+.sbc-info { flex: 1; min-width: 0; }
+.sbc-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: #1C1C1C;
+  margin: 0 0 3px;
+  line-height: 1.2;
+  transition: color .3s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sbc-count {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #6B6B6B;
+  transition: color .3s;
+}
+
+.sbc-arrow {
+  color: #C0B5AA;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .3s, transform .35s, color .3s;
+  flex-shrink: 0;
+}
+
+/* Watermark number */
+.sbc-num {
+  position: absolute;
+  bottom: 10px;
+  right: 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px;
+  font-weight: 300;
+  color: #1C1C1C;
+  opacity: .04;
+  line-height: 1;
+  transition: opacity .35s, color .35s;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Featured row — first 2 cards taller ── */
+.sbc-card:nth-child(1),
+.sbc-card:nth-child(2) {
+  min-height: 240px;
+}
+
+/* ── Responsive ── */
+@media(max-width:1200px){
+  .sbc-grid { grid-template-columns: repeat(3,1fr) }
+}
+@media(max-width:900px){
+  .sbc-grid { grid-template-columns: repeat(2,1fr) }
+  .sbc-name { font-size:18px }
+}
+@media(max-width:480px){
+  .sbc-grid { grid-template-columns: repeat(2,1fr); gap:10px }
+  .sbc-body { padding:18px 14px }
+  .sbc-icon { width:42px; height:42px }
+  .sbc-icon svg { width:20px; height:20px }
+  .sbc-name { font-size:15px }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION ENTRANCE — each hp-sec slides in smoothly
+   Applied via rv class on direct children
+═══════════════════════════════════════════════════════════ */
+.hp-sec-head.rv.visible { animation-duration:.65s }
+
+/* Product cards stagger */
+.hp-prod-card { animation:hpScaleIn .55s cubic-bezier(.22,1,.36,1) both }
+
+/* Collection cards */
+.hp-col-card { transition:transform .4s, box-shadow .4s }
+
+/* Why-us cards stagger */
+.hp-why-card:nth-child(1){ animation-delay:.05s }
+.hp-why-card:nth-child(2){ animation-delay:.12s }
+.hp-why-card:nth-child(3){ animation-delay:.19s }
+.hp-why-card:nth-child(4){ animation-delay:.26s }
+
+/* Campaign cards */
+.hp-camp-card:nth-child(1){ animation-delay:.05s }
+.hp-camp-card:nth-child(2){ animation-delay:.13s }
+.hp-camp-card:nth-child(3){ animation-delay:.21s }

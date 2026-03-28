@@ -351,6 +351,13 @@
     "meta_available": "In stock & available",
     "products_in": "Products in This",
     "collection_short": "Collection"
+  },  "shop_by_cat": {
+    "eyebrow": "Browse by type",
+    "title": "Shop by",
+    "title_em": "Category",
+    "subtitle": "For every corner of your home",
+    "view_all": "View All",
+    "products": "products"
   }
 }
 

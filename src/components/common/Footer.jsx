@@ -1,45 +1,40 @@
 
 import "../../assets/pagesCss/Footer.css";
-function Footer(){
-
-
-    return(
-        <footer className="ft">
-        <div className="ft-tp">
-          <div>
-            <div className="ft-lg"><span>AMORE</span> MEBEL</div>
-            <p className="ft-tg">Artisan furniture crafted with care,<br />designed for the homes of tomorrow.</p>
-            <div className="soc">{["📸","📌","👍","🎵"].map((ic,i) => <button key={i} className="sc-i">{ic}</button>)}</div>
-          </div>
-          <div className="ft-col">
-            <h4>Collections</h4>
-            {/* <ul className="ft-ul">{DB.rooms.map(r => <li key={r.id}><a href="#" onClick={e=>{e.preventDefault();onSelectRoom(r)}}>{r.name}</a></li>)}</ul> */}
-          </div>
-          <div className="ft-col">
-            <h4>Company</h4>
-            <ul className="ft-ul">{["Our Story","Craftsmanship","Sustainability","Careers","Press"].map(l => <li key={l}><a href="#">{l}</a></li>)}</ul>
-          </div>
-          <div className="ft-col">
-            <h4>Contact</h4>
-            <div>
-              <div className="ft-ci"><span className="ft-ico">📞</span><span>+44 20 7123 4567</span></div>
-              <div className="ft-ci"><span className="ft-ico">✉️</span><span>amoremebel@gmail.com</span></div>
-            </div>
+export default function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-grid">
+        <div>
+          <div className="footer-logo">Furni<span>Sphere</span></div>
+          <p className="footer-desc">High quality, stylish and functional furniture designed to elevate your space with comfort and elegance.</p>
+          <div className="footer-newsletter">
+            <input placeholder="Enter your email" />
+            <button>Subscribe</button>
           </div>
         </div>
-        <div className="ft-bt">
-          <p className="ft-cp">© 2025 Arvana Furniture Ltd. All rights reserved.</p>
-
-<div className="ft-lgs">
-  <a href="#">Privacy Policy</a>
-</div>
-<div className="ft-lgs">
-  <a href="#">Terms of Service</a>
-</div>
-<div className="ft-lgs">
-  <a href="#">Cookie Settings</a>
-</div>        </div>
-      </footer>
-    )
+        <div className="footer-col">
+          <h4>Quick Links</h4>
+          <a>Home</a><a>About Us</a><a>Products</a><a>Collections</a><a>Contact</a>
+        </div>
+        <div className="footer-col">
+          <h4>Legal</h4>
+          <a>Privacy Policy</a><a>Terms of Service</a><a>Shipping Policy</a><a>Refund Policy</a>
+        </div>
+        <div className="footer-col">
+          <h4>Resources</h4>
+          <a>Blog</a><a>FAQ</a><a>Support</a><a>Careers</a>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <p>© 2025 Amoremebel. All rights reserved.</p>
+        <div className="socials">
+          <a className="social-btn">𝕏</a>
+          <a className="social-btn">f</a>
+          <a className="social-btn">in</a>
+          <a className="social-btn">▶</a>
+        </div>
+      </div>
+    </footer>
+  );
 }
-export default Footer;
+ 

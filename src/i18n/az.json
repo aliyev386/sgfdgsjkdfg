@@ -351,6 +351,14 @@
     "meta_available": "Stokda mövcuddur",
     "products_in": "Kolleksiya",
     "collection_short": "Məhsulları"
+  },
+    "shop_by_cat": {
+    "eyebrow": "Məhsula görə seç",
+    "title": "Kateqoriyaya",
+    "title_em": "görə bax",
+    "subtitle": "Evinizin hər guşəsi üçün",
+    "view_all": "Hamısını gör",
+    "products": "məhsul"
   }
 
 }

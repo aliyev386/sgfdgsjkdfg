@@ -15,8 +15,9 @@ import CartDrawer from "./components/cart/CartDrawer.jsx";
 import ProductDetailPage from "./pages/public/ProductDetailPage.jsx";
 import RoomsPage from "./pages/public/RoomsPage.jsx";
 import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
-import CollectionsSection from "./components/home/CollectionsSection.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
+import AboutPage from "./pages/Common/AboutPage.jsx";
+import ProfilePage from "./pages/profile/ProfilePage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,9 +32,17 @@ const router = createBrowserRouter([
     element: <CategoryPage />,
     path: '/furnitures',
   },
+    {
+    element: <AboutPage />,
+    path: '/about',
+  },
   {
     element: <AdminPanel />,
     path: '/admin',
+  },
+    {
+    element: <ProfilePage />,
+    path: '/profile',
   },
   {
     element:<FurnitureCategoryPage/>,
@@ -45,7 +54,7 @@ const router = createBrowserRouter([
   },
   {
     element:<RoomsPage/>,
-    path:"/rooms-cat"
+    path:"/collections"
   },
   {
     element:<RoomCollectionsPage/>,

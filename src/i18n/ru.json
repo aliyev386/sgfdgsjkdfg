@@ -351,5 +351,13 @@
     "meta_available": "В наличии",
     "products_in": "Товары в",
     "collection_short": "коллекции"
+  },
+    "shop_by_cat": {
+    "eyebrow": "Выбрать по типу",
+    "title": "Категории",
+    "title_em": "мебели",
+    "subtitle": "Для каждого уголка вашего дома",
+    "view_all": "Смотреть всё",
+    "products": "товаров"
   }
 }

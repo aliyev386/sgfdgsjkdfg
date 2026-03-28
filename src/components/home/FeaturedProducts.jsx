@@ -2,12 +2,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
-const BADGE_COLORS = {
-  best_seller: "#D4714A",
-  new_in:      "#7A9E7E",
-  sale:        "#C9A84C",
-};
-
 function Stars({ n }) {
   return (
     <div style={{ display: "flex", gap: 2 }}>
@@ -49,7 +43,6 @@ export default function FeaturedProductsSection({ products = [], t }) {
           </h2>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 20 }}>
-          {/* Tabs — i18n */}
           <div className="hp-prod-tabs">
             {tabs.map(tab => (
               <button
@@ -75,29 +68,18 @@ export default function FeaturedProductsSection({ products = [], t }) {
             style={{ animation: `hpFadeUp .6s cubic-bezier(.25,.46,.45,.94) ${i * 0.08}s both` }}
           >
             <div className="hp-prod-iw">
-              {/* DB-dən gəlir — TƏRCÜMƏ OLUNMUR */}
               <img
                 className="hp-prod-im"
                 src={product.image}
                 alt={product.name}
                 loading="lazy"
               />
-              {/* Badge key-i i18n-ə göndərilir */}
-              {product.badge && (
-                <span
-                  className="hp-prod-badge"
-                  style={{ background: BADGE_COLORS[product.badge] || "#7A9E7E" }}
-                >
-                  {t(`common.${product.badge}`)}
-                </span>
-              )}
               <div className="hp-prod-acts">
                 <button className="hp-prod-add">{t("common.add_to_cart")}</button>
                 <button className="hp-prod-wish">♡</button>
               </div>
             </div>
             <div className="hp-prod-inf">
-              {/* DB-dən gəlir — TƏRCÜMƏ OLUNMUR */}
               <p className="hp-prod-cat">{product.category}</p>
               <Link to={`/products/${product.slug}`} className="hp-prod-nm">
                 {product.name}
