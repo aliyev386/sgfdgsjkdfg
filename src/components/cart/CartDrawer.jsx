@@ -678,7 +678,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                   <div className="cd-shipping-note">{t("cart.free_shipping_msg")}</div>
                 )}
 
-                <button className="cd-checkout-btn" onClick={() => setCheckout(true)}>
+                <button className="cd-checkout-btn" onClick={() => { handleClose(); navigate("/checkout"); }}>
                   {t("cart.checkout")}
                   <svg viewBox="0 0 20 20" fill="none" width="16" height="16">
                     <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>

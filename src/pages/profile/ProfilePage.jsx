@@ -1,622 +1,799 @@
-// src/pages/public/ProfilePage.jsx
-// ─────────────────────────────────────────────────────────────
-// Amore Mebel — Profil Səhifəsi
-// Tablar: Overview · Profil · Təhlükəsizlik · Ödəniş · Sifarişlər · Saxlananlar
-// ─────────────────────────────────────────────────────────────
-
-import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate }  from "react-router-dom";
-import { useTranslation }      from "react-i18next";
-import { getUser, logout }     from "../../api/authApi";
+// src/pages/profile/ProfilePage.jsx
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getUser, logout } from "../../api/authApi";
 import "../../assets/pagesCss/ProfilePage.css";
 
-// ── Mock data ──────────────────────────────────────────────
+/* ─── BRAND COLOR ─────── */
+const G = "#7A9E7E";
+const GD = "#5a8060"; // darker
+const GL = "#EAF3EB"; // lighter bg
+
+/* ─── MOCK DATA ──────────────────────────────────────────── */
 const MOCK_ORDERS = [
-  { id:"AM-2025-0041", date:"12 Mar 2025", total:1240, status:"delivered",  payMethod:"credit", bank:"Kapital Bank", items:[{name:"Velvet Sofa",qty:1,price:890},{name:"Side Table",qty:2,price:175}] },
-  { id:"AM-2025-0037", date:"28 Feb 2025", total:560,  status:"shipped",    payMethod:"cash",   bank:null,           items:[{name:"Dining Chair",qty:4,price:140}] },
-  { id:"AM-2025-0029", date:"10 Feb 2025", total:2100, status:"delivered",  payMethod:"credit", bank:"PAŞA Bank",    items:[{name:"King Bed Frame",qty:1,price:1650},{name:"Nightstand",qty:2,price:225}] },
-  { id:"AM-2024-0184", date:"14 Dec 2024", total:340,  status:"cancelled",  payMethod:"cash",   bank:null,           items:[{name:"Floor Lamp",qty:1,price:340}] },
+  { id:"AM-2025-0041", date:"12 Mar 2025", total:1240, status:"delivered", pay:"card", bank:"Kapital Bank",
+    items:[
+      {name:"Velvet Lounge Sofa",qty:1,price:890,img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&q=75"},
+      {name:"Marble Side Table",qty:2,price:175,img:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=120&q=75"},
+    ]},
+  { id:"AM-2025-0037", date:"2 Mar 2025", total:560, status:"shipped", pay:"cash", bank:null,
+    items:[
+      {name:"Nordic Dining Chair",qty:4,price:140,img:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&q=75"},
+    ]},
+  { id:"AM-2025-0029", date:"10 Feb 2025", total:2100, status:"delivered", pay:"card", bank:"PAŞA Bank",
+    items:[
+      {name:"Florence Platform Bed",qty:1,price:1650,img:"https://images.unsplash.com/photo-1540518614846-7eded433c457?w=120&q=75"},
+      {name:"Oak Bedside Table",qty:2,price:225,img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&q=75"},
+    ]},
+  { id:"AM-2024-0184", date:"14 Dec 2024", total:340, status:"cancelled", pay:"cash", bank:null,
+    items:[
+      {name:"Brass Arc Floor Lamp",qty:1,price:340,img:"https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=120&q=75"},
+    ]},
+  { id:"AM-2024-0121", date:"5 Oct 2024", total:890, status:"delivered", pay:"card", bank:"ABB Bank",
+    items:[
+      {name:"Rattan Lounge Chair",qty:1,price:890,img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=120&q=75"},
+    ]},
 ];
+
 const MOCK_SAVED = [
-  { id:1, name:"Oslo Armchair",     price:690  },
-  { id:2, name:"Linen Sectional",   price:2340 },
-  { id:3, name:"Marble Coffee Tbl", price:480  },
-  { id:4, name:"Rattan Lounge",     price:310  },
+  { id:1, name:"Oslo Armchair",       price:690,  img:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=400&q=80"},
+  { id:2, name:"Linen Sectional Sofa",price:2340, img:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80"},
+  { id:3, name:"Walnut Coffee Table", price:480,  img:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80"},
+  { id:4, name:"Rattan Lounge Chair", price:310,  img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=400&q=80"},
+  { id:5, name:"Teak Writing Desk",   price:1100, img:"https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80"},
+  { id:6, name:"Arched Floor Lamp",   price:380,  img:"https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80"},
+];
+
+const MOCK_CARDS = [
+  { id:1, number:"4216 •••• •••• 4821", name:"AYAN MAMMADOV", expiry:"09/27", type:"VISA",   bank:"Kapital Bank", bankColor:"#003087"},
 ];
 const MOCK_CREDITS = [
-  { id:1, bank:"Kapital Bank", monthly:103.33, remaining:8, total:1240, paid:4 },
+  { id:1, bank:"Kapital Bank", bankColor:"#003087", monthly:103.33, remaining:8, total:1240, paid:4},
 ];
-const MOCK_CARDS = [
-  { id:1, number:"•••• •••• •••• 4821", name:"AYAN MAMMADOV", expiry:"09/27", type:"VISA" },
+const AZ_BANKS = [
+  { id:"kapital",  name:"Kapital Bank",  color:"#003087"},
+  { id:"pasha",    name:"PAŞA Bank",     color:"#C8102E"},
+  { id:"abb",      name:"ABB Bank",      color:"#005BAA"},
+  { id:"atb",      name:"ATB Bank",      color:"#F7941D"},
+  { id:"express",  name:"Express Bank",  color:"#00843D"},
+  { id:"rabit",    name:"Rabitəbank",    color:"#002D72"},
+  { id:"amrah",    name:"Amrahbank",     color:"#8B0000"},
+  { id:"other",    name:"Digər",         color:"#6B7280"},
 ];
 
-// ── Toast ──────────────────────────────────────────────────
-function Toast({ msg, type="info", onClose }) {
-  useEffect(() => { const t = setTimeout(onClose, 3200); return () => clearTimeout(t); }, [onClose]);
-  return <div className={`pr-toast ${type}`}><span className="pr-toast-dot" />{msg}</div>;
+const fmt  = n => `₼${Number(n).toLocaleString()}`;
+const fmt4 = v => v.replace(/\D/g,"").replace(/(.{4})/g,"$1 ").trim().slice(0,19);
+const fmtE = v => v.replace(/\D/g,"").replace(/(\d{2})(\d)/,"$1/$2").slice(0,5);
+
+const ST_CFG = {
+  delivered: { lbl:"profile.status_delivered", cl:"st-green"  },
+  shipped:   { lbl:"profile.status_shipped",   cl:"st-blue"   },
+  processing:{ lbl:"profile.status_proc",      cl:"st-amber"  },
+  cancelled: { lbl:"profile.status_cancel",    cl:"st-red"    },
+};
+
+/* ─── CONFIRM MODAL ──────────────────────────────────────── */
+function ConfirmModal({ title, message, confirmText, cancelText, danger, onConfirm, onCancel }) {
+  useEffect(() => {
+    const handler = e => { if (e.key === "Escape") onCancel(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onCancel]);
+
+  return (
+    <div className="pr-modal-backdrop" onClick={onCancel}>
+      <div className="pr-modal" onClick={e => e.stopPropagation()}>
+        <div className={`pr-modal-ic ${danger ? "danger" : "info"}`}>
+          {danger ? "⚠️" : "💬"}
+        </div>
+        <h3 className="pr-modal-title">{title}</h3>
+        <p className="pr-modal-msg">{message}</p>
+        <div className="pr-modal-btns">
+          <button className="pr-modal-cancel" onClick={onCancel}>{cancelText}</button>
+          <button className={`pr-modal-confirm ${danger ? "danger" : ""}`} onClick={onConfirm}>
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-// ── Password Strength ──────────────────────────────────────
+/* hook to use confirm modal */
+function useConfirm() {
+  const [state, setState] = useState(null);
+  const confirm = useCallback((opts) => new Promise(resolve => {
+    setState({ ...opts, resolve });
+  }), []);
+  const handleConfirm = () => { state?.resolve(true);  setState(null); };
+  const handleCancel  = () => { state?.resolve(false); setState(null); };
+  const Modal = state ? (
+    <ConfirmModal
+      title={state.title}
+      message={state.message}
+      confirmText={state.confirmText || "Təsdiqlə"}
+      cancelText={state.cancelText   || "Ləğv et"}
+      danger={state.danger}
+      onConfirm={handleConfirm}
+      onCancel={handleCancel}
+    />
+  ) : null;
+  return { confirm, Modal };
+}
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+function Toast({ msg, ok, onClose }) {
+  useEffect(() => { const id = setTimeout(onClose, 3200); return () => clearTimeout(id); }, [onClose]);
+  return (
+    <div className={`pr-toast ${ok ? "pr-toast-ok" : "pr-toast-err"}`}>
+      <span className="pr-toast-ic">{ok ? "✓" : "!"}</span>
+      {msg}
+    </div>
+  );
+}
+
+const Spin = () => <span className="pr-spin" />;
+
 function PwStrength({ pw }) {
-  const score = !pw ? 0 : pw.length < 6 ? 1 : pw.length < 9 ? 2 : /[^a-zA-Z0-9]/.test(pw) && pw.length >= 10 ? 4 : 3;
-  const labels = ["","Zəif","Orta","Güclü","Mükəmməl"];
+  const s = !pw ? 0 : pw.length < 6 ? 1 : pw.length < 9 ? 2 : /[^a-zA-Z0-9]/.test(pw) && pw.length >= 10 ? 4 : 3;
+  const cols = { 1:"#EF4444", 2:"#F59E0B", 3:"#10B981", 4:G };
+  const lbs  = { 1:"Zəif",    2:"Orta",    3:"Güclü",   4:"Mükəmməl" };
+  if (!pw) return null;
   return (
-    <div className="pr-pw-strength">
-      <div className="pr-pw-bars">
-        {[1,2,3,4].map(i=><div key={i} className={`pr-pw-bar${score>=i?` active-${score}`:""}`}/>)}
+    <div className="pw-str">
+      <div className="pw-str-bars">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="pw-str-bar" style={{ background: s >= i ? cols[s] : "#E5E7EB" }} />
+        ))}
       </div>
-      {pw.length>0 && <p className="pr-pw-hint">{labels[score]}</p>}
+      <span style={{ fontSize:11, color:cols[s], fontWeight:700 }}>{lbs[s]}</span>
     </div>
   );
 }
 
-// ── Spinner inline ─────────────────────────────────────────
-const Spin = () => <span style={{width:14,height:14,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"prSpin .8s linear infinite",display:"inline-block",verticalAlign:"middle"}}/>;
+/* ─── TAB: OVERVIEW ──────────────────────────────────────── */
+function OverviewTab({ user, setTab, t }) {
+  const spent = MOCK_ORDERS.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
+  const done  = MOCK_ORDERS.filter(o=>o.status==="delivered").length;
 
-// ════════════════════════════════════════════════════════════
-// TAB: Overview
-// ════════════════════════════════════════════════════════════
-function OverviewTab({ user, orders, saved, setActiveTab, t }) {
-  const totalSpent = orders.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+o.total,0);
-  const statCards = [
-    { icon:"orders",   val:orders.length,          label:t("profile.overview.total_orders"), tab:"orders"  },
-    { icon:"heart",    val:saved.length,            label:t("profile.overview.saved_items"),  tab:"saved"   },
-    { icon:"money",    val:`₼${totalSpent.toLocaleString()}`, label:t("profile.overview.total_spent"),  tab:null      },
-    { icon:"credit",   val:MOCK_CREDITS.length,    label:t("profile.overview.active_credit"),tab:"payments"},
+  const stats = [
+    { val:MOCK_ORDERS.length, lbl:t("profile.ov_orders"), icon:"🛍️", tab:"orders"   },
+    { val:done,               lbl:t("profile.ov_done"),   icon:"✅", tab:"orders"   },
+    { val:MOCK_SAVED.length,  lbl:t("profile.ov_saved"),  icon:"❤️", tab:"saved"    },
+    { val:fmt(spent),         lbl:t("profile.ov_spent"),  icon:"💰", tab:null       },
   ];
-  const icons = {
-    orders:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 4H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2h-2M7 4a2 2 0 012-2h2a2 2 0 012 2M7 4h6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-    heart:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.344l1.172-1.172a4 4 0 115.656 5.656L10 18l-6.828-6.828a4 4 0 010-5.656z" strokeLinejoin="round"/></svg>,
-    money:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="10" cy="10" r="8"/><path d="M10 6v8M7.5 8.5C7.5 7.4 8.6 7 10 7s2.5.4 2.5 1.5c0 2-5 2-5 4C7.5 13.6 8.6 14 10 14s2.5-.4 2.5-1.5" strokeLinecap="round"/></svg>,
-    credit:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 9h16" strokeLinecap="round"/></svg>,
-  };
+
   return (
-    <div style={{animation:"prTabIn .4s ease"}}>
-      <div className="pr-overview-grid">
-        {statCards.map((s,i)=>(
-          <div key={i} className="pr-ov-card" style={{animationDelay:`${i*.08}s`}} onClick={()=>s.tab&&setActiveTab(s.tab)}>
-            <div className="pr-ov-icon">{icons[s.icon]}</div>
-            <div className="pr-ov-val">{s.val}</div>
-            <div className="pr-ov-label">{s.label}</div>
-          </div>
+    <div className="pr-body pr-ani">
+      <div className="pr-stat-grid">
+        {stats.map((s,i) => (
+          <button key={i} className="pr-stat-card" style={{animationDelay:`${i*0.07}s`}}
+            onClick={() => s.tab && setTab(s.tab)}>
+            <span className="pr-stat-icon">{s.icon}</span>
+            <span className="pr-stat-val">{s.val}</span>
+            <span className="pr-stat-lbl">{s.lbl}</span>
+            {s.tab && <span className="pr-stat-arr">→</span>}
+          </button>
         ))}
       </div>
+
       <div className="pr-card">
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:20}}>
-          <div>
-            <p className="pr-sec-eyebrow">{t("profile.overview.quick_stats")}</p>
-            <h3 className="pr-sec-title" style={{fontSize:26,margin:0}}><em>{t("profile.orders.title")}</em></h3>
-          </div>
-          <button className="pr-btn-ghost" style={{fontSize:10,padding:"8px 16px"}} onClick={()=>setActiveTab("orders")}>{t("profile.orders.title")} →</button>
+        <div className="pr-card-top">
+          <h3 className="pr-card-title">{t("profile.recent_orders")}</h3>
+          <button className="pr-see-all" onClick={() => setTab("orders")}>{t("profile.see_all")} →</button>
         </div>
-        {orders.slice(0,3).map((o,i)=>(
-          <div key={o.id} className="pr-recent-order" style={{animationDelay:`${i*.1}s`}}>
-            <div className="pr-rec-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 4H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2h-2M7 4a2 2 0 012-2h2a2 2 0 012 2M7 4h6" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-            <div className="pr-rec-info">
-              <p className="pr-rec-id">{o.id}</p>
-              <p className="pr-rec-date">{o.date} · {o.items.length} {t("profile.orders.items")}</p>
-            </div>
-            <span className={`pr-status ${o.status}`}>{t(`profile.orders.status_${o.status}`)}</span>
-            <span className="pr-rec-total">₼{o.total}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-// TAB: Profile Edit
-// ════════════════════════════════════════════════════════════
-function ProfileTab({ user, t }) {
-  const [form, setForm] = useState({
-    fullName: user?.fullName||user?.name||"", email: user?.email||"",
-    phone: user?.phone||"", city: user?.city||"Bakı", address: user?.address||"", bio: ""
-  });
-  const [saving,setSaving]=useState(false);
-  const [saved,setSaved]=useState(false);
-  const [errors,setErrors]=useState({});
-  const [preview,setPreview]=useState(null);
-  const [drag,setDrag]=useState(false);
-  const fileRef=useRef();
-
-  const handleChange = e => {
-    const {name,value}=e.target;
-    setForm(p=>({...p,[name]:value}));
-    if(errors[name]) setErrors(p=>({...p,[name]:""}));
-    setSaved(false);
-  };
-  const handleFile = file => {
-    if(!file||file.size>5*1024*1024) return;
-    setPreview(URL.createObjectURL(file));
-  };
-  const handleSubmit = async () => {
-    const errs={};
-    if(!form.fullName.trim()) errs.fullName=t("cart.name_required");
-    if(!form.email.trim())    errs.email=t("cart.phone_required");
-    if(Object.keys(errs).length){setErrors(errs);return;}
-    setSaving(true);
-    await new Promise(r=>setTimeout(r,900));
-    setSaving(false); setSaved(true);
-  };
-  const initials=(form.fullName||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:20,animation:"prTabIn .4s ease"}}>
-      <div className="pr-card">
-        <div className="pr-sec-head">
-          <p className="pr-sec-eyebrow">{t("profile.edit_avatar")}</p>
-          <h3 className="pr-sec-title" style={{fontSize:26}}>{t("profile.profile_form.title").split(" ")[0]} <em>{t("profile.profile_form.title").split(" ").slice(1).join(" ")}</em></h3>
-          <p className="pr-sec-sub">{t("profile.profile_form.subtitle")}</p>
-        </div>
-        <div className={`pr-upload-zone${drag?" drag":""}`}
-          onDragOver={e=>{e.preventDefault();setDrag(true)}}
-          onDragLeave={()=>setDrag(false)}
-          onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0])}}
-          onClick={()=>fileRef.current?.click()}>
-          {preview
-            ? <img src={preview} className="pr-upload-preview" alt="avatar"/>
-            : <div className="pr-upload-preview-ph">{initials}</div>
-          }
-          <div className="pr-upload-text">
-            <p className="pr-upload-title">{t("profile.edit_avatar")}</p>
-            <p className="pr-upload-hint">{t("profile.profile_form.upload_hint")}</p>
-          </div>
-          <button className="pr-upload-btn" type="button" onClick={e=>{e.stopPropagation();fileRef.current?.click()}}>
-            <svg viewBox="0 0 20 20" fill="none" width="13" height="13"><path d="M10 3v11M5 8l5-5 5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            {t("profile.edit_avatar")}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
-        </div>
-      </div>
-      <div className="pr-card">
-        <div className="pr-grid">
-          <div className="pr-field">
-            <label className="pr-label">{t("profile.profile_form.full_name")}</label>
-            <input className={`pr-input${errors.fullName?" error":""}`} name="fullName" value={form.fullName} onChange={handleChange}/>
-            {errors.fullName&&<span className="pr-field-error">{errors.fullName}</span>}
-          </div>
-          <div className="pr-field">
-            <label className="pr-label">{t("profile.profile_form.email")}</label>
-            <input className={`pr-input${errors.email?" error":""}`} name="email" value={form.email} onChange={handleChange} type="email"/>
-            {errors.email&&<span className="pr-field-error">{errors.email}</span>}
-          </div>
-          <div className="pr-field">
-            <label className="pr-label">{t("profile.profile_form.phone")}</label>
-            <input className="pr-input" name="phone" value={form.phone} onChange={handleChange}/>
-          </div>
-          <div className="pr-field">
-            <label className="pr-label">{t("profile.profile_form.city")}</label>
-            <input className="pr-input" name="city" value={form.city} onChange={handleChange}/>
-          </div>
-          <div className="pr-field span2">
-            <label className="pr-label">{t("profile.profile_form.address")}</label>
-            <input className="pr-input" name="address" value={form.address} onChange={handleChange}/>
-          </div>
-          <div className="pr-field span2">
-            <label className="pr-label">{t("profile.profile_form.bio")}</label>
-            <textarea className="pr-input pr-textarea" name="bio" value={form.bio} onChange={handleChange}/>
-          </div>
-        </div>
-        <div className="pr-form-actions">
-          <button className={`pr-btn-primary${saved?" success":""}`} onClick={handleSubmit} disabled={saving}>
-            {saving?<><Spin/> {t("cart.processing")}</>:saved?<>✓ {t("profile.profile_form.saved_ok")}</>:<>{t("profile.profile_form.save")} →</>}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-// TAB: Security
-// ════════════════════════════════════════════════════════════
-function SecurityTab({ t }) {
-  const [form,setForm]=useState({current:"",newPw:"",confirm:""});
-  const [show,setShow]=useState({current:false,newPw:false,confirm:false});
-  const [errors,setErrors]=useState({});
-  const [saving,setSaving]=useState(false);
-  const [saved,setSaved]=useState(false);
-  const [twoFA,setTwoFA]=useState(false);
-
-  const handleChange = e => {
-    const {name,value}=e.target;
-    setForm(p=>({...p,[name]:value}));
-    setErrors(p=>({...p,[name]:""}));
-    setSaved(false);
-  };
-  const handleSubmit = async () => {
-    const errs={};
-    if(!form.current)             errs.current=t("cart.required");
-    if(form.newPw.length<8)       errs.newPw=t("profile.security.too_short");
-    if(form.newPw!==form.confirm) errs.confirm=t("profile.security.mismatch");
-    if(Object.keys(errs).length){setErrors(errs);return;}
-    setSaving(true);
-    await new Promise(r=>setTimeout(r,900));
-    setSaving(false);setSaved(true);
-    setForm({current:"",newPw:"",confirm:""});
-  };
-
-  const PwField=({name,label,placeholder})=>(
-    <div className="pr-field">
-      <label className="pr-label">{label}</label>
-      <div style={{position:"relative"}}>
-        <input className={`pr-input${errors[name]?" error":""}`} name={name} type={show[name]?"text":"password"} value={form[name]} onChange={handleChange} placeholder={placeholder} style={{paddingRight:44}}/>
-        <button type="button" onClick={()=>setShow(p=>({...p,[name]:!p[name]}))} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",color:"#6B6B6B",display:"flex"}}>
-          <svg viewBox="0 0 20 20" fill="none" width="16" height="16" stroke="currentColor" strokeWidth="1.4">
-            {show[name]?<><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z"/><circle cx="10" cy="10" r="2.5"/></>:<><path d="M9.9 4C4.4 4 1 10 1 10s3.4 6 9 6c.7 0 1.4-.1 2-.2M17.5 6.5C18.7 7.8 19 10 19 10s-3.4 6-9 6"/><path d="M1 1l18 18" strokeLinecap="round"/></>}
-          </svg>
-        </button>
-      </div>
-      {errors[name]&&<span className="pr-field-error">{errors[name]}</span>}
-      {name==="newPw"&&<PwStrength pw={form.newPw}/>}
-    </div>
-  );
-
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:20,animation:"prTabIn .4s ease"}}>
-      <div className="pr-card">
-        <div className="pr-sec-head">
-          <p className="pr-sec-eyebrow">{t("profile.tabs.security")}</p>
-          <h3 className="pr-sec-title" style={{fontSize:26}}>{t("profile.security.title").split(" ")[0]} <em>{t("profile.security.title").split(" ").slice(1).join(" ")}</em></h3>
-          <p className="pr-sec-sub">{t("profile.security.subtitle")}</p>
-        </div>
-        <div className="pr-grid" style={{gridTemplateColumns:"1fr"}}>
-          <PwField name="current" label={t("profile.security.current_pw")} placeholder="••••••••"/>
-          <PwField name="newPw"   label={t("profile.security.new_pw")}     placeholder="En az 8 simvol"/>
-          <PwField name="confirm" label={t("profile.security.confirm_pw")} placeholder="••••••••"/>
-        </div>
-        <div className="pr-form-actions">
-          <button className={`pr-btn-primary${saved?" success":""}`} onClick={handleSubmit} disabled={saving}>
-            {saving?<><Spin/> {t("cart.processing")}</>:saved?`✓ ${t("profile.security.saved_ok")}`:t("profile.security.save")}
-          </button>
-        </div>
-      </div>
-      <div className="pr-card">
-        <div className="pr-twofa-row">
-          <div>
-            <p className="pr-twofa-title">{t("profile.security.two_fa_title")}</p>
-            <p className="pr-twofa-desc">{t("profile.security.two_fa_desc")}</p>
-          </div>
-          <button className={`pr-toggle${twoFA?" on":""}`} onClick={()=>setTwoFA(p=>!p)}/>
-        </div>
-        {twoFA&&<div style={{marginTop:14,padding:"12px 16px",background:"#EAF3EB",border:"1px solid #C8DBC9",fontSize:12,color:"#4A7A4E",animation:"prFadeUp .3s ease"}}>✓ {t("profile.security.two_fa_active")}</div>}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-// TAB: Payments
-// ════════════════════════════════════════════════════════════
-function PaymentsTab({ t }) {
-  const [cards,setCards]=useState(MOCK_CARDS);
-  const [addOpen,setAddOpen]=useState(false);
-  const [newCard,setNewCard]=useState({number:"",name:"",expiry:"",cvv:""});
-  const fmt4=(v)=>v.replace(/\D/g,"").replace(/(.{4})/g,"$1 ").trim().slice(0,19);
-  const fmtExp=(v)=>v.replace(/\D/g,"").replace(/(\d{2})(\d)/,"$1/$2").slice(0,5);
-
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:20,animation:"prTabIn .4s ease"}}>
-      <div className="pr-card">
-        <div className="pr-sec-head">
-          <p className="pr-sec-eyebrow">{t("profile.tabs.payments")}</p>
-          <h3 className="pr-sec-title" style={{fontSize:26}}>{t("profile.payments.title").split(" ")[0]} <em>{t("profile.payments.title").split(" ").slice(1).join(" ")}</em></h3>
-          <p className="pr-sec-sub">{t("profile.payments.subtitle")}</p>
-        </div>
-        {cards.length>0?(
-          <div className="pr-cards-grid">
-            {cards.map((c,i)=>(
-              <div key={c.id} className="pr-bank-card" style={{animationDelay:`${i*.1}s`}}>
-                <div className="pr-card-chip"/>
-                <div className="pr-card-mid"><div className="pr-card-number">{c.number}</div></div>
-                <div className="pr-card-bottom">
-                  <div><div className="pr-card-name">{c.name}</div><div className="pr-card-expiry">{t("profile.payments.expires")} {c.expiry}</div></div>
+        <div className="pr-order-list">
+          {MOCK_ORDERS.slice(0,3).map((o,i) => {
+            const s = ST_CFG[o.status] || ST_CFG.processing;
+            return (
+              <div key={o.id} className="pr-order-row" style={{animationDelay:`${i*0.06}s`}}>
+                <div className="pr-order-imgs">
+                  {o.items.slice(0,2).map((it,j) => <img key={j} src={it.img} alt="" className="pr-oimg"/>)}
                 </div>
-                <div className="pr-card-type">{c.type}</div>
-                <div className="pr-card-actions">
-                  <button className="pr-card-del-btn" onClick={()=>setCards(p=>p.filter(x=>x.id!==c.id))}>
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 4h10M6 4V3h4v1M5 4l1 9h4l1-9" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
+                <div className="pr-order-info">
+                  <p className="pr-order-id">{o.id}</p>
+                  <p className="pr-order-meta">{o.date} · {o.items.length} {t("profile.items")}</p>
                 </div>
+                <span className={`pr-st ${s.cl}`}>{t(s.lbl)}</span>
+                <span className="pr-order-price">{fmt(o.total)}</span>
               </div>
-            ))}
-          </div>
-        ):(
-          <div className="pr-empty" style={{padding:"28px 0"}}>
-            <div className="pr-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20" strokeLinecap="round"/></svg></div>
-            <p className="pr-empty-desc">{t("profile.payments.no_cards")}</p>
-          </div>
-        )}
-        <button className="pr-add-card-toggle" onClick={()=>setAddOpen(p=>!p)}>
-          <svg viewBox="0 0 20 20" fill="none" width="14" height="14"><path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          {t("profile.payments.add_card")}
-        </button>
-        {addOpen&&(
-          <div className="pr-add-card-form">
-            <div className="pr-grid">
-              <div className="pr-field span2">
-                <label className="pr-label">{t("profile.payments.card_number")}</label>
-                <input className="pr-input" value={newCard.number} onChange={e=>setNewCard(p=>({...p,number:fmt4(e.target.value)}))} placeholder="0000 0000 0000 0000" maxLength={19}/>
-              </div>
-              <div className="pr-field span2">
-                <label className="pr-label">{t("profile.payments.card_name")}</label>
-                <input className="pr-input" value={newCard.name} onChange={e=>setNewCard(p=>({...p,name:e.target.value.toUpperCase()}))} placeholder="AD SOYAD"/>
-              </div>
-              <div className="pr-field">
-                <label className="pr-label">{t("profile.payments.expiry")}</label>
-                <input className="pr-input" value={newCard.expiry} onChange={e=>setNewCard(p=>({...p,expiry:fmtExp(e.target.value)}))} placeholder="MM/YY" maxLength={5}/>
-              </div>
-              <div className="pr-field">
-                <label className="pr-label">{t("profile.payments.cvv")}</label>
-                <input className="pr-input" value={newCard.cvv} onChange={e=>setNewCard(p=>({...p,cvv:e.target.value.replace(/\D/g,"").slice(0,3)}))} placeholder="•••" type="password"/>
-              </div>
-            </div>
-            <div className="pr-form-actions">
-              <button className="pr-btn-primary" onClick={()=>{setCards(p=>[...p,{id:Date.now(),number:newCard.number||"•••• •••• •••• 0000",name:newCard.name||"KART SAHİBİ",expiry:newCard.expiry||"--/--",type:"VISA"}]);setNewCard({number:"",name:"",expiry:"",cvv:""});setAddOpen(false);}}>
-                {t("profile.payments.save_card")}
-              </button>
-              <button className="pr-btn-ghost" onClick={()=>setAddOpen(false)}>{t("cart.back")}</button>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="pr-card">
-        <div className="pr-sec-head"><h3 className="pr-sec-title" style={{fontSize:26,margin:0}}>{t("profile.payments.active_credits").split(" ")[0]} <em>{t("profile.payments.active_credits").split(" ").slice(1).join(" ")}</em></h3></div>
-        {MOCK_CREDITS.length===0?(
-          <p style={{fontSize:13,color:"#6B6B6B",textAlign:"center",padding:"20px 0"}}>{t("profile.payments.no_credits")}</p>
-        ):MOCK_CREDITS.map(c=>(
-          <div key={c.id} className="pr-credit-item">
-            <div><p className="pr-credit-bank">{c.bank}</p><p className="pr-credit-detail">{c.paid}/{c.remaining+c.paid} {t("cart.months")} · ₼{c.total}</p></div>
-            <div><p className="pr-credit-monthly">₼{c.monthly.toFixed(2)}</p><p className="pr-credit-remain">{c.remaining} {t("cart.months")} {t("profile.payments.remaining")}</p></div>
-            <div className="pr-credit-bar-wrap"><div className="pr-credit-bar" style={{"--bar-w":`${(c.paid/(c.paid+c.remaining))*100}%`}}/></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-// TAB: Orders
-// ════════════════════════════════════════════════════════════
-function OrdersTab({ orders, t }) {
-  const [expanded,setExpanded]=useState(null);
-  return (
-    <div className="pr-card" style={{animation:"prTabIn .4s ease",padding:0,overflow:"hidden"}}>
-      <div style={{padding:"28px 36px 20px"}}>
-        <p className="pr-sec-eyebrow">{t("profile.tabs.orders")}</p>
-        <h3 className="pr-sec-title" style={{fontSize:26}}>{t("profile.orders.title").split(" ")[0]} <em>{t("profile.orders.title").split(" ").slice(1).join(" ")}</em></h3>
-        <p className="pr-sec-sub">{t("profile.orders.subtitle")}</p>
-      </div>
-      {orders.length===0?(
-        <div className="pr-empty"><p className="pr-empty-title">{t("profile.orders.no_orders")}</p></div>
-      ):(
-        <table className="pr-orders-table">
-          <thead>
-            <tr><th>{t("profile.orders.order_id")}</th><th>{t("profile.orders.date")}</th><th>{t("profile.orders.items")}</th><th>{t("profile.orders.total")}</th><th>{t("profile.orders.status")}</th><th></th></tr>
-          </thead>
-          <tbody>
-            {orders.map((o,i)=>(
-              <>
-                <tr key={o.id} style={{animationDelay:`${i*.07}s`}}>
-                  <td>
-                    <div className="pr-order-id">{o.id}</div>
-                    <div style={{fontSize:10,color:"#6B6B6B",marginTop:2}}>{o.payMethod==="credit"?`${t("profile.orders.payment_credit")} · ${o.bank}`:t("profile.orders.payment_cash")}</div>
-                  </td>
-                  <td><div className="pr-order-date">{o.date}</div></td>
-                  <td>
-                    <div className="pr-order-items-preview">
-                      {o.items.slice(0,3).map((_,j)=>(
-                        <div key={j} className="pr-order-thumb" style={{background:"#EDE7DC",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                          <svg viewBox="0 0 16 16" fill="none" width="10" height="10"><rect x="2" y="5" width="12" height="9" rx="1" stroke="#C0B5AA" strokeWidth="1.2"/><path d="M5 5V4a3 3 0 016 0v1" stroke="#C0B5AA" strokeWidth="1.2"/></svg>
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                  <td><div className="pr-order-total">₼{o.total}</div></td>
-                  <td><span className={`pr-status ${o.status}`}>{t(`profile.orders.status_${o.status}`)}</span></td>
-                  <td>
-                    <button className="pr-order-view-btn" onClick={()=>setExpanded(p=>p===o.id?null:o.id)}>
-                      {expanded===o.id?"↑":t("profile.orders.view")}
-                    </button>
-                  </td>
-                </tr>
-                {expanded===o.id&&(
-                  <tr key={`${o.id}-d`} className="pr-order-detail-row">
-                    <td colSpan={6}>
-                      <div className="pr-order-detail-inner">
-                        <div className="pr-order-detail-items">
-                          {o.items.map((item,j)=>(
-                            <div key={j} className="pr-order-detail-item">
-                              <div className="pr-order-detail-img" style={{background:"#EDE7DC",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><rect x="2" y="5" width="12" height="9" rx="1" stroke="#C0B5AA" strokeWidth="1.2"/><path d="M5 5V4a3 3 0 016 0v1" stroke="#C0B5AA" strokeWidth="1.2"/></svg>
-                              </div>
-                              <div>
-                                <div className="pr-order-detail-name">{item.name}</div>
-                                <div className="pr-order-detail-qty">×{item.qty} · ₼{item.price}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════
-// TAB: Saved
-// ════════════════════════════════════════════════════════════
-function SavedTab({ t }) {
-  const [items,setItems]=useState(MOCK_SAVED);
-  return (
-    <div style={{animation:"prTabIn .4s ease"}}>
-      <div className="pr-card">
-        <div className="pr-sec-head">
-          <p className="pr-sec-eyebrow">{t("profile.tabs.saved")}</p>
-          <h3 className="pr-sec-title" style={{fontSize:26}}>{t("profile.saved.title").split(" ")[0]} <em>{t("profile.saved.title").split(" ").slice(1).join(" ")}</em></h3>
-          <p className="pr-sec-sub">{t("profile.saved.subtitle")}</p>
+            );
+          })}
         </div>
-        {items.length===0?(
-          <div className="pr-empty" style={{padding:"40px 0"}}>
-            <div className="pr-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-            <p className="pr-empty-title">{t("profile.saved.no_saved")}</p>
-            <Link to="/categories" className="pr-btn-primary" style={{textDecoration:"none",marginTop:8}}>{t("profile.saved.browse")}</Link>
-          </div>
-        ):(
-          <div className="pr-saved-grid">
-            {items.map((item,i)=>(
-              <div key={item.id} className="pr-saved-card" style={{animationDelay:`${i*.06}s`}}>
-                <div className="pr-saved-img-wrap">
-                  <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#EDE7DC,#F7F3EE)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <svg viewBox="0 0 48 48" fill="none" stroke="#C0B5AA" strokeWidth="1.2" width="40" height="40"><rect x="8" y="14" width="32" height="24" rx="2"/><path d="M16 14V12a8 8 0 0116 0v2"/></svg>
-                  </div>
-                  <button className="pr-saved-remove" onClick={()=>setItems(p=>p.filter(x=>x.id!==item.id))}>
-                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 1l12 12M13 1L1 13" strokeLinecap="round"/></svg>
-                  </button>
-                </div>
-                <div className="pr-saved-body">
-                  <p className="pr-saved-name">{item.name}</p>
-                  <p className="pr-saved-price">₼{item.price.toLocaleString()}</p>
-                  <button className="pr-saved-cart">
-                    <svg viewBox="0 0 16 16" fill="none" width="11" height="11"><path d="M1 1h2l1.5 7.5h8L14 5H4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><circle cx="6" cy="13" r="1" fill="currentColor"/><circle cx="11" cy="13" r="1" fill="currentColor"/></svg>
-                    {t("profile.saved.add_to_cart")}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
-  );
-}
 
-// ════════════════════════════════════════════════════════════
-// MAIN PROFILE PAGE
-// ════════════════════════════════════════════════════════════
-const TABS = [
-  { id:"overview", label_key:"profile.tabs.overview",  icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg> },
-  { id:"profile",  label_key:"profile.tabs.profile",   icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="10" cy="6" r="3"/><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" strokeLinecap="round"/></svg> },
-  { id:"security", label_key:"profile.tabs.security",  icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M10 2L4 5v5c0 3.9 2.6 7.5 6 8.5C14 17.5 16 14 16 10V5L10 2z" strokeLinejoin="round"/></svg> },
-  { id:"payments", label_key:"profile.tabs.payments",  icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 9h16" strokeLinecap="round"/></svg> },
-  { id:"orders",   label_key:"profile.tabs.orders",    icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M7 4H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2h-2M7 4a2 2 0 012-2h2a2 2 0 012 2M7 4h6" strokeLinecap="round" strokeLinejoin="round"/></svg> },
-  { id:"saved",    label_key:"profile.tabs.saved",     icon:<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3.172 5.172a4 4 0 015.656 0L10 6.344l1.172-1.172a4 4 0 115.656 5.656L10 18l-6.828-6.828a4 4 0 010-5.656z" strokeLinejoin="round"/></svg> },
-];
-
-export default function ProfilePage() {
-  const { t }       = useTranslation();
-  const navigate    = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [toast,     setToast]     = useState(null);
-
-  const user = getUser() || {
-    fullName: "Ayan Məmmədov",
-    email:    "ayan@example.com",
-    phone:    "+994 50 123 45 67",
-    city:     "Bakı",
-    joinDate: "Yanvar 2024",
-  };
-
-  const initials = (user.fullName||user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-
-  const handleLogout = () => {
-    if (window.confirm(t("profile.logout_confirm"))) logout();
-  };
-
-  const totalSpent = MOCK_ORDERS.filter(o=>o.status!=="cancelled").reduce((s,o)=>s+o.total,0);
-
-  return (
-    <div className="pr">
-      {/* ── Hero ── */}
-      <div className="pr-hero">
-        <div className="pr-hero-noise"/>
-        <div className="pr-hero-inner">
-          <div className="pr-avatar-wrap">
-            <div className="pr-avatar-placeholder">{initials}</div>
-            <div className="pr-avatar-online"/>
-            <div className="pr-avatar-edit" onClick={()=>setActiveTab("profile")} title={t("profile.edit_avatar")}>
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11.5 2.5L13.5 4.5L5 13H3V11L11.5 2.5Z" strokeLinejoin="round"/></svg>
-            </div>
-          </div>
-          <div className="pr-hero-info">
-            <div className="pr-hero-badge">
-              <svg viewBox="0 0 10 10" fill="currentColor" width="6" height="6"><circle cx="5" cy="5" r="5"/></svg>
-              {t("profile.page_title")}
-            </div>
-            <h1 className="pr-hero-name">
-              {(user.fullName||user.name||"").split(" ")[0]}{" "}
-              <em>{(user.fullName||user.name||"").split(" ").slice(1).join(" ")}</em>
-            </h1>
-            <div className="pr-hero-meta">
-              <span>
-                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 1C3.8 1 2 2.8 2 5c0 3 4 7 4 7s4-4 4-7c0-2.2-1.8-4-4-4z"/><circle cx="6" cy="5" r="1.5"/></svg>
-                {user.city||"Bakı"}
-              </span>
-              <span>
-                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="6" r="5"/><path d="M6 3v3l2 1" strokeLinecap="round"/></svg>
-                {t("profile.member_since")} {user.joinDate||"2024"}
-              </span>
-              <span>
-                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="1" y="2" width="10" height="8" rx="1"/><path d="M1 5h10" strokeLinecap="round"/></svg>
-                {user.email}
-              </span>
-            </div>
-          </div>
+      <div className="pr-card">
+        <div className="pr-card-top">
+          <h3 className="pr-card-title">{t("profile.saved_items")}</h3>
+          <button className="pr-see-all" onClick={() => setTab("saved")}>{t("profile.see_all")} →</button>
         </div>
-        <div className="pr-hero-stats" style={{maxWidth:1200,margin:"0 auto"}}>
-          {[
-            {val:MOCK_ORDERS.length,        label:t("profile.overview.total_orders"),  delay:".1s"},
-            {val:MOCK_SAVED.length,         label:t("profile.overview.saved_items"),   delay:".18s"},
-            {val:`₼${totalSpent.toLocaleString()}`, label:t("profile.overview.total_spent"), delay:".26s"},
-            {val:MOCK_CREDITS.length,       label:t("profile.overview.active_credit"), delay:".34s"},
-          ].map((s,i)=>(
-            <div key={i} className="pr-hero-stat" style={{animationDelay:s.delay}}>
-              <div className="pr-hs-val">{s.val}</div>
-              <div className="pr-hs-label">{s.label}</div>
+        <div className="pr-saved-mini">
+          {MOCK_SAVED.slice(0,4).map((item,i) => (
+            <div key={item.id} className="pr-saved-mc" style={{animationDelay:`${i*0.05}s`}}>
+              <img src={item.img} alt={item.name} className="pr-saved-mimg"/>
+              <p className="pr-saved-mname">{item.name}</p>
+              <p className="pr-saved-mprice">{fmt(item.price)}</p>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* ── Tabs ── */}
-      <div className="pr-tabs-bar">
-        {TABS.map(tab=>(
-          <button key={tab.id} className={`pr-tab${activeTab===tab.id?" active":""}`} onClick={()=>setActiveTab(tab.id)}>
-            {tab.icon}
-            {t(tab.label_key)}
-          </button>
-        ))}
+/* ─── TAB: PROFILE EDIT ──────────────────────────────────── */
+function ProfileTab({ user, showToast, t }) {
+  const { confirm, Modal } = useConfirm();
+  const [form, setForm] = useState({
+    fullName: user?.fullName || user?.name || "",
+    email:    user?.email    || "",
+    phone:    user?.phone    || "",
+    city:     user?.city     || "Bakı",
+    address:  user?.address  || "",
+    bio:      "",
+  });
+  const [saving,  setSaving]  = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [errors,  setErrors]  = useState({});
+  const [preview, setPreview] = useState(null);
+  const [drag,    setDrag]    = useState(false);
+  const fileRef = useRef();
+
+  const ch = e => {
+    setForm(p=>({...p,[e.target.name]:e.target.value}));
+    setErrors(p=>({...p,[e.target.name]:""}));
+    setDone(false);
+  };
+  const onFile = f => { if(f && f.size < 5e6) setPreview(URL.createObjectURL(f)); };
+
+  const save = async () => {
+    const errs={};
+    if(!form.fullName.trim())       errs.fullName = t("profile.err_req");
+    if(!form.email.includes("@"))   errs.email    = t("profile.err_email");
+    if(Object.keys(errs).length)    { setErrors(errs); return; }
+    const ok = await confirm({
+      title: t("profile.confirm_save_title"),
+      message: t("profile.confirm_save_msg"),
+      confirmText: t("profile.save"),
+      cancelText: t("profile.cancel"),
+    });
+    if (!ok) return;
+    setSaving(true);
+    await new Promise(r=>setTimeout(r,700));
+    setSaving(false); setDone(true);
+    showToast(t("profile.saved_ok"), true);
+  };
+
+  const initials = (form.fullName||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+
+  return (
+    <div className="pr-body pr-ani">
+      {Modal}
+      <div className="pr-card">
+        <h3 className="pr-card-title">{t("profile.photo_title")}</h3>
+        <div className={`pr-avatar-drop${drag?" drag":""}`}
+          onDragOver={e=>{e.preventDefault();setDrag(true)}}
+          onDragLeave={()=>setDrag(false)}
+          onDrop={e=>{e.preventDefault();setDrag(false);onFile(e.dataTransfer.files[0])}}
+          onClick={()=>fileRef.current?.click()}>
+          <div className="pr-av-circle">
+            {preview ? <img src={preview} alt="" className="pr-av-img"/> : <span className="pr-av-init">{initials}</span>}
+            <div className="pr-av-hover"><span>📷</span><span>{t("profile.photo_change")}</span></div>
+          </div>
+          <div className="pr-av-info">
+            <p className="pr-av-title">{t("profile.photo_change")}</p>
+            <p className="pr-av-hint">{t("profile.photo_hint")}</p>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>onFile(e.target.files[0])}/>
+        </div>
       </div>
 
-      {/* ── Content ── */}
-      <div className="pr-content">
-        {activeTab==="overview"  && <OverviewTab  user={user} orders={MOCK_ORDERS} saved={MOCK_SAVED} setActiveTab={setActiveTab} t={t}/>}
-        {activeTab==="profile"   && <ProfileTab   user={user} t={t}/>}
-        {activeTab==="security"  && <SecurityTab  t={t}/>}
-        {activeTab==="payments"  && <PaymentsTab  t={t}/>}
-        {activeTab==="orders"    && <OrdersTab    orders={MOCK_ORDERS} t={t}/>}
-        {activeTab==="saved"     && <SavedTab     t={t}/>}
+      <div className="pr-card">
+        <h3 className="pr-card-title">{t("profile.personal_info")}</h3>
+        <div className="pr-fg">
+          {[
+            {name:"fullName",label:t("profile.f_name"),   type:"text",  span:true  },
+            {name:"email",   label:t("profile.f_email"),  type:"email", span:false },
+            {name:"phone",   label:t("profile.f_phone"),  type:"tel",   span:false },
+            {name:"city",    label:t("profile.f_city"),   type:"text",  span:false },
+            {name:"address", label:t("profile.f_address"),type:"text",  span:false },
+          ].map(f => (
+            <div key={f.name} className={`pr-field${f.span?" pr-fcol2":""}`}>
+              <label className="pr-label">{f.label}</label>
+              <input className={`pr-input${errors[f.name]?" pr-ierr":""}`}
+                name={f.name} type={f.type} value={form[f.name]} onChange={ch}/>
+              {errors[f.name] && <span className="pr-err">{errors[f.name]}</span>}
+            </div>
+          ))}
+          <div className="pr-field pr-fcol2">
+            <label className="pr-label">{t("profile.f_bio")}</label>
+            <textarea className="pr-input pr-ta" name="bio" value={form.bio} onChange={ch} rows={3}/>
+          </div>
+        </div>
+        <div className="pr-ffoot">
+          <button className={`pr-btn-save${done?" pr-btn-done":""}`} onClick={save} disabled={saving}>
+            {saving ? <><Spin/> {t("profile.saving")}</> : done ? <>✓ {t("profile.saved_ok")}</> : t("profile.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Logout */}
-        <div className="pr-logout-section">
-          <p className="pr-logout-text">{user.email} · {t("profile.member_since")} {user.joinDate||"2024"}</p>
-          <button className="pr-logout-btn" onClick={handleLogout}>
-            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" width="14" height="14"><path d="M13 7l4 3-4 3M7 10h10M10 4H5a1 1 0 00-1 1v10a1 1 0 001 1h5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            {t("profile.logout")}
+/* ─── TAB: SECURITY ──────────────────────────────────────── */
+function SecurityTab({ showToast, t }) {
+  const { confirm, Modal } = useConfirm();
+  const [form,   setForm]   = useState({current:"",newPw:"",confirm:""});
+  const [show,   setShow]   = useState({current:false,newPw:false,confirm:false});
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [twoFA,  setTwoFA]  = useState(false);
+
+  const ch = e => { setForm(p=>({...p,[e.target.name]:e.target.value})); setErrors(p=>({...p,[e.target.name]:""})); };
+
+  const save = async () => {
+    const errs={};
+    if(!form.current)             errs.current = t("profile.err_req");
+    if(form.newPw.length<8)       errs.newPw   = t("profile.err_short");
+    if(form.newPw!==form.confirm) errs.confirm  = t("profile.err_match");
+    if(Object.keys(errs).length){ setErrors(errs); return; }
+    const ok = await confirm({
+      title:       t("profile.confirm_pw_title"),
+      message:     t("profile.confirm_pw_msg"),
+      confirmText: t("profile.change_pw"),
+      cancelText:  t("profile.cancel"),
+      danger:      true,
+    });
+    if(!ok) return;
+    setSaving(true);
+    await new Promise(r=>setTimeout(r,700));
+    setSaving(false);
+    setForm({current:"",newPw:"",confirm:""});
+    showToast(t("profile.pw_changed"), true);
+  };
+
+  const toggle2FA = async () => {
+    const ok = await confirm({
+      title:       twoFA ? t("profile.twofa_off_title") : t("profile.twofa_on_title"),
+      message:     twoFA ? t("profile.twofa_off_msg")   : t("profile.twofa_on_msg"),
+      confirmText: twoFA ? t("profile.twofa_disable")   : t("profile.twofa_enable"),
+      cancelText:  t("profile.cancel"),
+      danger:      twoFA,
+    });
+    if(ok) setTwoFA(p=>!p);
+  };
+
+  const PwF = ({name, label}) => (
+    <div className="pr-field">
+      <label className="pr-label">{label}</label>
+      <div className="pr-pw-wrap">
+        <input className={`pr-input${errors[name]?" pr-ierr":""}`} name={name}
+          type={show[name]?"text":"password"} value={form[name]} onChange={ch} placeholder="••••••••"/>
+        <button type="button" className="pr-pw-eye" onClick={()=>setShow(p=>({...p,[name]:!p[name]}))}>
+          {show[name]
+            ? <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z"/><circle cx="10" cy="10" r="2.5"/></svg>
+            : <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16"><path d="M9.9 4C4.4 4 1 10 1 10s3.4 6 9 6c.7 0 1.4-.1 2-.2M17.5 6.5C18.7 7.8 19 10 19 10s-3.4 6-9 6"/><path d="M1 1l18 18" strokeLinecap="round"/></svg>
+          }
+        </button>
+      </div>
+      {errors[name] && <span className="pr-err">{errors[name]}</span>}
+      {name==="newPw" && <PwStrength pw={form.newPw}/>}
+    </div>
+  );
+
+  return (
+    <div className="pr-body pr-ani">
+      {Modal}
+      <div className="pr-card">
+        <h3 className="pr-card-title">{t("profile.change_pw")}</h3>
+        <div className="pr-fg" style={{gridTemplateColumns:"1fr"}}>
+          <PwF name="current" label={t("profile.cur_pw")}/>
+          <PwF name="newPw"   label={t("profile.new_pw")}/>
+          <PwF name="confirm" label={t("profile.conf_pw")}/>
+        </div>
+        <div className="pr-ffoot">
+          <button className="pr-btn-save" onClick={save} disabled={saving}>
+            {saving ? <><Spin/> {t("profile.saving")}</> : t("profile.save")}
           </button>
         </div>
       </div>
 
-      {toast&&<Toast {...toast} onClose={()=>setToast(null)}/>}
+      <div className="pr-card">
+        <div className="pr-twofa">
+          <div className="pr-twofa-ic">🔐</div>
+          <div className="pr-twofa-txt">
+            <p className="pr-twofa-title">{t("profile.twofa_title")}</p>
+            <p className="pr-twofa-desc">{t("profile.twofa_desc")}</p>
+          </div>
+          <button className={`pr-toggle${twoFA?" on":""}`} onClick={toggle2FA}>
+            <span className="pr-knob"/>
+          </button>
+        </div>
+        {twoFA && <div className="pr-twofa-ok">✓ {t("profile.twofa_on")}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── TAB: PAYMENTS ──────────────────────────────────────── */
+function PaymentsTab({ showToast, t }) {
+  const { confirm, Modal } = useConfirm();
+  const [cards,   setCards]   = useState(MOCK_CARDS);
+  const [addOpen, setAddOpen] = useState(false);
+  const [selBank, setSelBank] = useState(null);
+  const [newCard, setNewCard] = useState({number:"",name:"",expiry:"",cvv:""});
+
+  const deleteCard = async (id) => {
+    const ok = await confirm({
+      title:       t("profile.confirm_del_card_title"),
+      message:     t("profile.confirm_del_card_msg"),
+      confirmText: t("profile.delete"),
+      cancelText:  t("profile.cancel"),
+      danger:      true,
+    });
+    if(ok) { setCards(p=>p.filter(x=>x.id!==id)); showToast(t("profile.card_deleted"), true); }
+  };
+
+  const addCard = async () => {
+    if(!newCard.number || !newCard.name || !newCard.expiry) return;
+    const bank = AZ_BANKS.find(b=>b.id===selBank);
+    const ok = await confirm({
+      title:       t("profile.confirm_add_card_title"),
+      message:     `${bank?.name||"Kart"} — ${newCard.number}`,
+      confirmText: t("profile.save_card"),
+      cancelText:  t("profile.cancel"),
+    });
+    if(!ok) return;
+    setCards(p=>[...p,{
+      id:Date.now(), number:newCard.number||"•••• •••• •••• 0000",
+      name:newCard.name||"KART SAHİBİ", expiry:newCard.expiry||"--/--",
+      type:"VISA", bank:bank?.name||"—", bankColor:bank?.color||"#6B7280",
+    }]);
+    setNewCard({number:"",name:"",expiry:"",cvv:""}); setSelBank(null); setAddOpen(false);
+    showToast(t("profile.card_added"), true);
+  };
+
+  return (
+    <div className="pr-body pr-ani">
+      {Modal}
+      <div className="pr-card">
+        <div className="pr-card-top">
+          <h3 className="pr-card-title">{t("profile.my_cards")}</h3>
+          <button className="pr-btn-add" onClick={()=>setAddOpen(p=>!p)}>
+            {addOpen ? "✕ "+t("profile.cancel") : "+ "+t("profile.add_card")}
+          </button>
+        </div>
+
+        {cards.length===0 ? (
+          <div className="pr-empty"><span className="pr-empty-ic">💳</span><p>{t("profile.no_cards")}</p></div>
+        ) : (
+          <div className="pr-cards-row">
+            {cards.map((c,i) => (
+              <div key={c.id} className="pr-bank-card" style={{"--bk":c.bankColor||G, animationDelay:`${i*.08}s`}}>
+                <div className="pr-bc-top">
+                  <span className="pr-bc-bank">{c.bank||"Bank"}</span>
+                  <button className="pr-bc-del" onClick={()=>deleteCard(c.id)}>🗑</button>
+                </div>
+                <div className="pr-bc-chip"/>
+                <div className="pr-bc-num">{c.number}</div>
+                <div className="pr-bc-bot">
+                  <div><div className="pr-bc-lbl">{t("profile.card_holder")}</div><div className="pr-bc-val">{c.name}</div></div>
+                  <div><div className="pr-bc-lbl">{t("profile.expires")}</div><div className="pr-bc-val">{c.expiry}</div></div>
+                  <div className="pr-bc-type">{c.type}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {addOpen && (
+          <div className="pr-add-form pr-ani">
+            <p className="pr-add-title">{t("profile.choose_bank")}</p>
+            <div className="pr-bank-grid">
+              {AZ_BANKS.map(b => (
+                <button key={b.id} className={`pr-bank-btn${selBank===b.id?" active":""}`}
+                  style={{"--bk":b.color}} onClick={()=>setSelBank(b.id)}>
+                  <span className="pr-bank-dot" style={{background:b.color}}/>
+                  {b.name}
+                  {selBank===b.id && <span className="pr-bank-chk">✓</span>}
+                </button>
+              ))}
+            </div>
+            <div className="pr-fg">
+              <div className="pr-field pr-fcol2">
+                <label className="pr-label">{t("profile.card_number")}</label>
+                <input className="pr-input pr-mono" placeholder="0000 0000 0000 0000" maxLength={19}
+                  value={newCard.number} onChange={e=>setNewCard(p=>({...p,number:fmt4(e.target.value)}))}/>
+              </div>
+              <div className="pr-field pr-fcol2">
+                <label className="pr-label">{t("profile.card_name")}</label>
+                <input className="pr-input pr-mono" placeholder="AD SOYAD"
+                  value={newCard.name} onChange={e=>setNewCard(p=>({...p,name:e.target.value.toUpperCase()}))}/>
+              </div>
+              <div className="pr-field">
+                <label className="pr-label">{t("profile.expiry")}</label>
+                <input className="pr-input pr-mono" placeholder="MM/YY" maxLength={5}
+                  value={newCard.expiry} onChange={e=>setNewCard(p=>({...p,expiry:fmtE(e.target.value)}))}/>
+              </div>
+              <div className="pr-field">
+                <label className="pr-label">CVV</label>
+                <input className="pr-input pr-mono" placeholder="•••" maxLength={3} type="password"
+                  value={newCard.cvv} onChange={e=>setNewCard(p=>({...p,cvv:e.target.value.replace(/\D/g,"").slice(0,3)}))}/>
+              </div>
+            </div>
+            <div className="pr-ffoot">
+              <button className="pr-btn-save" onClick={addCard}>{t("profile.save_card")}</button>
+              <button className="pr-btn-ghost" onClick={()=>{setAddOpen(false);setSelBank(null);}}>{t("profile.cancel")}</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="pr-card">
+        <h3 className="pr-card-title">{t("profile.active_credits")}</h3>
+        {MOCK_CREDITS.length===0 ? (
+          <div className="pr-empty"><span className="pr-empty-ic">📋</span><p>{t("profile.no_credits")}</p></div>
+        ) : MOCK_CREDITS.map(c => {
+          const pct = Math.round((c.paid/(c.paid+c.remaining))*100);
+          return (
+            <div key={c.id} className="pr-credit">
+              <div className="pr-credit-head">
+                <div className="pr-credit-left">
+                  <span className="pr-credit-bank-dot" style={{background:c.bankColor}}/>
+                  <span className="pr-credit-bank">{c.bank}</span>
+                </div>
+                <span className="pr-credit-total">{fmt(c.total)}</span>
+              </div>
+              <div className="pr-credit-track"><div className="pr-credit-fill" style={{width:`${pct}%`}}/></div>
+              <div className="pr-credit-foot">
+                <span>{c.paid}/{c.paid+c.remaining} {t("profile.months")}</span>
+                <span className="pr-credit-monthly">{fmt(c.monthly)}/{t("profile.month")}</span>
+                <span>{c.remaining} {t("profile.months_left")}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── TAB: ORDERS ────────────────────────────────────────── */
+function OrdersTab({ t }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <div className="pr-body pr-ani">
+      <div className="pr-card pr-card-flush">
+        <div className="pr-card-pad">
+          <h3 className="pr-card-title">{t("profile.order_history")}</h3>
+        </div>
+        {MOCK_ORDERS.map((o,i) => {
+          const s = ST_CFG[o.status]||ST_CFG.processing;
+          const isOpen = open===o.id;
+          return (
+            <div key={o.id} className={`pr-ord-item${isOpen?" open":""}`} style={{animationDelay:`${i*.05}s`}}>
+              <div className="pr-ord-row" onClick={()=>setOpen(p=>p===o.id?null:o.id)}>
+                <div className="pr-ord-imgs">
+                  {o.items.slice(0,2).map((it,j) => <img key={j} src={it.img} alt="" className="pr-oimg"/>)}
+                  {o.items.length>2 && <span className="pr-oimg-more">+{o.items.length-2}</span>}
+                </div>
+                <div className="pr-ord-info">
+                  <p className="pr-ord-id">{o.id}</p>
+                  <p className="pr-ord-meta">{o.date} · {o.pay==="card"?`💳 ${o.bank}`:t("profile.cash")}</p>
+                </div>
+                <span className={`pr-st ${s.cl}`}>{t(s.lbl)}</span>
+                <span className="pr-ord-total">{fmt(o.total)}</span>
+                <span className={`pr-ord-chev${isOpen?" up":""}`}>›</span>
+              </div>
+              {isOpen && (
+                <div className="pr-ord-detail pr-ani">
+                  {o.items.map((it,j) => (
+                    <div key={j} className="pr-det-row">
+                      <img src={it.img} alt="" className="pr-det-img"/>
+                      <div className="pr-det-info">
+                        <p className="pr-det-name">{it.name}</p>
+                        <p className="pr-det-qty">×{it.qty}</p>
+                      </div>
+                      <span className="pr-det-price">{fmt(it.price)}</span>
+                    </div>
+                  ))}
+                  <div className="pr-det-total">
+                    <span>{t("profile.total")}</span>
+                    <strong>{fmt(o.total)}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── TAB: SAVED ─────────────────────────────────────────── */
+function SavedTab({ showToast, t }) {
+  const { confirm, Modal } = useConfirm();
+  const [items, setItems] = useState(MOCK_SAVED);
+
+  const removeItem = async (item) => {
+    const ok = await confirm({
+      title:       t("profile.confirm_rm_title"),
+      message:     `"${item.name}" ${t("profile.confirm_rm_msg")}`,
+      confirmText: t("profile.remove"),
+      cancelText:  t("profile.cancel"),
+      danger:      true,
+    });
+    if(ok) { setItems(p=>p.filter(x=>x.id!==item.id)); showToast(t("profile.item_removed"), true); }
+  };
+
+  const addToCart = async (item) => {
+    const ok = await confirm({
+      title:       t("profile.confirm_cart_title"),
+      message:     `"${item.name}" — ${fmt(item.price)}`,
+      confirmText: t("profile.add_cart"),
+      cancelText:  t("profile.cancel"),
+    });
+    if(ok) showToast(`${item.name} ${t("profile.added_cart")}`, true);
+  };
+
+  return (
+    <div className="pr-body pr-ani">
+      {Modal}
+      <div className="pr-card">
+        <div className="pr-card-top">
+          <h3 className="pr-card-title">
+            {t("profile.saved_items")} <span className="pr-count-pill">{items.length}</span>
+          </h3>
+        </div>
+        {items.length===0 ? (
+          <div className="pr-empty">
+            <span className="pr-empty-ic">❤️</span>
+            <p>{t("profile.no_saved")}</p>
+            <Link to="/furniture-categories" className="pr-btn-save" style={{textDecoration:"none",marginTop:12}}>
+              {t("profile.browse")}
+            </Link>
+          </div>
+        ) : (
+          <div className="pr-saved-grid">
+            {items.map((item,i) => (
+              <div key={item.id} className="pr-saved-card" style={{animationDelay:`${i*0.05}s`}}>
+                <div className="pr-saved-img-wrap">
+                  <img src={item.img} alt={item.name} className="pr-saved-img"/>
+                  <button className="pr-saved-rm" onClick={()=>removeItem(item)} title={t("profile.remove")}>✕</button>
+                  <div className="pr-saved-overlay">
+                    <button className="pr-saved-cart" onClick={()=>addToCart(item)}>
+                      🛒 {t("profile.add_cart")}
+                    </button>
+                  </div>
+                </div>
+                <p className="pr-saved-name">{item.name}</p>
+                <p className="pr-saved-price">{fmt(item.price)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── MAIN PAGE ──────────────────────────────────────────── */
+const TABS = [
+  { id:"overview", ik:"profile.tab_overview", emoji:"⊞" },
+  { id:"profile",  ik:"profile.tab_profile",  emoji:"◎" },
+  { id:"security", ik:"profile.tab_security", emoji:"🔒" },
+  { id:"payments", ik:"profile.tab_payments", emoji:"💳" },
+  { id:"orders",   ik:"profile.tab_orders",   emoji:"📦" },
+  { id:"saved",    ik:"profile.tab_saved",     emoji:"❤️" },
+];
+
+export default function ProfilePage() {
+  const { t }    = useTranslation();
+  const { confirm, Modal } = useConfirm();
+  const [tab,   setTab]   = useState("overview");
+  const [toast, setToast] = useState(null);
+
+  const user = getUser() || {
+    fullName:"Ayan Məmmədov", email:"ayan@example.com",
+    phone:"+994 50 123 45 67", city:"Bakı", joinDate:"Yanvar 2024",
+  };
+
+  const initials = (user.fullName||user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const spent    = MOCK_ORDERS.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
+  const showToast = (msg, ok) => setToast({msg,ok});
+
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title:       t("profile.logout_title"),
+      message:     t("profile.logout_msg"),
+      confirmText: t("profile.logout"),
+      cancelText:  t("profile.cancel"),
+      danger:      true,
+    });
+    if(ok) logout();
+  };
+
+  return (
+    <div className="pr-page">
+      {Modal}
+
+      {/* ── HERO BANNER ─────────────────────────── */}
+      <div className="pr-hero">
+        <div className="pr-hero-inner">
+          <div className="pr-av-wrap" onClick={()=>setTab("profile")} title={t("profile.photo_change")}>
+            <div className="pr-av-ring">
+              <div className="pr-av">{initials}</div>
+            </div>
+            <div className="pr-av-edit">✏️</div>
+            <div className="pr-av-online"/>
+          </div>
+          <div className="pr-hero-info">
+            <div className="pr-hero-chip">✦ {t("profile.member")}</div>
+            <h1 className="pr-hero-name">{user.fullName||user.name}</h1>
+            <div className="pr-hero-meta">
+              <span>📍 {user.city||"Bakı"}</span>
+              <span>✉️ {user.email}</span>
+              <span>🗓 {t("profile.since")} {user.joinDate||"2024"}</span>
+            </div>
+          </div>
+          <div className="pr-hero-stats">
+            {[
+              {v:MOCK_ORDERS.length, l:t("profile.ov_orders")},
+              {v:MOCK_SAVED.length,  l:t("profile.ov_saved") },
+              {v:fmt(spent),         l:t("profile.ov_spent") },
+            ].map((s,i) => (
+              <div key={i} className="pr-hs" style={{animationDelay:`${i*.1}s`}}>
+                <span className="pr-hs-v">{s.v}</span>
+                <span className="pr-hs-l">{s.l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SIDEBAR + CONTENT LAYOUT ─────────────── */}
+      <div className="pr-layout">
+
+        {/* Sidebar */}
+        <aside className="pr-sidebar">
+          <nav className="pr-nav">
+            {TABS.map(tb => (
+              <button key={tb.id} className={`pr-nav-item${tab===tb.id?" active":""}`}
+                onClick={()=>setTab(tb.id)}>
+                <span className="pr-nav-emoji">{tb.emoji}</span>
+                <span className="pr-nav-label">{t(tb.ik)}</span>
+                {tab===tb.id && <span className="pr-nav-dot"/>}
+              </button>
+            ))}
+          </nav>
+
+          <div className="pr-sidebar-user">
+            <div className="pr-sb-av">{initials}</div>
+            <div className="pr-sb-info">
+              <p className="pr-sb-name">{(user.fullName||user.name||"").split(" ")[0]}</p>
+              <p className="pr-sb-email">{user.email}</p>
+            </div>
+          </div>
+
+          <button className="pr-logout-btn" onClick={handleLogout}>
+            <span>→</span> {t("profile.logout")}
+          </button>
+        </aside>
+
+        {/* Content */}
+        <div className="pr-content">
+          {tab==="overview" && <OverviewTab  user={user} setTab={setTab} t={t}/>}
+          {tab==="profile"  && <ProfileTab   user={user} showToast={showToast} t={t}/>}
+          {tab==="security" && <SecurityTab  showToast={showToast} t={t}/>}
+          {tab==="payments" && <PaymentsTab  showToast={showToast} t={t}/>}
+          {tab==="orders"   && <OrdersTab    t={t}/>}
+          {tab==="saved"    && <SavedTab     showToast={showToast} t={t}/>}
+        </div>
+      </div>
+
+      {toast && <Toast {...toast} onClose={()=>setToast(null)}/>}
     </div>
   );
 }

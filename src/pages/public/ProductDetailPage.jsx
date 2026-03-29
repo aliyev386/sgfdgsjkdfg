@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import CreditCalculator, { PERIODS, calcCredit, AZ_BANKS } from "../../components/credit/CreditCalculator";
 import { useTranslation } from "react-i18next";
 import cartApi  from "../../api/cartApi";
 import Navbar   from "../../components/common/Navbar";
@@ -110,6 +111,53 @@ const RelCard = memo(function RelCard({ item, t }) {
 
 
 // ── PAGE ─────────────────────────────────────────────────────
+
+// ── Installment quick-view chips ─────────────────────────
+function InstallmentChips({ price }) {
+  const [open, setOpen] = useState(false);
+  const defaultBank = AZ_BANKS[0];
+  const previews = [
+    { months: 4,  val: (price * 0.8 / 4).toFixed(2),   tag: "0%", label:"4 ay"  },
+    { months: 12, val: calcCredit({ price, downPct:20, months:12, bankRate: defaultBank.rate12 }).monthly.toFixed(2), tag: null, label:"12 ay" },
+    { months: 24, val: calcCredit({ price, downPct:20, months:24, bankRate: defaultBank.rate24 }).monthly.toFixed(2), tag: null, label:"24 ay" },
+  ];
+  return (
+    <div style={{ margin:"12px 0 0" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:10 }}>
+        <span style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"#6B6B6B" }}>Kreditlə:</span>
+        {previews.map(p => (
+          <button key={p.months} onClick={() => setOpen(true)}
+            style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 12px",
+              background:"#F7F3EE", border:"1px solid #E5DDD4", cursor:"pointer", fontSize:12,
+              color:"#1C1C1C", fontFamily:"'DM Sans',sans-serif", transition:"all .2s", position:"relative" }}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="#7A9E7E"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor="#E5DDD4"}>
+            <span style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:16, fontWeight:300 }}>₼{p.val}</span>
+            <span style={{ fontSize:10, color:"#6B6B6B" }}>×{p.months}</span>
+            {p.tag && <span style={{ background:"#7A9E7E", color:"#fff", fontSize:8, fontWeight:700, padding:"2px 5px", position:"absolute", top:-8, right:-4 }}>{p.tag}</span>}
+          </button>
+        ))}
+        <button onClick={() => setOpen(o => !o)}
+          style={{ background:"none", border:"none", cursor:"pointer", fontSize:11, letterSpacing:1,
+            color:"#7A9E7E", fontFamily:"'DM Sans',sans-serif", textDecoration:"underline", textUnderlineOffset:3 }}>
+          {open ? "Bağla ↑" : "Kalkulyator →"}
+        </button>
+      </div>
+      {open && (
+        <div style={{ border:"1px solid #E5DDD4", padding:24, background:"#F7F3EE", marginTop:8, animation:"pdpFadeUp .35s ease" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300 }}>
+              Kredit <em style={{ fontStyle:"italic", color:"#7A9E7E" }}>Kalkulyatoru</em>
+            </p>
+            <button onClick={() => setOpen(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#6B6B6B" }}>✕</button>
+          </div>
+          <CreditCalculator price={price} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProductDetailPage() {
   const { slug }  = useParams();
   const { t }     = useTranslation();
@@ -273,6 +321,9 @@ export default function ProductDetailPage() {
               {save > 0 && <span className="pdp-save-tag">−{discountPct}% {t("pdp.save")} {fmt(save)}</span>}
             </div>
             <p className="pdp-tax-note">{t("pdp.inc_vat")}</p>
+
+            {/* INSTALLMENT QUICK-VIEW */}
+            <InstallmentChips price={product.price} />
             <div className="pdp-stock-row">
               <div className={"pdp-stock-dot" + (product.in_stock?" green":" red")} />
               <span className="pdp-stock-txt" style={{color:product.in_stock?"#4caf50":"#f44336"}}>
