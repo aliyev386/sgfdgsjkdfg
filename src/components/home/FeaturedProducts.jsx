@@ -76,7 +76,7 @@ export default function FeaturedProductsSection({ products = [], t }) {
               />
               <div className="hp-prod-acts">
                 <button className="hp-prod-add">{t("common.add_to_cart")}</button>
-                <button className="hp-prod-wish">♡</button>
+                <button className="hp-prod-wish"><img src="\images\happiness (1).png" alt="" /></button>
               </div>
             </div>
             <div className="hp-prod-inf">

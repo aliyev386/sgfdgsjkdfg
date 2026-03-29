@@ -43,9 +43,7 @@ export default function ShopByCategory({ categories = [], t }) {
               <div className="sbc-img-ov"/>
             </div>
 
-            {/* Content */}
             <div className="sbc-body">
-              {/* Icon pill */}
               <div className="sbc-icon" style={{ background: cat.color }}>
                 {ICONS[cat.icon]}
               </div>

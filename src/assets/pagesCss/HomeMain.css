@@ -26,7 +26,7 @@
   .hp-ey::before { content:'';display:block;width:28px;height:1px;background:#7A9E7E;flex-shrink:0 }
   .hp-ey.center { justify-content:center }
   .hp-ey.center::before { display:none }
-  .hp-h2    { font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4vw,54px);font-weight:300;line-height:1.12;color:#1C1C1C }
+  .hp-h2    { font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4vw,54px);font-weight:500;line-height:1.12;color:#1C1C1C }
   .hp-h2 em { font-style:italic;color:#7A9E7E }
   .hp-sec-head { display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:56px }
   .hp-va    { font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6B6B6B;border-bottom:1px solid #E5DDD4;padding-bottom:2px;transition:all .3s;cursor:pointer;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:8px }
@@ -116,10 +116,10 @@
   .hp-prod-tab   { padding:10px 22px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;background:none;border:none;cursor:pointer;color:#6B6B6B;font-family:'DM Sans',sans-serif;transition:background .3s,color .3s }
   .hp-prod-tab.a,.hp-prod-tab:hover { background:#1C1C1C;color:#fff }
 
-  .hp-prod-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:28px }
+  .hp-prod-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:28px }c
   .hp-prod-card { background:#fff;transition:box-shadow .4s }
   .hp-prod-card:hover { box-shadow:0 20px 56px rgba(28,28,28,.1) }
-  .hp-prod-iw   { position:relative;overflow:hidden;aspect-ratio:4/5;background:#F7F3EE }
+  .hp-prod-iw   { position:relative;overflow:hidden;background:#F7F3EE ; height: 350px;}
   .hp-prod-im   { width:100%;height:100%;object-fit:cover;transition:transform .65s cubic-bezier(.25,.46,.45,.94);display:block }
   .hp-prod-card:hover .hp-prod-im { transform:scale(1.05) }
   .hp-prod-badge{ position:absolute;top:14px;left:14px;color:#fff;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:5px 11px;font-weight:500;font-family:'DM Sans',sans-serif }
@@ -127,7 +127,8 @@
   .hp-prod-card:hover .hp-prod-acts { transform:translateY(0) }
   .hp-prod-add  { flex:1;padding:12px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;background:#fff;color:#1C1C1C;transition:background .3s,color .3s }
   .hp-prod-add:hover { background:#7A9E7E;color:#fff }
-  .hp-prod-wish { background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;width:44px;padding:0;cursor:pointer;transition:background .3s;font-size:14px }
+  .hp-prod-wish {  background:transparent;border:1px solid rgba(255,255,255,.3);width:44px;padding:0;cursor:pointer;transition:background .3s;font-size:14px }
+  .hp-prod-wish img{margin: auto; width:20px;padding:0;cursor:pointer;transition:background .3s;font-size:14px }
   .hp-prod-wish:hover { background:rgba(255,255,255,.12) }
   .hp-prod-inf  { padding:18px 14px 22px }
   .hp-prod-cat  { font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#7A9E7E;margin-bottom:5px }
@@ -380,7 +381,7 @@
 }
 .sbc-card:hover .sbc-img    { opacity: 1; transform: scale(1); }
 .sbc-card:hover .sbc-img-ov { opacity: 1; }
-.sbc-card:hover .sbc-name   { color: #fff; }
+.sbc-card:hover .sbc-name   { font-weight: 500; color: #fff; }
 .sbc-card:hover .sbc-count  { color: rgba(255,255,255,.65); }
 .sbc-card:hover .sbc-arrow  { color: #fff; opacity: 1; transform: translateX(0); }
 .sbc-card:hover .sbc-num    { opacity: .12; color: #fff; }
@@ -422,7 +423,7 @@
 .sbc-name {
   font-family: 'Cormorant Garamond', serif;
   font-size: 20px;
-  font-weight: 300;
+  font-weight: 700;
   color: #1C1C1C;
   margin: 0 0 3px;
   line-height: 1.2;
@@ -446,8 +447,6 @@
   transition: opacity .3s, transform .35s, color .3s;
   flex-shrink: 0;
 }
-
-/* Watermark number */
 .sbc-num {
   position: absolute;
   bottom: 10px;
