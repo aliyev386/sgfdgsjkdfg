@@ -449,7 +449,7 @@ const useAdminData = (fetchFn, deps = []) => {
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const validateRequired = (val) => !val || (typeof val === "string" && val.trim() === "");
-const validateLangField = (obj) => !obj?.az?.trim() || !obj?.en?.trim();
+const validateLangField = (obj) => !obj?.az?.trim();  // sadece AZ zorunlu, EN/RU AZ-dan fallback
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard = ({ t, lang }) => {
@@ -579,7 +579,7 @@ const Products = ({ t, lang }) => {
   const [categories, setCategories] = useState([]);
   const PER_PAGE = 8;
 
-  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", stock: "", category_id: "", colors: [], images: [] };
+  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", stock: "", category_id: "", material: "", label: "", colors: [], images: [] };
   const [form, setForm] = useState(emptyForm);
 
   const { data: products, total, loading, reload } = useAdminData(
@@ -616,6 +616,8 @@ const Products = ({ t, lang }) => {
       price: p.price ?? "",
       stock: p.stock ?? "",
       category_id: p.category_id || p.category?.id || "",
+      material: p.material || "",
+      label: p.label || "",
       colors: p.colors || [],
       images: p.images || [],
     });
@@ -734,6 +736,12 @@ const Products = ({ t, lang }) => {
                 value: c.id,
                 label: typeof c.name === "object" ? c.name[lang] : c.name,
               }))]} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label={t.materials || "Material"} value={form.material || ""}
+              onChange={v => setField("material", v)} placeholder="Wood, Fabric..." />
+            <Input label="Label" value={form.label || ""}
+              onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
           </div>
 
           {/* Colors */}

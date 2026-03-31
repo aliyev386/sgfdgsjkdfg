@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
 import { setCart } from "../../store/slices/cartSlice";
 import cartApi from "../../api/cartApi";
+import { toggleWishlist } from "../../store/slices/wishlistStore";
 import categoryApi from "../../api/categoryApi";
 import productApi from "../../api/productApi";
 import Navbar from "../../components/common/Navbar";
@@ -48,13 +49,12 @@ function Stars({ n, count }) {
 }
 
 // ── PRODUCT CARD ───────────────────────────────────────────────────────────
-const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToCart, t }) {
-  const navigate = useNavigate();
+const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToCart, t, wishlist, dispatch }) {  const navigate = useNavigate();
   return (
     <article
       className="fcp-card"
       style={{ animationDelay: `${(idx % PAGE_SIZE) * 50}ms` }}
-      onClick={() => navigate(`/products/${product.slug}`)}
+      onClick={() => navigate(`/details/${product.id}`)}
     >
       <div className="fcp-card-img-box">
         <img className="fcp-card-img" src={product.image} alt={product.name} loading="lazy" />
@@ -66,11 +66,13 @@ const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToC
         <div className="fcp-card-hover-actions">
           <button
             className="fcp-btn-view"
-            onClick={e => { e.stopPropagation(); navigate(`/products/${product.slug}`); }}
+            onClick={e => { e.stopPropagation(); navigate(`/details/${product.id}`); }}
           >
             {t("fcp.view_details")}
           </button>
-          <button className="fcp-btn-wish" onClick={e => e.stopPropagation()}>♡</button>
+          <button className="fcp-btn-wish" onClick={e => { e.stopPropagation(); dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image })); }}>
+          {wishlist && wishlist.some(w => w.id === product.id) ? <span style={{color:"#e53e3e"}}>♥</span> : "♡"}
+        </button>
         </div>
       </div>
       <div className="fcp-card-body">
@@ -194,11 +196,9 @@ function FilterSidebar({ categories, selectedCatId, onCategoryChange, filterData
 
   const { price, materials, styles } = filterData;
 
-  // Draft price state — local to sidebar, only commits on mouseUp / blur
   const [draftMin, setDraftMin] = useState(() => Number(local.price_min !== "" ? local.price_min : price.min));
   const [draftMax, setDraftMax] = useState(() => Number(local.price_max !== "" ? local.price_max : price.max));
 
-  // Sync draft when parent resets
   useEffect(() => {
     setDraftMin(local.price_min !== "" ? Number(local.price_min) : price.min);
     setDraftMax(local.price_max !== "" ? Number(local.price_max) : price.max);
@@ -318,6 +318,7 @@ export default function FurnitureCategoryPage() {
   const { t }                           = useTranslation();
   const navigate                        = useNavigate();
   const dispatch                        = useDispatch();
+  const wishlist                        = useSelector(s => s.wishlist.items);
   const lang                            = useSelector(selectLang);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -460,8 +461,8 @@ export default function FurnitureCategoryPage() {
   const handleCategoryChange = useCallback((catId) => {
     setSelectedCatId(catId);
     handleReset();
-    if (catId) navigate(`/furniture-categories/${catId}`, { replace: true });
-    else       navigate("/furniture-categories", { replace: true });
+    if (catId) navigate(`/category/${catId}`, { replace: true });
+    else       navigate("/category", { replace: true });
     setMobileOpen(false);
   }, [navigate, handleReset]);
 
@@ -649,8 +650,16 @@ export default function FurnitureCategoryPage() {
           {!prodLoading && products.length > 0 && (
             <div className={"fcp-grid cols-" + gridCols}>
               {products.map((p, i) => (
-                <ProductCard key={p.id} product={p} idx={i}
-                  addingId={addingId} onAddToCart={handleAddToCart} t={t} />
+                <ProductCard 
+  key={p.id} 
+  product={p} 
+  idx={i}
+  addingId={addingId} 
+  onAddToCart={handleAddToCart} 
+  t={t}
+  wishlist={wishlist}
+  dispatch={dispatch}
+/>
               ))}
             </div>
           )}

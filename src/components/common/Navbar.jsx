@@ -6,6 +6,8 @@ import { setLang } from "../../store/slices/langSlice";
 import { logoutAction, selectIsAuth } from "../../store/slices/authSlice";
 import { selectCartCount } from "../../store/slices/cartSlice";
 import CartDrawer from "../cart/CartDrawer";
+import cartApi from "../../api/cartApi";
+import { setCart } from "../../store/slices/cartSlice";
 import "../../assets/pagesCss/Navbar.css";
 
 const LANGUAGES = [
@@ -25,6 +27,14 @@ export default function Navbar() {
   const activeLng = i18n.language || "az";
 
   const [scrolled,  setScrolled]  = useState(false);
+
+  // Səbəti yüklə
+  useEffect(() => {
+    if (isAuth) {
+      cartApi.get().then(cart => { if (cart) dispatch(setCart(cart)); }).catch(() => {});
+    }
+  }, [isAuth, dispatch]);
+
   const [cartOpen,  setCartOpen]  = useState(false);
 
   useEffect(() => {

@@ -143,12 +143,12 @@ export default function HomePage() {
 
       <section className="hp-sec" id="featured-products">
         <div className="rv">
-          <FeaturedProductsSection products={products} t={t} lang={lang} />
+          <FeaturedProductsSection products={products} categories={prodCats_mapped} t={t} lang={lang} />
         </div>
       </section>
 
       {!prodCatsLoad && prodCats_mapped.length > 0 && (
-        <ShopByCategory categories={prodCats_mapped} t={t} />
+        <ShopByCategory categories={prodCats_mapped.slice(0, 8)} t={t} />
       )}
 
       {!roomCatsLoading && roomCats_mapped.length > 0 && (

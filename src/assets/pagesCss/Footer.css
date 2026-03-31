@@ -3,7 +3,7 @@
   .footer { background:#1C1C1C;color:rgba(255,255,255,.7);padding:72px 60px 36px }
   .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 56px; }
   .footer-logo { font-family: 'Playfair Display', serif; font-size: 26px; color: #fff; margin-bottom: 16px; }
-  .footer-logo span { color: rgb(80, 160, 80); }
+  .footer-logo span { color: #7A9E7E; }
   .footer-desc { font-size: 14px; line-height: 1.7; margin-bottom: 28px; max-width: 260px; }
   .footer-newsletter { display: flex; gap: 0; }
   .footer-newsletter input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-right: none; border-radius: 50px 0 0 50px; padding: 12px 18px; color: #fff; font-size: 14px; outline: none; font-family: 'DM Sans', sans-serif; }

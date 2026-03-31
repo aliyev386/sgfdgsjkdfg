@@ -8,7 +8,7 @@ import Footer from "../../components/common/Footer";
 import CategoriesGrid from "../../components/categoriespage/CategoriesGrid";
 import "../../assets/pagesCss/CategoryPage.css";
 
-const INITIAL_VISIBLE = 5;
+const INITIAL_VISIBLE = 8;
 
 const PLACEHOLDER_IMGS = [
   "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80",

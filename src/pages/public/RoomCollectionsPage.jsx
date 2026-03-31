@@ -1,6 +1,3 @@
-// src/pages/public/RoomCollectionsPage.jsx
-// Route: /rooms/:roomSlug
-// Seçilmiş otağa aid kolleksiyalar
 
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -66,12 +63,9 @@ const CollCard = memo(function CollCard({ coll, idx, accent, t }) {
 });
 
 
-// all rooms list for the nav
-// ALL_ROOMS API-dan dinamik yüklənir
-
 
 export default function RoomCollectionsPage() {
-  const { categoryId } = useParams();   // route: /room-collections/:categoryId
+  const { categoryId } = useParams(); 
   const { t }          = useTranslation();
   const navigate       = useNavigate();
   const dispatch       = useDispatch();
@@ -80,10 +74,9 @@ export default function RoomCollectionsPage() {
   const [heroLoaded,  setHeroLoaded]  = useState(false);
   const [loading,     setLoading]     = useState(true);
   const [items,       setItems]       = useState([]);
-  const [allRooms,    setAllRooms]    = useState([]);   // nav tabs
+  const [allRooms,    setAllRooms]    = useState([]);  
   const [currentMeta, setCurrentMeta] = useState({ name: "", image: "", accent: "#7A9E7E" });
 
-  // Load all collection categories for nav
   useEffect(() => {
     collectionApi.getCategories()
       .then(res => {
@@ -99,15 +92,13 @@ export default function RoomCollectionsPage() {
       .catch(() => {});
   }, [lang]);
 
-  // Load collections for selected category
   useEffect(() => {
     window.scrollTo({ top: 0 });
     setLoading(true);
     setHeroLoaded(false);
 
-    // Find meta for this category
-    const meta = allRooms.find(r => String(r.id) === String(categoryId));
-    if (meta) setCurrentMeta(meta);
+    const found = allRooms.find(r => String(r.id) === String(categoryId));
+    if (found) setCurrentMeta(found);    if (meta) setCurrentMeta(meta);
 
     const fetch = categoryId
       ? collectionApi.getByCategory(categoryId)
@@ -137,12 +128,10 @@ export default function RoomCollectionsPage() {
 
   return (
     <>
-      {/* inject accent css var */}
       <style>{`:root { --rcp-accent: ${accent}; }`}</style>
       <div className="rcp-page">
         <Navbar />
 
-        {/* HERO */}
         <div className={"rcp-hero" + (heroLoaded?" loaded":"")}>
           <div className="rcp-hero-bg" style={{backgroundImage:`url(${currentMeta.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1600&q=85"})`}} />
           <div className="rcp-hero-ov" />
@@ -184,9 +173,9 @@ export default function RoomCollectionsPage() {
         {/* MAIN */}
         <div className="rcp-main">
           <div className="rcp-section-head">
-            <h2 className="rcp-section-title" style={{"--accent":accent}}>
-              {t("rooms_coll.section_title_pre")} <em>{t(`cat_list.rooms.${meta.key}`)}</em>
-            </h2>
+          <h2 className="rcp-section-title" style={{"--accent":accent}}>
+  {t("rooms_coll.section_title_pre")} <em>{currentMeta.name}</em>
+</h2>
             {!loading && (
               <span className="rcp-section-count">
                 {items.length} {t("rooms_coll.collections")}
