@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import cartApi from "../../api/cartApi";
-import "../../assets/PagesCss/CartPage.css";
+import "../../assets/pagesCss/CartPage.css";
 
 // ─── Toast ────────────────────────────────────────────────────
 function Toast({ message, type = "info", onClose }) {

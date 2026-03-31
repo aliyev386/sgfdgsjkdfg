@@ -1,33 +1,30 @@
-// src/api/cartApi.js
-// ─────────────────────────────────────────────────────────────
-// Səbət API çağırışları.
-// Token lazımdır — ProtectedRoute ilə qorunmalıdır.
-// ─────────────────────────────────────────────────────────────
-
+// src/api/cartApi.js  — backend CartController-ə uyğun
 import axiosInstance from "./axiosInstance";
 
 const cartApi = {
-  // Cari istifadəçinin səbətini gətir
-  get: () =>
-    axiosInstance.get("/cart"),
+  // GET /cart  →  CartDto { id, items, grandTotal, itemCount }
+  get: () => axiosInstance.get("/cart").then(r => r.data?.data ?? r.data),
 
-  // Məhsul əlavə et
-  // body: { product_id, quantity }
-  addItem: (productId, quantity = 1) =>
-    axiosInstance.post("/cart/items", { product_id: productId, quantity }),
+  // POST /cart/items  →  body: AddToCartDto
+  addItem: ({ productId, collectionId, selectedColor, selectedSize, quantity = 1 }) =>
+    axiosInstance.post("/cart/items", {
+      productId:     productId     || undefined,
+      collectionId:  collectionId  || undefined,
+      selectedColor: selectedColor || undefined,
+      selectedSize:  selectedSize  || undefined,
+      quantity,
+    }).then(r => r.data?.data ?? r.data),
 
-  // Kəmiyyəti yenilə
-  // body: { quantity }
-  updateItem: (itemId, quantity) =>
-    axiosInstance.patch(`/cart/items/${itemId}`, { quantity }),
+  // PUT /cart/items/:id  →  body: { quantity }
+  updateItem: (cartItemId, quantity) =>
+    axiosInstance.put(`/cart/items/${cartItemId}`, { quantity }).then(r => r.data),
 
-  // Məhsulu sil
-  removeItem: (itemId) =>
-    axiosInstance.delete(`/cart/items/${itemId}`),
+  // DELETE /cart/items/:id
+  removeItem: (cartItemId) =>
+    axiosInstance.delete(`/cart/items/${cartItemId}`).then(r => r.data),
 
-  // Səbəti tamamilə təmizlə
-  clear: () =>
-    axiosInstance.delete("/cart"),
+  // DELETE /cart
+  clear: () => axiosInstance.delete("/cart").then(r => r.data),
 };
 
 export default cartApi;

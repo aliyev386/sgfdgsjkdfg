@@ -1,32 +1,20 @@
-// src/api/categoryApi.js
-// ─────────────────────────────────────────────────────────────
-// Kateqoriya API çağırışları.
-//
-// Backend endpoint nümunələri:
-//   GET /furniture-categories            → bütün kateqoriyalar
-//   GET /furniture-categories/:id        → tək kateqoriya
-//   GET /furniture-categories/:id/products → məhsullar + filter
-// ─────────────────────────────────────────────────────────────
-
+// src/api/categoryApi.js  — backend FurnitureCategoriesController-ə uyğun
 import axiosInstance from "./axiosInstance";
 
 const categoryApi = {
-  // Bütün kateqoriyaları gətir (nav, footer üçün)
+  // GET /furniture-categories  →  FurnitureCategoryDto[]
   getAll: () =>
-    axiosInstance.get("/furniture-categories"),
+    axiosInstance.get("/furniture-categories").then(r => r.data?.data ?? r.data),
 
-  // Tək kateqoriya məlumatı (ad, şəkil, açıqlama)
+  // GET /furniture-categories/:id
   getById: (id) =>
-    axiosInstance.get(`/furniture-categories/${id}`),
+    axiosInstance.get(`/furniture-categories/${id}`).then(r => r.data?.data ?? r.data),
 
-  // Kateqoriyaya aid məhsullar — filter + sort + pagination
-  // params: { page, limit, price_min, price_max, colors, materials, sort }
-  getProducts: (id, params = {}) =>
-    axiosInstance.get(`/furniture-categories/${id}/products`, { params }),
-
-  // Mövcud filter seçimlərini gətir (hansı rənglər, materiallar var)
-  getFilters: (id) =>
-    axiosInstance.get(`/furniture-categories/${id}/filters`),
+  // GET /products?page=1&pageSize=12&furnitureCategoryId=X
+  getProducts: (categoryId, params = {}) =>
+    axiosInstance.get("/products", {
+      params: { furnitureCategoryId: categoryId, ...params }
+    }).then(r => r.data),
 };
 
 export default categoryApi;

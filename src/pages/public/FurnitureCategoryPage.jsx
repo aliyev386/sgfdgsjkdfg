@@ -1,11 +1,13 @@
 // src/pages/public/FurnitureCategoryPage.jsx
-// Route: /furniture-categories  OR  /furniture-categories/:id
-// Sol: filter sidebar | Sağ: product grid | Yuxarı: dinamik banner
-
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector, useDispatch } from "react-redux";
+import { selectLang } from "../../store/slices/langSlice";
+import { setCart } from "../../store/slices/cartSlice";
 import cartApi from "../../api/cartApi";
+import categoryApi from "../../api/categoryApi";
+import productApi from "../../api/productApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/FurnitureCategory.css";
@@ -13,67 +15,21 @@ import "../../assets/pagesCss/FurnitureCategory.css";
 const PAGE_SIZE = 12;
 
 // ── CATEGORIES (sidebar üçün) ──────────────────────────────────────────────
-const CATEGORIES = [
-  { id: null,  key: "all",         labelKey: "fcp.cat_all",         count: 83, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85", accent: "#7A9E7E", tagline: "fcp.banner_all" },
-  { id: "1",   key: "sofa",        labelKey: "fcp.cat_sofa",        count: 14, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85", accent: "#7A9E7E", tagline: "fcp.banner_sofa" },
-  { id: "2",   key: "table",       labelKey: "fcp.cat_table",       count: 11, image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=85", accent: "#C9A84C", tagline: "fcp.banner_table" },
-  { id: "3",   key: "bed",         labelKey: "fcp.cat_bed",         count: 9,  image: "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=85", accent: "#A0856C", tagline: "fcp.banner_bed" },
-  { id: "4",   key: "chair",       labelKey: "fcp.cat_chair",       count: 17, image: "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=85", accent: "#C1654B", tagline: "fcp.banner_chair" },
-  { id: "5",   key: "wardrobe",    labelKey: "fcp.cat_wardrobe",    count: 8,  image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85", accent: "#5C8DB8", tagline: "fcp.banner_wardrobe" },
-  { id: "6",   key: "shelf",       labelKey: "fcp.cat_shelf",       count: 12, image: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=85", accent: "#9B8AC4", tagline: "fcp.banner_shelf" },
-  { id: "7",   key: "desk",        labelKey: "fcp.cat_desk",        count: 7,  image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85", accent: "#5A7A9E", tagline: "fcp.banner_desk" },
-  { id: "8",   key: "decor",       labelKey: "fcp.cat_decor",       count: 5,  image: "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=85", accent: "#E8A87C", tagline: "fcp.banner_decor" },
+// Categories API-dan gəlir (aşağıda useEffect-də)
+const ACCENT_COLORS = ["#7A9E7E","#C9A84C","#A0856C","#C1654B","#5C8DB8","#9B8AC4","#5A7A9E","#E8A87C","#D4714A"];
+const BANNER_IMGS   = [
+  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=85",
+  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=85",
+  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=85",
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=85",
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85",
+  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=85",
 ];
+const ALL_CAT = { id: null, key: "all", labelKey: "fcp.cat_all", count: 0, image: BANNER_IMGS[0], accent: "#7A9E7E", tagline: "fcp.banner_all" };
 
-const MOCK_FILTERS = {
-  price: { min: 0, max: 15000 },
-  materials: [
-    { value: "solid_oak", label: "Solid Oak",    count: 42 },
-    { value: "walnut",    label: "Walnut",       count: 28 },
-    { value: "pine",      label: "Pine",         count: 19 },
-    { value: "linen",     label: "Linen Fabric", count: 35 },
-    { value: "velvet",    label: "Velvet",       count: 22 },
-    { value: "leather",   label: "Full Leather", count: 17 },
-    { value: "rattan",    label: "Rattan",       count: 11 },
-    { value: "metal",     label: "Metal Frame",  count: 31 },
-  ],
-  styles: [
-    { value: "scandinavian", label: "Scandinavian" },
-    { value: "modern",       label: "Modern"       },
-    { value: "industrial",   label: "Industrial"   },
-    { value: "bohemian",     label: "Bohemian"     },
-    { value: "classic",      label: "Classic"      },
-    { value: "minimalist",   label: "Minimalist"   },
-  ],
-};
 
-const MOCK_PRODUCTS = Array.from({ length: 24 }, (_, i) => ({
-  id:           i + 1,
-  name:         ["Velour Lounge Sofa","Nordic Oak Chair","Florence Platform Bed",
-                 "Aria Coffee Table","Ember Armchair","Oslo Shelf Unit",
-                 "Linen 3-Seater","Heirloom Dining Table","Brass Arc Lamp",
-                 "Marble Side Table","Rattan Lounge Chair","Teak Desk"][i % 12],
-  slug:         `product-${i + 1}`,
-  price:        [2490,680,2100,940,1200,680,1890,3400,380,520,1100,1600][i % 12],
-  old_price:    [2990,null,null,null,null,820,null,3900,null,null,null,null][i % 12],
-  badge:        ["best_seller","new_in",null,"new_in",null,"sale",null,"sale",null,null,"new_in",null][i % 12],
-  rating:       4 + (i % 2 === 0 ? 1 : 0),
-  review_count: 12 + i * 3,
-  image: [
-    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
-    "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80",
-    "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=600&q=80",
-    "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&q=80",
-    "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&q=80",
-    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80",
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80",
-    "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=600&q=80",
-    "https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=600&q=80",
-    "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80",
-    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80",
-  ][i % 12],
-}));
 
 const fmt   = (n) => `$${Number(n).toLocaleString()}`;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -361,19 +317,43 @@ export default function FurnitureCategoryPage() {
   const { id: routeId }                 = useParams();
   const { t }                           = useTranslation();
   const navigate                        = useNavigate();
+  const dispatch                        = useDispatch();
+  const lang                            = useSelector(selectLang);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // API-dan gələn kategoriyalar
+  const [apiCategories, setApiCategories] = useState([]);
 
   // selected category id — null = "All"
   const [selectedCatId, setSelectedCatId] = useState(routeId ?? null);
 
+  // Kategoriyaları API-dan yüklə (lang dəyişəndə yenidən)
+  useEffect(() => {
+    categoryApi.getAll().then(res => {
+      const arr = Array.isArray(res) ? res : [];
+      const mapped = arr.map((c, i) => ({
+        id:       c.id,
+        key:      String(c.id),
+        labelKey: c.name,           // birbaşa ad istifadə edirik
+        count:    0,
+        image:    c.imageUrl || BANNER_IMGS[i % BANNER_IMGS.length],
+        accent:   ACCENT_COLORS[i % ACCENT_COLORS.length],
+        tagline:  c.name,
+      }));
+      setApiCategories([ALL_CAT, ...mapped]);
+    }).catch(() => setApiCategories([ALL_CAT]));
+  }, [lang]);
+
+  const CATEGORIES = apiCategories.length ? apiCategories : [ALL_CAT];
+
   const activeCat = useMemo(
     () => CATEGORIES.find(c => String(c.id) === String(selectedCatId)) ?? CATEGORIES[0],
-    [selectedCatId]
+    [selectedCatId, CATEGORIES]
   );
 
   const [products,    setProducts]    = useState([]);
   const [pagination,  setPagination]  = useState({ total: 0, totalPages: 1 });
-  const [filterData]                  = useState(MOCK_FILTERS);
+  const [filterData]                  = useState({ price: { min: 0, max: 15000 }, materials: [], styles: [] });
   const [prodLoading, setProdLoading] = useState(true);
   const [bannerReady, setBannerReady] = useState(false);
   const [addingId,    setAddingId]    = useState(null);
@@ -401,16 +381,45 @@ export default function FurnitureCategoryPage() {
     return () => clearTimeout(t);
   }, [selectedCatId]);
 
-  // Fetch products
+  // Fetch products from API
   const fetchProducts = useCallback(() => {
     setProdLoading(true);
-    setTimeout(() => {
-      const start = (currentPage - 1) * PAGE_SIZE;
-      setProducts(MOCK_PRODUCTS.slice(start, start + PAGE_SIZE));
-      setPagination({ total: MOCK_PRODUCTS.length, totalPages: Math.ceil(MOCK_PRODUCTS.length / PAGE_SIZE) });
-      setProdLoading(false);
-    }, 380);
-  }, [currentPage, currentSort, selectedCatId, searchParams]);
+    const params = {
+      page:     currentPage,
+      pageSize: PAGE_SIZE,
+    };
+    if (searchParams.get("price_min")) params.minPrice = searchParams.get("price_min");
+    if (searchParams.get("price_max")) params.maxPrice = searchParams.get("price_max");
+
+    const apiFn = selectedCatId
+      ? productApi.getByCategory(selectedCatId, params)
+      : productApi.getAll(params);
+
+    Promise.resolve(apiFn)
+      .then(res => {
+        const data  = res?.data  ?? (Array.isArray(res) ? res : []);
+        const pag   = res?.pagination ?? {};
+        // Map ProductDto to UI format
+        const mapped = data.map(p => ({
+          id:           p.id,
+          name:         p.name,
+          slug:         String(p.id),
+          price:        p.discountPrice ?? p.price,
+          old_price:    p.discountPrice ? p.price : null,
+          badge:        p.label?.toLowerCase().replace(" ", "_") || null,
+          rating:       4,
+          review_count: 0,
+          image:        p.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
+        }));
+        setProducts(mapped);
+        setPagination({
+          total:      pag.totalCount ?? mapped.length,
+          totalPages: pag.totalPages ?? Math.ceil((pag.totalCount ?? mapped.length) / PAGE_SIZE),
+        });
+      })
+      .catch(() => setProducts([]))
+      .finally(() => setProdLoading(false));
+  }, [currentPage, currentSort, selectedCatId, searchParams, lang]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -482,13 +491,14 @@ export default function FurnitureCategoryPage() {
     if (addingId === product.id) return;
     setAddingId(product.id);
     try {
-      await cartApi.addItem(product.id, 1);
+      const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
+      if (cart) dispatch(setCart(cart));
       clearTimeout(toastTimer.current);
       setToast(product.name);
       toastTimer.current = setTimeout(() => setToast(null), 2900);
     } catch {}
     setTimeout(() => setAddingId(null), 1500);
-  }, [addingId]);
+  }, [addingId, dispatch]);
 
   const sortOptions = [
     { v: "featured",   l: t("fcp.sort_featured")   },

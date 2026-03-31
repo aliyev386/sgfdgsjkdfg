@@ -1,8 +1,12 @@
 // src/pages/profile/ProfilePage.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { getUser, logout } from "../../api/authApi";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, selectIsAuth, logoutAction } from "../../store/slices/authSlice";
+import { selectLang } from "../../store/slices/langSlice";
+import { getMe } from "../../api/authApi";
+import axiosInstance from "../../api/axiosInstance";
 import "../../assets/pagesCss/ProfilePage.css";
 
 /* ─── BRAND COLOR ─────── */
@@ -10,47 +14,7 @@ const G = "#7A9E7E";
 const GD = "#5a8060"; // darker
 const GL = "#EAF3EB"; // lighter bg
 
-/* ─── MOCK DATA ──────────────────────────────────────────── */
-const MOCK_ORDERS = [
-  { id:"AM-2025-0041", date:"12 Mar 2025", total:1240, status:"delivered", pay:"card", bank:"Kapital Bank",
-    items:[
-      {name:"Velvet Lounge Sofa",qty:1,price:890,img:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&q=75"},
-      {name:"Marble Side Table",qty:2,price:175,img:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=120&q=75"},
-    ]},
-  { id:"AM-2025-0037", date:"2 Mar 2025", total:560, status:"shipped", pay:"cash", bank:null,
-    items:[
-      {name:"Nordic Dining Chair",qty:4,price:140,img:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=120&q=75"},
-    ]},
-  { id:"AM-2025-0029", date:"10 Feb 2025", total:2100, status:"delivered", pay:"card", bank:"PAŞA Bank",
-    items:[
-      {name:"Florence Platform Bed",qty:1,price:1650,img:"https://images.unsplash.com/photo-1540518614846-7eded433c457?w=120&q=75"},
-      {name:"Oak Bedside Table",qty:2,price:225,img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&q=75"},
-    ]},
-  { id:"AM-2024-0184", date:"14 Dec 2024", total:340, status:"cancelled", pay:"cash", bank:null,
-    items:[
-      {name:"Brass Arc Floor Lamp",qty:1,price:340,img:"https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=120&q=75"},
-    ]},
-  { id:"AM-2024-0121", date:"5 Oct 2024", total:890, status:"delivered", pay:"card", bank:"ABB Bank",
-    items:[
-      {name:"Rattan Lounge Chair",qty:1,price:890,img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=120&q=75"},
-    ]},
-];
-
-const MOCK_SAVED = [
-  { id:1, name:"Oslo Armchair",       price:690,  img:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=400&q=80"},
-  { id:2, name:"Linen Sectional Sofa",price:2340, img:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80"},
-  { id:3, name:"Walnut Coffee Table", price:480,  img:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80"},
-  { id:4, name:"Rattan Lounge Chair", price:310,  img:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=400&q=80"},
-  { id:5, name:"Teak Writing Desk",   price:1100, img:"https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80"},
-  { id:6, name:"Arched Floor Lamp",   price:380,  img:"https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80"},
-];
-
-const MOCK_CARDS = [
-  { id:1, number:"4216 •••• •••• 4821", name:"AYAN MAMMADOV", expiry:"09/27", type:"VISA",   bank:"Kapital Bank", bankColor:"#003087"},
-];
-const MOCK_CREDITS = [
-  { id:1, bank:"Kapital Bank", bankColor:"#003087", monthly:103.33, remaining:8, total:1240, paid:4},
-];
+/* ─── AZ_BANKS ─────── */
 const AZ_BANKS = [
   { id:"kapital",  name:"Kapital Bank",  color:"#003087"},
   { id:"pasha",    name:"PAŞA Bank",     color:"#C8102E"},
@@ -154,13 +118,13 @@ function PwStrength({ pw }) {
 
 /* ─── TAB: OVERVIEW ──────────────────────────────────────── */
 function OverviewTab({ user, setTab, t }) {
-  const spent = MOCK_ORDERS.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
-  const done  = MOCK_ORDERS.filter(o=>o.status==="delivered").length;
+  const spent = orders.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
+  const done  = orders.filter(o=>o.status==="delivered").length;
 
   const stats = [
-    { val:MOCK_ORDERS.length, lbl:t("profile.ov_orders"), icon:"🛍️", tab:"orders"   },
+    { val:orders.length, lbl:t("profile.ov_orders"), icon:"🛍️", tab:"orders"   },
     { val:done,               lbl:t("profile.ov_done"),   icon:"✅", tab:"orders"   },
-    { val:MOCK_SAVED.length,  lbl:t("profile.ov_saved"),  icon:"❤️", tab:"saved"    },
+    { val:savedItems.length,  lbl:t("profile.ov_saved"),  icon:"❤️", tab:"saved"    },
     { val:fmt(spent),         lbl:t("profile.ov_spent"),  icon:"💰", tab:null       },
   ];
 
@@ -184,7 +148,7 @@ function OverviewTab({ user, setTab, t }) {
           <button className="pr-see-all" onClick={() => setTab("orders")}>{t("profile.see_all")} →</button>
         </div>
         <div className="pr-order-list">
-          {MOCK_ORDERS.slice(0,3).map((o,i) => {
+          {orders.slice(0,3).map((o,i) => {
             const s = ST_CFG[o.status] || ST_CFG.processing;
             return (
               <div key={o.id} className="pr-order-row" style={{animationDelay:`${i*0.06}s`}}>
@@ -209,10 +173,10 @@ function OverviewTab({ user, setTab, t }) {
           <button className="pr-see-all" onClick={() => setTab("saved")}>{t("profile.see_all")} →</button>
         </div>
         <div className="pr-saved-mini">
-          {MOCK_SAVED.slice(0,4).map((item,i) => (
+          {savedItems.slice(0,4).map((item,i) => (
             <div key={item.id} className="pr-saved-mc" style={{animationDelay:`${i*0.05}s`}}>
-              <img src={item.img} alt={item.name} className="pr-saved-mimg"/>
-              <p className="pr-saved-mname">{item.name}</p>
+              <img src={item.img || item.productImage || item.imageUrl} alt={item.name || item.productName} className="pr-saved-mimg"/>
+              <p className="pr-saved-mname">{item.name || item.productName}</p>
               <p className="pr-saved-mprice">{fmt(item.price)}</p>
             </div>
           ))}
@@ -419,7 +383,7 @@ function SecurityTab({ showToast, t }) {
 /* ─── TAB: PAYMENTS ──────────────────────────────────────── */
 function PaymentsTab({ showToast, t }) {
   const { confirm, Modal } = useConfirm();
-  const [cards,   setCards]   = useState(MOCK_CARDS);
+  const [cards,   setCards]   = useState([]);
   const [addOpen, setAddOpen] = useState(false);
   const [selBank, setSelBank] = useState(null);
   const [newCard, setNewCard] = useState({number:"",name:"",expiry:"",cvv:""});
@@ -532,9 +496,9 @@ function PaymentsTab({ showToast, t }) {
 
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.active_credits")}</h3>
-        {MOCK_CREDITS.length===0 ? (
+        {[].length===0 ? (
           <div className="pr-empty"><span className="pr-empty-ic">📋</span><p>{t("profile.no_credits")}</p></div>
-        ) : MOCK_CREDITS.map(c => {
+        ) : [].map(c => {
           const pct = Math.round((c.paid/(c.paid+c.remaining))*100);
           return (
             <div key={c.id} className="pr-credit">
@@ -560,27 +524,46 @@ function PaymentsTab({ showToast, t }) {
 }
 
 /* ─── TAB: ORDERS ────────────────────────────────────────── */
-function OrdersTab({ t }) {
+function OrdersTab({ t, orders = [] }) {
   const [open, setOpen] = useState(null);
+  // Normalize backend OrderDto fields
+  const normalized = orders.map(o => ({
+    id:     o.id,
+    date:   o.createdAt ? new Date(o.createdAt).toLocaleDateString("az-AZ") : "",
+    total:  o.grandTotal ?? o.total ?? 0,
+    status: (o.status ?? "pending").toString().toLowerCase(),
+    items: (o.orderItems ?? o.items ?? []).map(it => ({
+      name:  it.productName  ?? it.name  ?? "",
+      qty:   it.quantity     ?? it.qty   ?? 1,
+      price: it.unitPrice    ?? it.price ?? 0,
+      img:   it.imageUrl     ?? it.img   ?? "",
+    })),
+  }));
+
   return (
     <div className="pr-body pr-ani">
       <div className="pr-card pr-card-flush">
         <div className="pr-card-pad">
           <h3 className="pr-card-title">{t("profile.order_history")}</h3>
         </div>
-        {MOCK_ORDERS.map((o,i) => {
-          const s = ST_CFG[o.status]||ST_CFG.processing;
-          const isOpen = open===o.id;
+        {normalized.length === 0 && (
+          <div style={{padding:"32px",textAlign:"center",color:"#aaa"}}>
+            <p>{t("profile.no_orders") || "Hələ sifariş yoxdur"}</p>
+          </div>
+        )}
+        {normalized.map((o,i) => {
+          const s = ST_CFG[o.status] || ST_CFG.processing;
+          const isOpen = open === o.id;
           return (
             <div key={o.id} className={`pr-ord-item${isOpen?" open":""}`} style={{animationDelay:`${i*.05}s`}}>
               <div className="pr-ord-row" onClick={()=>setOpen(p=>p===o.id?null:o.id)}>
                 <div className="pr-ord-imgs">
-                  {o.items.slice(0,2).map((it,j) => <img key={j} src={it.img} alt="" className="pr-oimg"/>)}
+                  {o.items.slice(0,2).map((it,j) => <img key={j} src={it.img||"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&q=75"} alt="" className="pr-oimg"/>)}
                   {o.items.length>2 && <span className="pr-oimg-more">+{o.items.length-2}</span>}
                 </div>
                 <div className="pr-ord-info">
-                  <p className="pr-ord-id">{o.id}</p>
-                  <p className="pr-ord-meta">{o.date} · {o.pay==="card"?`💳 ${o.bank}`:t("profile.cash")}</p>
+                  <p className="pr-ord-id">#{o.id}</p>
+                  <p className="pr-ord-meta">{o.date}</p>
                 </div>
                 <span className={`pr-st ${s.cl}`}>{t(s.lbl)}</span>
                 <span className="pr-ord-total">{fmt(o.total)}</span>
@@ -590,7 +573,7 @@ function OrdersTab({ t }) {
                 <div className="pr-ord-detail pr-ani">
                   {o.items.map((it,j) => (
                     <div key={j} className="pr-det-row">
-                      <img src={it.img} alt="" className="pr-det-img"/>
+                      <img src={it.img||"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=120&q=75"} alt="" className="pr-det-img"/>
                       <div className="pr-det-info">
                         <p className="pr-det-name">{it.name}</p>
                         <p className="pr-det-qty">×{it.qty}</p>
@@ -613,14 +596,14 @@ function OrdersTab({ t }) {
 }
 
 /* ─── TAB: SAVED ─────────────────────────────────────────── */
-function SavedTab({ showToast, t }) {
+function SavedTab({ showToast, t, savedItems: initialSaved = [] }) {
   const { confirm, Modal } = useConfirm();
-  const [items, setItems] = useState(MOCK_SAVED);
+  const [items, setItems] = useState(initialSaved);
 
   const removeItem = async (item) => {
     const ok = await confirm({
       title:       t("profile.confirm_rm_title"),
-      message:     `"${item.name}" ${t("profile.confirm_rm_msg")}`,
+      message:     `"${item.name || item.productName}" ${t("profile.confirm_rm_msg")}`,
       confirmText: t("profile.remove"),
       cancelText:  t("profile.cancel"),
       danger:      true,
@@ -631,11 +614,11 @@ function SavedTab({ showToast, t }) {
   const addToCart = async (item) => {
     const ok = await confirm({
       title:       t("profile.confirm_cart_title"),
-      message:     `"${item.name}" — ${fmt(item.price)}`,
+      message:     `"${item.name || item.productName}" — ${fmt(item.price)}`,
       confirmText: t("profile.add_cart"),
       cancelText:  t("profile.cancel"),
     });
-    if(ok) showToast(`${item.name} ${t("profile.added_cart")}`, true);
+    if(ok) showToast(`${item.name || item.productName} ${t("profile.added_cart")}`, true);
   };
 
   return (
@@ -660,7 +643,7 @@ function SavedTab({ showToast, t }) {
             {items.map((item,i) => (
               <div key={item.id} className="pr-saved-card" style={{animationDelay:`${i*0.05}s`}}>
                 <div className="pr-saved-img-wrap">
-                  <img src={item.img} alt={item.name} className="pr-saved-img"/>
+                  <img src={item.img || item.productImage || item.imageUrl} alt={item.name || item.productName} className="pr-saved-img"/>
                   <button className="pr-saved-rm" onClick={()=>removeItem(item)} title={t("profile.remove")}>✕</button>
                   <div className="pr-saved-overlay">
                     <button className="pr-saved-cart" onClick={()=>addToCart(item)}>
@@ -668,7 +651,7 @@ function SavedTab({ showToast, t }) {
                     </button>
                   </div>
                 </div>
-                <p className="pr-saved-name">{item.name}</p>
+                <p className="pr-saved-name">{item.name || item.productName}</p>
                 <p className="pr-saved-price">{fmt(item.price)}</p>
               </div>
             ))}
@@ -691,17 +674,45 @@ const TABS = [
 
 export default function ProfilePage() {
   const { t }    = useTranslation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const reduxUser = useSelector(selectUser);
+  const isAuth    = useSelector(selectIsAuth);
+  const lang      = useSelector(selectLang);
   const { confirm, Modal } = useConfirm();
-  const [tab,   setTab]   = useState("overview");
-  const [toast, setToast] = useState(null);
+  const [tab,    setTab]   = useState("overview");
+  const [toast,  setToast] = useState(null);
+  const [orders, setOrders]= useState([]);
+  const [savedItems, setSavedItems] = useState([]);
+  const [profileUser, setProfileUser] = useState(null);
 
-  const user = getUser() || {
-    fullName:"Ayan Məmmədov", email:"ayan@example.com",
-    phone:"+994 50 123 45 67", city:"Bakı", joinDate:"Yanvar 2024",
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuth) { navigate("/login"); return; }
+    // Load user profile from API
+    getMe()
+      .then(u => setProfileUser(u))
+      .catch(() => {});
+    // Load orders
+    axiosInstance.get("/orders")
+      .then(r => setOrders(r.data?.data ?? r.data ?? []))
+      .catch(() => setOrders([]));
+    // Load wishlist as saved items
+    axiosInstance.get("/wishlist")
+      .then(r => {
+        const arr = r.data?.data ?? r.data ?? [];
+        setSavedItems(Array.isArray(arr) ? arr : []);
+      })
+      .catch(() => setSavedItems([]));
+  }, [isAuth, lang, navigate]);
+
+  const user = profileUser || reduxUser || {
+    name: "İstifadəçi", surname: "", email: "", phoneNumber: "",
   };
 
-  const initials = (user.fullName||user.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-  const spent    = MOCK_ORDERS.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
+  const initials = ((user.name||"") + " " + (user.surname||"")).trim()
+    .split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase() || "?";
+  const spent    = orders.filter(o=>o.status!=="cancelled").reduce((a,o)=>a+o.total,0);
   const showToast = (msg, ok) => setToast({msg,ok});
 
   const handleLogout = async () => {
@@ -712,7 +723,7 @@ export default function ProfilePage() {
       cancelText:  t("profile.cancel"),
       danger:      true,
     });
-    if(ok) logout();
+    if(ok) dispatch(logoutAction()); navigate("/login");
   };
 
   return (
@@ -731,7 +742,7 @@ export default function ProfilePage() {
           </div>
           <div className="pr-hero-info">
             <div className="pr-hero-chip">✦ {t("profile.member")}</div>
-            <h1 className="pr-hero-name">{user.fullName||user.name}</h1>
+            <h1 className="pr-hero-name">{user.name || user.fullName||user.name}</h1>
             <div className="pr-hero-meta">
               <span>📍 {user.city||"Bakı"}</span>
               <span>✉️ {user.email}</span>
@@ -740,8 +751,8 @@ export default function ProfilePage() {
           </div>
           <div className="pr-hero-stats">
             {[
-              {v:MOCK_ORDERS.length, l:t("profile.ov_orders")},
-              {v:MOCK_SAVED.length,  l:t("profile.ov_saved") },
+              {v:orders.length, l:t("profile.ov_orders")},
+              {v:savedItems.length,  l:t("profile.ov_saved") },
               {v:fmt(spent),         l:t("profile.ov_spent") },
             ].map((s,i) => (
               <div key={i} className="pr-hs" style={{animationDelay:`${i*.1}s`}}>
@@ -772,7 +783,7 @@ export default function ProfilePage() {
           <div className="pr-sidebar-user">
             <div className="pr-sb-av">{initials}</div>
             <div className="pr-sb-info">
-              <p className="pr-sb-name">{(user.fullName||user.name||"").split(" ")[0]}</p>
+              <p className="pr-sb-name">{(user.name || user.fullName||user.name||"").split(" ")[0]}</p>
               <p className="pr-sb-email">{user.email}</p>
             </div>
           </div>
@@ -784,12 +795,12 @@ export default function ProfilePage() {
 
         {/* Content */}
         <div className="pr-content">
-          {tab==="overview" && <OverviewTab  user={user} setTab={setTab} t={t}/>}
+          {tab==="overview" && <OverviewTab  user={user} setTab={setTab} t={t} orders={orders} savedItems={savedItems}/>}
           {tab==="profile"  && <ProfileTab   user={user} showToast={showToast} t={t}/>}
           {tab==="security" && <SecurityTab  showToast={showToast} t={t}/>}
           {tab==="payments" && <PaymentsTab  showToast={showToast} t={t}/>}
-          {tab==="orders"   && <OrdersTab    t={t}/>}
-          {tab==="saved"    && <SavedTab     showToast={showToast} t={t}/>}
+          {tab==="orders"   && <OrdersTab    t={t} orders={orders}/>}
+          {tab==="saved"    && <SavedTab     showToast={showToast} t={t} savedItems={savedItems}/>}
         </div>
       </div>
 

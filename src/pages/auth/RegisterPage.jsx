@@ -1,8 +1,11 @@
 // src/pages/auth/RegisterPage.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { register, googleAuth } from "../../api/authApi";
-import "../../assets/PagesCss/AuthPage.css";
+import { loginSuccess } from "../../store/slices/authSlice";
+import "../../assets/pagesCss/AuthPage.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -49,8 +52,10 @@ function StrengthBar({ password }) {
 }
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "" });
+  const navigate   = useNavigate();
+  const dispatch   = useDispatch();
+  const { i18n }   = useTranslation();
+  const [form, setForm] = useState({ name: "", surname: "", email: "", phone: "", password: "", confirmPassword: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -61,8 +66,9 @@ export default function RegisterPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.fullName.trim()) errs.fullName = "Ad Soyad boş ola bilməz";
-    else if (form.fullName.trim().length < 3) errs.fullName = "Ad Soyad ən az 3 simvol olmalıdır";
+    if (!form.name.trim()) errs.name = "Ad boş ola bilməz";
+    else if (form.name.trim().length < 2) errs.name = "Ad ən az 2 simvol olmalıdır";
+    if (!form.surname.trim()) errs.surname = "Soyad boş ola bilməz";
 
     if (!form.email.trim()) errs.email = "Email boş ola bilməz";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Email formatı düzgün deyil";
@@ -93,7 +99,7 @@ export default function RegisterPage() {
     setLoading(true);
     setAlert(null);
     try {
-      await register({ fullName: form.fullName, email: form.email, password: form.password, phone: form.phone });
+      await register({ name: form.name, surname: form.surname, email: form.email, password: form.password, phone: form.phone });
       setAlert({ type: "success", msg: "Qeydiyyat uğurla tamamlandı! Yönləndirilirsiniz..." });
       setTimeout(() => navigate("/"), 800);
     } catch (err) {
@@ -168,9 +174,15 @@ export default function RegisterPage() {
       <label className="auth-field-label" htmlFor="reg-name">Ad Soyad</label>
       <div className="auth-input-wrap">
         <span className="auth-input-icon">👤</span>
-        <input id="reg-name" type="text" name="fullName" className={`auth-input${errors.fullName ? " error" : ""}`} placeholder="Əli Həsənov" value={form.fullName} onChange={handleChange} autoComplete="name" disabled={loading} />
+        <input id="reg-name" type="text" name="name" className={`auth-input${errors.name ? " error" : ""}`} placeholder="Əli" value={form.name} onChange={handleChange} autoComplete="given-name" disabled={loading} />
+        {errors.name && <p className="auth-field-err">{errors.name}</p>}
       </div>
-      {errors.fullName && <p className="auth-error-msg">⚠ {errors.fullName}</p>}
+      <div className="auth-field">
+        <label className="auth-label" htmlFor="reg-surname">Soyad *</label>
+        <input id="reg-surname" type="text" name="surname" className={`auth-input${errors.surname ? " error" : ""}`} placeholder="Həsənov" value={form.surname} onChange={handleChange} autoComplete="family-name" disabled={loading} />
+        {errors.surname && <p className="auth-field-err">{errors.surname}</p>}
+      </div>
+      {errors.name && <p className="auth-error-msg">⚠ {errors.name}</p>}
     </div>
 
     <div className="auth-field">

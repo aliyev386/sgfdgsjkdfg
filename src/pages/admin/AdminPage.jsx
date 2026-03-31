@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectLang, setLang as setReduxLang } from "../../store/slices/langSlice";
+import { selectIsAuth, logoutAction } from "../../store/slices/authSlice";
 import {
   dashboardApi,
   productApi,
@@ -409,26 +412,30 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
 
 // ─── useAdminData hook ────────────────────────────────────────────────────────
 const useAdminData = (fetchFn, deps = []) => {
-  const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [data,    setData]    = useState([]);
+  const [total,   setTotal]   = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
 
   const load = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetchFn(params);
-      // Support both { data, total } and plain arrays
+      // Normalize: backend returns { data: [...], total } or plain array
       if (Array.isArray(res)) {
-        setData(res);
-        setTotal(res.length);
+        setData(res); setTotal(res.length);
       } else {
-        setData(res.data || res.items || res.results || []);
-        setTotal(res.total || res.count || 0);
+        const arr = res?.data || res?.items || res?.results || [];
+        setData(Array.isArray(arr) ? arr : []);
+        setTotal(res?.total ?? res?.pagination?.totalCount ?? (Array.isArray(arr) ? arr.length : 0));
       }
     } catch (err) {
-      setError(err?.userMessage || "Xəta baş verdi");
+      // Show backend validation errors if present
+      const msg = err?.validationErrors
+        ? Object.values(err.validationErrors).flat().join("; ")
+        : err?.userMessage || "Xəta baş verdi";
+      setError(msg);
       setData([]);
     } finally {
       setLoading(false);
@@ -546,7 +553,7 @@ const Dashboard = ({ t, lang }) => {
           <Table
             columns={[
               { key: "id", label: "Order ID", render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
-              { key: "user", label: t.user, render: r => typeof r.user === "object" ? `${r.user.firstName || ""} ${r.user.lastName || ""}`.trim() : r.user },
+              { key: "user", label: t.user, render: r => typeof r.user === "object" ? `${r.user.name || r.user.firstName || ""} ${r.user.surname || r.user.lastName || ""}`.trim() : r.user },
               { key: "total", label: t.totalRevenue, render: r => <span className="font-semibold text-gray-800">${r.total?.toLocaleString()}</span> },
               { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
               { key: "date", label: t.date, render: r => <span className="text-gray-500 text-xs">{r.date || r.createdAt?.split("T")[0]}</span> },
@@ -643,6 +650,14 @@ const Products = ({ t, lang }) => {
       setModal(false);
       reload({ page, limit: PER_PAGE, search });
     } catch (err) {
+      // Backend validator xətalarını field-lərə map et
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(prev => ({ ...prev, ...mapped }));
+      }
       setToast({ message: err?.userMessage || t.error, type: "error" });
     } finally {
       setSaving(false);
@@ -679,7 +694,7 @@ const Products = ({ t, lang }) => {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">{typeof r.name === "object" ? r.name[lang] : r.name}</p>
-                  <p className="text-xs text-gray-400">{r.category?.name?.[lang] || r.category || ""}</p>
+                  <p className="text-xs text-gray-400">{r.categoryName || (typeof r.category === "object" ? r.category?.name?.[lang] : r.category) || ""}</p>
                 </div>
               </div>
             )},
@@ -805,6 +820,14 @@ const Categories = ({ t, lang }) => {
       setModal(false);
       reload();
     } catch (err) {
+      // Backend validator xətalarını field-lərə map et
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(prev => ({ ...prev, ...mapped }));
+      }
       setToast({ message: err?.userMessage || t.error, type: "error" });
     } finally {
       setSaving(false);
@@ -1530,7 +1553,7 @@ const Sidebar = ({ page, setPage, t, collapsed, setCollapsed }) => (
       <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
         <Icons.Layers />
       </div>
-      {!collapsed && <span className="font-bold text-white text-base tracking-wide">FurniAdmin</span>}
+      {!collapsed && <span className="font-bold text-white text-base tracking-wide">Amore mebel admin</span>}
       <button onClick={() => setCollapsed(!collapsed)} className="ml-auto text-white/40 hover:text-white transition-colors">
         {collapsed ? <Icons.ChevronRight /> : <Icons.ChevronLeft />}
       </button>
@@ -1593,10 +1616,17 @@ const Header = ({ t, lang, setLang, page }) => {
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function AdminPanel() {
-  const [page, setPage] = useState("dashboard");
-  const [lang, setLang] = useState("en");
+  const [page,      setPage]      = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
-  const t = translations[lang];
+  const dispatch   = useDispatch();
+  const isAuth     = useSelector(selectIsAuth);
+  const reduxLang  = useSelector(selectLang);
+  // Admin panel also uses internal translations for its UI labels
+  const lang = reduxLang || "az";
+  const t    = translations[lang] || translations["az"];
+
+  const handleLangChange = (l) => { dispatch(setReduxLang(l)); };
+  const handleLogout     = () => { dispatch(logoutAction()); window.location.href = "/login"; };
 
   const renderPage = () => {
     const props = { t, lang };
@@ -1629,7 +1659,7 @@ export default function AdminPanel() {
       <div className="flex h-screen bg-gray-50 overflow-hidden">
         <Sidebar page={page} setPage={setPage} t={t} collapsed={collapsed} setCollapsed={setCollapsed} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header t={t} lang={lang} setLang={setLang} page={page} />
+          <Header t={t} lang={lang} setLang={handleLangChange} page={page} />
           <main className="flex-1 overflow-y-auto p-5">
             {renderPage()}
           </main>

@@ -1,10 +1,7 @@
-import { useState } from 'react'
 import './App.css'
-import HomePage from './pages/public/HomePage'
+import { Outlet } from 'react-router-dom'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
     <Outlet/>

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import i18n from "../../i18n";
+import { useDispatch, useSelector } from "react-redux";
+import { setLang } from "../../store/slices/langSlice";
+import { logoutAction, selectIsAuth } from "../../store/slices/authSlice";
+import { selectCartCount } from "../../store/slices/cartSlice";
 import CartDrawer from "../cart/CartDrawer";
 import "../../assets/pagesCss/Navbar.css";
 
@@ -12,16 +15,17 @@ const LANGUAGES = [
 ];
 
 export default function Navbar() {
-  const { t }    = useTranslation();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const location    = useLocation();
+  const navigate    = useNavigate();
+  const dispatch    = useDispatch();
+
+  const isAuth    = useSelector(selectIsAuth);
+  const cartCount = useSelector(selectCartCount);
+  const activeLng = i18n.language || "az";
 
   const [scrolled,  setScrolled]  = useState(false);
-  const [activeLng, setActiveLng] = useState(i18n.language || "az");
   const [cartOpen,  setCartOpen]  = useState(false);
-
-  const cartCount = 3;
-  const isAuth    = false;
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60);
@@ -30,8 +34,12 @@ export default function Navbar() {
   }, []);
 
   const handleLangChange = (code) => {
-    i18n.changeLanguage(code);
-    setActiveLng(code);
+    dispatch(setLang(code));
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutAction());
+    navigate("/login");
   };
 
   const isActive = (path) => location.pathname === path ? "active" : "";
@@ -70,8 +78,17 @@ export default function Navbar() {
             )}
           </button>
           {isAuth
-            ? <button className="arv-nav-icon" onClick={() => navigate("/profile")}><img src="/images/user (1).png" alt=""/></button>
-            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>Login</button>
+            ? <>
+                <button className="arv-nav-icon" onClick={() => navigate("/profile")}>
+                  <img src="/images/user (1).png" alt=""/>
+                </button>
+                <button className="arv-nav-icon" onClick={handleLogout} style={{fontSize:"12px"}}>
+                  {t("nav.logout") || "Çıxış"}
+                </button>
+              </>
+            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>
+                {t("nav.login") || "Giriş"}
+              </button>
           }
           <button className="arv-nav-mobile-toggle">☰</button>
         </div>

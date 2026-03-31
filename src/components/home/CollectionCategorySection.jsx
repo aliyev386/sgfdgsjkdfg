@@ -20,7 +20,7 @@ export function CollectionCategorySection({ categories = [], t, onNavigate }) {
 
       <div className="hp-cat-grid">
         {first && (
-          <Link to={`/category/${first.slug}`} className="hp-cat-card hp-cat-big rv rv-l" style={{ textDecoration:"none" }}>
+          <Link to={`/room-collections/${first.id || first.slug}`} className="hp-cat-card hp-cat-big rv rv-l" style={{ textDecoration:"none" }}>
             <img className="hp-cat-img" src={first.image} alt={first.name} loading="lazy" />
             <div className="hp-cat-ov" />
             <div className="hp-cat-inf">
@@ -33,7 +33,7 @@ export function CollectionCategorySection({ categories = [], t, onNavigate }) {
         {rest.slice(0, 4).map((cat, i) => (
           <Link
             key={cat.id}
-            to={`/category/${cat.slug}`}
+            to={`/room-collections/${cat.id || cat.slug}`}
             className={`hp-cat-card rv d${i+1}`}
             style={{ textDecoration:"none" }}
           >

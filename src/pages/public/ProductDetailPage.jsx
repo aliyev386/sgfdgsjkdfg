@@ -5,70 +5,15 @@ import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import CreditCalculator, { PERIODS, calcCredit, AZ_BANKS } from "../../components/credit/CreditCalculator";
 import { useTranslation } from "react-i18next";
-import cartApi  from "../../api/cartApi";
-import Navbar   from "../../components/common/Navbar";
-import Footer   from "../../components/common/Footer";
+import { useSelector, useDispatch } from "react-redux";
+import { selectLang } from "../../store/slices/langSlice";
+import { setCart } from "../../store/slices/cartSlice";
+import cartApi    from "../../api/cartApi";
+import productApi from "../../api/productApi";
+import Navbar     from "../../components/common/Navbar";
+import Footer     from "../../components/common/Footer";
 import "../../assets/pagesCss/ProductDetail.css";
 
-// ── MOCK DATA ────────────────────────────────────────────────
-const MOCK_PRODUCT = {
-  id: 1,
-  name: "Velour Lounge Sofa",
-  slug: "velour-lounge-sofa",
-  price: 2490,
-  old_price: 2990,
-  badge: "best_seller",
-  rating: 4.8,
-  review_count: 124,
-  in_stock: true,
-  stock_qty: 7,
-  sku: "ARV-SOF-001",
-  images: [
-    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90",
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1000&q=90",
-    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1000&q=90",
-    "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=1000&q=90",
-    "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1000&q=90",
-  ],
-  colors: [
-    { value:"sage",       label:"Sage Green",  hex:"#7A9E7E" },
-    { value:"terracotta", label:"Terracotta",  hex:"#C1654B" },
-    { value:"cream",      label:"Cream",       hex:"#F5EDD8" },
-    { value:"charcoal",   label:"Charcoal",    hex:"#3C3C3C" },
-  ],
-  materials: ["Velvet Fabric", "Solid Oak Legs", "High-Density Foam"],
-  sizes: [
-    { value:"2s", label:"2-Seater  ·  160 cm" },
-    { value:"3s", label:"3-Seater  ·  220 cm" },
-    { value:"4s", label:"4-Seater  ·  280 cm" },
-  ],
-  description: "The Velour Lounge Sofa is the centrepiece of our living room collection — a piece designed for both beauty and endurance. Upholstered in premium velvet and supported by solid oak feet, every element is crafted to the highest specification.\n\nThe deep seat cushions use high-density foam wrapped in soft fibre for a sink-in feel that retains its shape season after season. The frame is constructed from kiln-dried hardwood, precision-joined for stability and longevity. Available in four tonal colourways, each hand-finished for a unique, artisanal quality.",
-  specs: [
-    { label:"Width",       value:"220 cm" },
-    { label:"Depth",       value:"94 cm"  },
-    { label:"Height",      value:"82 cm"  },
-    { label:"Seat Height", value:"42 cm"  },
-    { label:"Weight",      value:"68 kg"  },
-    { label:"Frame",       value:"Kiln-dried beech hardwood" },
-    { label:"Upholstery",  value:"100% Velvet (polyester)" },
-    { label:"Legs",        value:"Solid white oak" },
-    { label:"Filling",     value:"High-density foam + fibre wrap" },
-    { label:"Assembly",    value:"Professional delivery & setup included" },
-  ],
-  reviews: [
-    { id:1, author:"Sarah M.", location:"London",   rating:5, date:"2025-02-10", text:"Absolutely stunning sofa. Worth every penny — the velvet is incredibly soft and the construction feels solid." },
-    { id:2, author:"James K.", location:"New York", rating:5, date:"2025-01-22", text:"Delivery and assembly were seamless. The sofa fits our living room perfectly — everyone who visits asks about it." },
-    { id:3, author:"Amara D.", location:"Paris",    rating:4, date:"2024-12-15", text:"Beautiful piece. The colour is exactly as shown. Slightly firm at first but softened after a few weeks." },
-  ],
-  category: { id:"1", name:"Sofas" },
-};
-
-const MOCK_RELATED = [
-  { id:2, name:"Ember Armchair",    slug:"ember-armchair",    price:1200, old_price:null, rating:5, image:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=600&q=80" },
-  { id:3, name:"Aria Coffee Table", slug:"aria-coffee-table", price:940,  old_price:1100, rating:4, image:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&q=80" },
-  { id:4, name:"Linen 3-Seater",    slug:"linen-3-seater",    price:1890, old_price:null, rating:5, image:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80" },
-  { id:5, name:"Oslo Shelf Unit",   slug:"oslo-shelf-unit",   price:680,  old_price:820,  rating:4, image:"https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=600&q=80" },
-];
 
 // ── HELPERS ───────────────────────────────────────────────────
 const fmt = (n) => `$${Number(n).toLocaleString()}`;
@@ -89,7 +34,7 @@ const RelCard = memo(function RelCard({ item, t }) {
   const navigate = useNavigate();
   const save = item.old_price ? item.old_price - item.price : 0;
   return (
-    <div className="pdp-rel-card" onClick={() => navigate(`/products/${item.slug}`)}>
+    <div className="pdp-rel-card" onClick={() => navigate(`/details/${item.id}`)}>
       <div className="pdp-rel-img-wrap">
         <img className="pdp-rel-img" src={item.image} alt={item.name} loading="lazy" />
         {save > 0 && <span className="pdp-rel-badge">−{fmt(save)}</span>}
@@ -159,8 +104,11 @@ function InstallmentChips({ price }) {
 }
 
 export default function ProductDetailPage() {
-  const { slug }  = useParams();
-  const { t }     = useTranslation();
+  const { id: productId } = useParams();   // route: /details/:id
+  const { t }             = useTranslation();
+  const navigate          = useNavigate();
+  const dispatch          = useDispatch();
+  const lang              = useSelector(selectLang);
 
   const [product,    setProduct]    = useState(null);
   const [related,    setRelated]    = useState([]);
@@ -182,22 +130,60 @@ export default function ProductDetailPage() {
   const toastTimer = useRef(null);
 
   useEffect(() => {
+    if (!productId) return;
     setLoading(true);
     setActiveImg(0); setSelColor(null); setSelSize(null); setQty(1);
-    window.scrollTo({ top:0, behavior:"smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Real API:
-    // productApi.getBySlug(slug)
-    //   .then(res => { setProduct(res.data.product); setRelated(res.data.related||[]); })
-    //   .catch(() => navigate("/furniture-categories"))
-    //   .finally(() => setLoading(false));
+    productApi.getById(productId)
+      .then(res => {
+        // ProductDto: { id, name, description, price, discountPrice, stock, images, colors, label, material }
+        const p = res;
+        const imgs = (p.images || []).map(i => i.imageUrl).filter(Boolean);
+        const mapped = {
+          id:           p.id,
+          name:         p.name,
+          slug:         String(p.id),
+          price:        p.discountPrice ?? p.price,
+          old_price:    p.discountPrice ? p.price : null,
+          badge:        p.label || null,
+          rating:       4,
+          review_count: 0,
+          in_stock:     p.stock > 0,
+          stock_qty:    p.stock,
+          sku:          `ARV-${p.id}`,
+          images:       imgs.length ? imgs : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90"],
+          colors:       (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode })),
+          materials:    p.material ? [p.material] : [],
+          sizes:        [],
+          description:  p.description || "",
+          specs:        [],
+          reviews:      [],
+          category:     { id: p.furnitureCategoryId, name: p.categoryName || "" },
+        };
+        setProduct(mapped);
 
-    setTimeout(() => {
-      setProduct(MOCK_PRODUCT);
-      setRelated(MOCK_RELATED);
-      setLoading(false);
-    }, 420);
-  }, [slug]);
+        // Related: same category products
+        if (p.furnitureCategoryId) {
+          productApi.getByCategory(p.furnitureCategoryId, { page: 1, pageSize: 4 })
+            .then(r => {
+              const arr = (r?.data ?? []).filter(x => x.id !== p.id).slice(0, 4);
+              setRelated(arr.map(x => ({
+                id:        x.id,
+                name:      x.name,
+                slug:      String(x.id),
+                price:     x.discountPrice ?? x.price,
+                old_price: x.discountPrice ? x.price : null,
+                rating:    4,
+                image:     x.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
+              })));
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => navigate("/categories"))
+      .finally(() => setLoading(false));
+  }, [productId, lang, navigate]);
 
   const switchImg = useCallback((idx) => {
     if (idx === activeImg) return;
@@ -212,13 +198,18 @@ export default function ProductDetailPage() {
     if (!product?.in_stock || cartAdding || buyAdding) return;
     setBusy(true);
     try {
-      await cartApi.addItem(product.id, qty);
+      const cart = await cartApi.addItem({
+        productId: product.id,
+        selectedColor: selColor,
+        quantity: qty,
+      });
+      if (cart) dispatch(setCart(cart));
       clearTimeout(toastTimer.current);
       setToast(product.name);
       toastTimer.current = setTimeout(() => setToast(null), 2900);
     } catch {}
     setTimeout(() => setBusy(false), 1300);
-  }, [product, qty, cartAdding, buyAdding]);
+  }, [product, qty, selColor, cartAdding, buyAdding, dispatch]);
 
   if (loading) return (
     <>

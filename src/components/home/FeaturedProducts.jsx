@@ -1,6 +1,6 @@
 // src/components/home/FeaturedProducts.jsx
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Stars({ n }) {
   return (
@@ -70,7 +70,7 @@ export default function FeaturedProductsSection({ products = [], t }) {
             <div className="hp-prod-iw">
               <img
                 className="hp-prod-im"
-                src={product.image}
+                src={product.images?.[0]?.imageUrl || product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80"}
                 alt={product.name}
                 loading="lazy"
               />
@@ -80,18 +80,18 @@ export default function FeaturedProductsSection({ products = [], t }) {
               </div>
             </div>
             <div className="hp-prod-inf">
-              <p className="hp-prod-cat">{product.category}</p>
-              <Link to={`/products/${product.slug}`} className="hp-prod-nm">
+              <p className="hp-prod-cat">{product.categoryName || product.category || ""}</p>
+              <Link to={`/details/${product.id}`} className="hp-prod-nm">
                 {product.name}
               </Link>
               <div className="hp-prod-pr">
                 <div>
-                  <span className="hp-price">{formatPrice(product.price)}</span>
-                  {product.old_price && (
-                    <span className="hp-old-price">{formatPrice(product.old_price)}</span>
+                  <span className="hp-price">{formatPrice(product.discountPrice ?? product.price)}</span>
+                  {product.discountPrice && (
+                    <span className="hp-old-price">{formatPrice(product.price)}</span>
                   )}
                 </div>
-                <Stars n={product.stars} />
+                <Stars n={product.rating ?? 4} />
               </div>
             </div>
           </div>

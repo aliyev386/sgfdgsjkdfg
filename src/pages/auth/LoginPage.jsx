@@ -1,8 +1,10 @@
 // src/pages/auth/LoginPage.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { login, googleAuth } from "../../api/authApi";
-import "../../assets/PagesCss/AuthPage.css";
+import { loginSuccess } from "../../store/slices/authSlice";
+import "../../assets/pagesCss/AuthPage.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -15,7 +17,8 @@ const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
 }));
 
 export default function LoginPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
@@ -47,11 +50,22 @@ export default function LoginPage() {
     setLoading(true);
     setAlert(null);
     try {
-      await login({ email: form.email, password: form.password });
+      const res = await login({ email: form.email, password: form.password });
+      dispatch(loginSuccess({
+        token: res.accessToken,
+        user: { email: form.email },
+      }));
       if (rememberMe) localStorage.setItem("arvana_remember", "true");
       setAlert({ type: "success", msg: "Uğurla daxil oldunuz! Yönləndirilirsiniz..." });
       setTimeout(() => navigate("/"), 800);
     } catch (err) {
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(prev => ({ ...prev, ...mapped }));
+      }
       setAlert({ type: "error", msg: err?.userMessage || "Email və ya şifrə yanlışdır" });
     } finally {
       setLoading(false);

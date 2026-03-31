@@ -4,92 +4,16 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector, useDispatch } from "react-redux";
+import { selectLang } from "../../store/slices/langSlice";
+import { setCart } from "../../store/slices/cartSlice";
 import collectionApi from "../../api/collectionApi";
 import cartApi       from "../../api/cartApi";
 import Navbar        from "../../components/common/Navbar";
 import Footer        from "../../components/common/Footer";
-import "../../assets/PagesCss/CollectionDetails.css";
+import "../../assets/pagesCss/CollectionDetails.css";
 
-// ── MOCK DATA ─────────────────────────────────────────────────
-const MOCK_COLLECTIONS = {
-  "velour-sofa": {
-    id:1, slug:"velour-sofa",
-    name:"Velour Sofa Collection",
-    tagline:"Plush velvet sofas in timeless silhouettes — built to last a lifetime.",
-    description:"Our Velour Sofa Collection brings together the finest velvet-upholstered seating available today. Each piece is hand-crafted in our workshop using kiln-dried hardwood frames and premium high-density foam. The collection spans compact two-seaters to generous four-seat sectionals, all available in nine hand-dyed colourways.\n\nDesigned for longevity, every sofa in this collection carries our 10-year structural guarantee.",
-    badge:"best_seller",
-    room:"Living Room",
-    pieces:12,
-    year:2025,
-    designer:"Studio Arvana",
-    gallery:[
-      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&q=90",
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&q=90",
-      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1200&q=90",
-      "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=1200&q=90",
-    ],
-    products:[
-      { id:1,  name:"Velour 2-Seater",       slug:"velour-2-seater",   price:1890, old_price:2290, badge:"sale",        rating:4.8, reviews:64,  in_stock:true,  image:"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700&q=80" },
-      { id:2,  name:"Velour 3-Seater",        slug:"velour-3-seater",   price:2490, old_price:2990, badge:"best_seller", rating:4.9, reviews:124, in_stock:true,  image:"https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=700&q=80" },
-      { id:3,  name:"Velour Corner Sectional",slug:"velour-sectional",  price:3490, old_price:null, badge:"new_in",      rating:5.0, reviews:18,  in_stock:true,  image:"https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=700&q=80" },
-      { id:4,  name:"Velour Armchair",        slug:"velour-armchair",   price:1200, old_price:null, badge:null,          rating:4.7, reviews:42,  in_stock:true,  image:"https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=700&q=80" },
-      { id:5,  name:"Velour Ottoman",         slug:"velour-ottoman",    price:490,  old_price:620,  badge:"sale",        rating:4.6, reviews:31,  in_stock:false, image:"https://images.unsplash.com/photo-1540518614846-7eded433c457?w=700&q=80" },
-      { id:6,  name:"Velour Chaise Longue",   slug:"velour-chaise",     price:1690, old_price:null, badge:"new_in",      rating:4.8, reviews:22,  in_stock:true,  image:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=700&q=80" },
-    ],
-  },
-  "nordic-oak": {
-    id:2, slug:"nordic-oak",
-    name:"Nordic Oak Series",
-    tagline:"Scandinavian craftsmanship in solid white oak — clean lines, enduring beauty.",
-    description:"The Nordic Oak Series celebrates the quiet beauty of solid white oak. Inspired by Scandinavian design principles — simplicity, functionality, and natural materials — this collection spans seating, side tables, and storage.\n\nEvery joint is precision-cut by hand, finished with natural oil for a warm, tactile surface that improves with age.",
-    badge:"new_in",
-    room:"Living Room",
-    pieces:8,
-    year:2025,
-    designer:"Lena Svensson",
-    gallery:[
-      "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1200&q=90",
-      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&q=90",
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=90",
-      "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1200&q=90",
-    ],
-    products:[
-      { id:7,  name:"Nordic Dining Chair",    slug:"nordic-dining-chair",price:680,  old_price:null, badge:"new_in",      rating:4.8, reviews:38,  in_stock:true,  image:"https://images.unsplash.com/photo-1592078615290-033ee584e267?w=700&q=80" },
-      { id:8,  name:"Nordic Side Table",      slug:"nordic-side-table",  price:420,  old_price:null, badge:null,          rating:4.7, reviews:25,  in_stock:true,  image:"https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=700&q=80" },
-      { id:9,  name:"Nordic Desk",            slug:"nordic-desk",        price:940,  old_price:1100, badge:"sale",        rating:4.9, reviews:17,  in_stock:true,  image:"https://images.unsplash.com/photo-1497366216548-37526070297c?w=700&q=80" },
-      { id:10, name:"Nordic Shelf Unit",      slug:"nordic-shelf",       price:680,  old_price:null, badge:null,          rating:4.6, reviews:29,  in_stock:true,  image:"https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=700&q=80" },
-    ],
-  },
-  "platform-beds": {
-    id:3, slug:"platform-beds",
-    name:"Platform Bed Frames",
-    tagline:"Low-profile beds in solid oak and upholstered linen — serene by design.",
-    description:"Our Platform Bed collection redefines bedroom calm. Each frame sits close to the ground in the Japanese tradition, creating a sense of spaciousness and serenity. Available in solid oak, walnut, and linen-upholstered finishes.\n\nAll beds include integrated slatted bases — no box spring needed — and are available in single, double, king, and super-king.",
-    badge:"best_seller",
-    room:"Bedroom",
-    pieces:8,
-    year:2024,
-    designer:"Studio Arvana",
-    gallery:[
-      "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=90",
-      "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=1200&q=90",
-      "https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=1200&q=90",
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&q=90",
-    ],
-    products:[
-      { id:11, name:"Florence King Bed",      slug:"florence-king",      price:2100, old_price:null, badge:"best_seller", rating:5.0, reviews:86,  in_stock:true,  image:"https://images.unsplash.com/photo-1540518614846-7eded433c457?w=700&q=80" },
-      { id:12, name:"Florence Double Bed",    slug:"florence-double",    price:1690, old_price:null, badge:null,          rating:4.9, reviews:62,  in_stock:true,  image:"https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=700&q=80" },
-      { id:13, name:"Florence Single Bed",    slug:"florence-single",    price:1290, old_price:null, badge:null,          rating:4.8, reviews:44,  in_stock:true,  image:"https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=700&q=80" },
-      { id:14, name:"Florence Bedside Table", slug:"florence-bedside",   price:380,  old_price:480,  badge:"sale",        rating:4.7, reviews:55,  in_stock:true,  image:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80" },
-    ],
-  },
-};
 
-// Default fallback for unknown slugs
-const getCollection = (slug) => MOCK_COLLECTIONS[slug] || {
-  ...MOCK_COLLECTIONS["velour-sofa"],
-  slug, name: slug.replace(/-/g," ").replace(/\b\w/g,l=>l.toUpperCase()),
-};
 
 // ── HELPERS ───────────────────────────────────────────────────
 const fmt = (n) => `$${Number(n).toLocaleString()}`;
@@ -116,7 +40,7 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
   return (
     <article className="cdp-prod-card" style={{animationDelay:`${(product.id%12)*55}ms`}}>
       {/* Image */}
-      <div className="cdp-prod-img-box" onClick={()=>navigate(`/products/${product.slug}`)}>
+      <div className="cdp-prod-img-box" onClick={()=>navigate(`/details/${product.id}`)}>
         <img className="cdp-prod-img" src={product.image} alt={product.name} loading="lazy"/>
         {product.badge && (
           <span className="cdp-prod-badge" style={{background:BADGE_CLR[product.badge]}}>
@@ -132,7 +56,7 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
         <div className="cdp-prod-hover-panel">
           <button
             className="cdp-hover-details"
-            onClick={e=>{e.stopPropagation();navigate(`/products/${product.slug}`)}}
+            onClick={e=>{e.stopPropagation();navigate(`/details/${product.id}`)}}
           >
             {t("collection_page.view_details")}
           </button>
@@ -144,7 +68,7 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
       <div className="cdp-prod-body">
         <h3
           className="cdp-prod-name"
-          onClick={()=>navigate(`/products/${product.slug}`)}
+          onClick={()=>navigate(`/details/${product.id}`)}
         >{product.name}</h3>
 
         <div className="cdp-prod-rating-row">
@@ -163,7 +87,7 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
           <div className="cdp-prod-actions">
             <button
               className="cdp-details-btn"
-              onClick={()=>navigate(`/products/${product.slug}`)}
+              onClick={()=>navigate(`/details/${product.id}`)}
               title={t("collection_page.view_details")}
             >⤢</button>
             <button
@@ -184,36 +108,63 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
 
 // ── PAGE ─────────────────────────────────────────────────────
 export default function CollectionDetailPage() {
-  const { slug }   = useParams();
-  const { t }      = useTranslation();
-  const navigate   = useNavigate();
+  const { id: collId } = useParams();   // route: /collection-detail/:id
+  const { t }          = useTranslation();
+  const navigate       = useNavigate();
+  const dispatch       = useDispatch();
+  const lang           = useSelector(selectLang);
 
-  const [coll,      setColl]      = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [heroLoaded,setHeroLoaded]= useState(false);
-  const [lbOpen,    setLbOpen]    = useState(false);
-  const [lbIdx,     setLbIdx]     = useState(0);
-  const [addingId,  setAddingId]  = useState(null);
-  const [toast,     setToast]     = useState(null);
-  const [sortBy,    setSortBy]    = useState("default");
+  const [coll,       setColl]       = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [lbOpen,     setLbOpen]     = useState(false);
+  const [lbIdx,      setLbIdx]      = useState(0);
+  const [addingId,   setAddingId]   = useState(null);
+  const [toast,      setToast]      = useState(null);
+  const [sortBy,     setSortBy]     = useState("default");
   const toastTimer = useRef(null);
 
   useEffect(() => {
+    if (!collId) return;
     setLoading(true);
     setHeroLoaded(false);
-    window.scrollTo({ top:0 });
+    window.scrollTo({ top: 0 });
 
-    // Real API: collectionApi.getById(slug)
-    //   .then(res => { setColl(res.data); ... })
-    //   .catch(() => navigate("/rooms"))
-    //   .finally(() => setLoading(false));
-
-    setTimeout(() => {
-      setColl(getCollection(slug));
-      setLoading(false);
-      setTimeout(() => setHeroLoaded(true), 80);
-    }, 380);
-  }, [slug]);
+    collectionApi.getById(collId)
+      .then(res => {
+        // CollectionDto: { id, name, description, imageUrl, totalPrice, discountPrice, products: ProductDto[] }
+        const dto = res;
+        const mapped = {
+          id:          dto.id,
+          slug:        String(dto.id),
+          name:        dto.name,
+          tagline:     dto.description || dto.name,
+          description: dto.description || "",
+          badge:       null,
+          room:        dto.categoryName || "",
+          pieces:      dto.products?.length ?? 0,
+          gallery:     dto.imageUrl ? [dto.imageUrl] : [],
+          products: (dto.products || []).map(p => ({
+            id:        p.id,
+            name:      p.name,
+            slug:      String(p.id),
+            price:     p.discountPrice ?? p.price,
+            old_price: p.discountPrice ? p.price : null,
+            badge:     p.label || null,
+            rating:    4,
+            reviews:   0,
+            in_stock:  p.stock > 0,
+            image:     p.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700&q=80",
+          })),
+        };
+        setColl(mapped);
+      })
+      .catch(() => navigate("/collections"))
+      .finally(() => {
+        setLoading(false);
+        setTimeout(() => setHeroLoaded(true), 80);
+      });
+  }, [collId, lang, navigate]);
 
   // Sort products
   const sortedProducts = coll ? (() => {
@@ -229,13 +180,14 @@ export default function CollectionDetailPage() {
     if (addingId === product.id || !product.in_stock) return;
     setAddingId(product.id);
     try {
-      await cartApi.addItem(product.id, 1);
+      const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
+      if (cart) dispatch(setCart(cart));
       clearTimeout(toastTimer.current);
       setToast(product.name);
       toastTimer.current = setTimeout(() => setToast(null), 2900);
     } catch {}
     setTimeout(() => setAddingId(null), 1400);
-  }, [addingId]);
+  }, [addingId, dispatch]);
 
   // Lightbox
   const openLb  = (i) => { setLbIdx(i); setLbOpen(true); };

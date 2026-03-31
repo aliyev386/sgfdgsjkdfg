@@ -1,35 +1,14 @@
-// src/pages/public/CategoriesListPage.jsx
-// ═══════════════════════════════════════════════════════════════
-//  Route: /furniture-categories
-//
-//  Bütün kateqoriyaları (divan, stol, çarpayı...) göstərir.
-//  Hər kart /furniture-categories/:id səhifəsinə aparan link.
-//
-//  Real API:
-//    categoryApi.getAll()  →  kateqoriyalar siyahısı
-//    (filter/sort/search client-side — siyahı kiçikdir)
-//
-//  Özəlliklər:
-//  • Otağa görə filter tabs (Hamısı / Qonaq / Yataq...)
-//  • Uzun siyahılarda "Daha çox / Daha az" toggle  ← istədiyin
-//  • Canlı axtarış (kateqoriya adına görə)
-//  • Sort: A→Z / Z→A / Məhsul sayına görə
-//  • Bütün statik mətnlər 3 dildə (t() ilə)
-//  • DB-dən gələn kateqoriya adları TƏRCÜMƏ OLUNMUR
-// ═══════════════════════════════════════════════════════════════
-
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { selectLang } from "../../store/slices/langSlice";
 import categoryApi from "../../api/categoryApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import CategoriesGrid from "../../components/categoriespage/CategoriesGrid";
-import "../../assets/PagesCss/CategoryPage.css";
+import "../../assets/pagesCss/CategoryPage.css";
 
-// ── Neçə kart göstərilsin collapse-dan əvvəl ──────────────────
 const INITIAL_VISIBLE = 5;
-
-
 
 const PLACEHOLDER_IMGS = [
   "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80",
@@ -43,115 +22,66 @@ const PLACEHOLDER_IMGS = [
 ];
 
 export default function CategoriesPage() {
-  const { t } = useTranslation();
+  const { t }  = useTranslation();
+  const lang   = useSelector(selectLang);
 
-  // ── Data state ────────────────────────────────────────────
   const [allCategories, setAllCategories] = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState(null);
-
-  // ── UI state ──────────────────────────────────────────────
-  const [search,   setSearch]   = useState("");
-  const [sortKey,  setSortKey]  = useState("default");
-  const [expanded, setExpanded] = useState(false);  
-
+  const [search,        setSearch]        = useState("");
+  const [sortKey,       setSortKey]       = useState("default");
+  const [expanded,      setExpanded]      = useState(false);
   const searchRef = useRef(null);
 
-  // ── Fetch ─────────────────────────────────────────────────
-  // const fetchCategories = useCallback(() => {
-  //   setLoading(true);
-  //   setError(null);
+  const fetchCategories = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    categoryApi.getAll()
+      .then(res => {
+        // FurnitureCategoryDto: { id, name, imageUrl }
+        const arr = Array.isArray(res) ? res : [];
+        setAllCategories(arr.map((c, i) => ({
+          id:          c.id,
+          name:        c.name,
+          image_url:   c.imageUrl || PLACEHOLDER_IMGS[i % PLACEHOLDER_IMGS.length],
+          product_count: 0,
+          description: c.name,
+        })));
+      })
+      .catch(err => setError(err?.userMessage || "Xəta baş verdi"))
+      .finally(() => setLoading(false));
+  }, [lang]);
 
-  //   categoryApi.getAll()
-  //     .then(res => {
-  //       // Backend: res.data massiv gətirir
-  //       setAllCategories(res.data || []);
-  //     })
-  //     .catch(err => setError(err.userMessage || err.message))
-  //     .finally(() => setLoading(false));
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchCategories();
-  //   window.scrollTo({ top: 0 });
-  // }, [fetchCategories]);
-
-const fetchCategories = useCallback(() => {
-  setLoading(true);
-  setError(null);
-
-  const mockData = [
-    { id: 1, name: "Divan", product_count: 12, description: "Comfortable sofa", image_url: PLACEHOLDER_IMGS[0] },
-    { id: 2, name: "Stol", product_count: 8, description: "Dining table", image_url: PLACEHOLDER_IMGS[1] },
-    { id: 3, name: "Çarpayı", product_count: 15, description: "Cozy bed", image_url: PLACEHOLDER_IMGS[2] },
-    { id: 4, name: "Kreslo", product_count: 5, description: "Soft armchair", image_url: PLACEHOLDER_IMGS[3] },
-    { id: 5, name: "Masa", product_count: 7, description: "Office desk", image_url: PLACEHOLDER_IMGS[4] },
-    { id: 6, name: "Stul", product_count: 10, description: "Comfortable chair", image_url: PLACEHOLDER_IMGS[5] },
-    { id: 7, name: "Dolab",  product_count: 9, description: "Wardrobe", image_url: PLACEHOLDER_IMGS[6] },
-    { id: 8, name: "Kitab rəfi", product_count: 4, description: "Bookshelf for kids", image_url: PLACEHOLDER_IMGS[7] },
-    { id: 9, name: "Tualet masası", product_count: 3, description: "Bathroom vanity", image_url: PLACEHOLDER_IMGS[0] },
-  ];
-
-  setTimeout(() => {
-    setAllCategories(mockData);
-    setLoading(false);
-  }, 200);
-
-}, []);
-useEffect(() => {
-  fetchCategories();
-  window.scrollTo({ top: 0 });
-}, [fetchCategories]);
-
+  useEffect(() => {
+    fetchCategories();
+    window.scrollTo({ top: 0 });
+  }, [fetchCategories]);
 
   const filtered = useMemo(() => {
     let result = [...allCategories];
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      result = result.filter(c =>
-        c.name?.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q)
-      );
+      result = result.filter(c => c.name?.toLowerCase().includes(q));
     }
-
     switch (sortKey) {
-      case "alpha":
-        result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        break;
-      case "alpha_desc":
-        result.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
-        break;
-      case "products":
-        result.sort((a, b) => (b.product_count || 0) - (a.product_count || 0));
-        break;
-      default:
-        break;
+      case "alpha":      result.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case "alpha_desc": result.sort((a, b) => b.name.localeCompare(a.name)); break;
+      case "products":   result.sort((a, b) => (b.product_count || 0) - (a.product_count || 0)); break;
     }
-
     return result;
   }, [allCategories, search, sortKey]);
 
-
   const visibleCategories = useMemo(() =>
     expanded ? filtered : filtered.slice(0, INITIAL_VISIBLE),
-    [filtered, expanded]
-  );
+    [filtered, expanded]);
   const hiddenCount = filtered.length - INITIAL_VISIBLE;
   const showToggle  = filtered.length > INITIAL_VISIBLE;
+  const hasActiveFilters = search.trim() || sortKey !== "default";
 
   const handleReset = useCallback(() => {
-    setSearch("");
-    setSortKey("default");
-    setExpanded(false);
+    setSearch(""); setSortKey("default"); setExpanded(false);
     searchRef.current?.focus();
   }, []);
-
-  const handleSearch = useCallback((e) => {
-    setSearch(e.target.value);
-    setExpanded(false);
-  }, []);
-
-  const hasActiveFilters = search.trim() || sortKey !== "default";
 
   return (
     <>
@@ -165,17 +95,13 @@ useEffect(() => {
               <p className="cl-subtitle">{t("cat_list.page_subtitle")}</p>
             </div>
             <div className="cl-header-right">
-              <span className="cl-total-n">
-                {loading ? "—" : allCategories.length}
-              </span>
+              <span className="cl-total-n">{loading ? "—" : allCategories.length}</span>
               <span className="cl-total-l">{t("cat_list.total_categories")}</span>
             </div>
           </div>
         </header>
 
-        {/* ── search + sort ── */}
         <div className="cl-toolbar">
-          {/* Search */}
           <div className="cl-search-wrap">
             <span className="cl-search-icon"><img src="/images/search.png" alt="" /></span>
             <input
@@ -184,26 +110,16 @@ useEffect(() => {
               type="text"
               placeholder={t("cat_list.search_placeholder")}
               value={search}
-              onChange={handleSearch}
+              onChange={e => { setSearch(e.target.value); setExpanded(false); }}
               autoComplete="off"
             />
             {search && (
-              <button
-                className="cl-search-clear"
-                onClick={() => setSearch("")}
-                aria-label="Clear search"
-              >✕</button>
+              <button className="cl-search-clear" onClick={() => setSearch("")}>✕</button>
             )}
           </div>
-
-          {/* Sort */}
           <div className="cl-sort-wrap">
             <span className="cl-sort-label">{t("cat_list.sort_label")}</span>
-            <select
-              className="cl-sort-sel"
-              value={sortKey}
-              onChange={e => setSortKey(e.target.value)}
-            >
+            <select className="cl-sort-sel" value={sortKey} onChange={e => setSortKey(e.target.value)}>
               <option value="default">{t("categories.eyebrow")}</option>
               <option value="alpha">{t("cat_list.sort_alpha")}</option>
               <option value="alpha_desc">{t("cat_list.sort_alpha_desc")}</option>
@@ -213,29 +129,17 @@ useEffect(() => {
         </div>
 
         <div className="cl-content">
-
           {!loading && (
             <div className="cl-result-bar">
               <p className="cl-result-text">
-                {hasActiveFilters ? (
-                  <>
-                    <strong>{filtered.length}</strong> {t("cat_list.total_categories")}
-                  </>
-                ) : (
-                  <>
-                    <strong>{allCategories.length}</strong> {t("cat_list.total_categories")}
-                  </>
-                )}
+                <strong>{filtered.length}</strong> {t("cat_list.total_categories")}
               </p>
               {hasActiveFilters && (
-                <button className="cl-reset-link" onClick={handleReset}>
-                  × {t("cat_list.reset")}
-                </button>
+                <button className="cl-reset-link" onClick={handleReset}>× {t("cat_list.reset")}</button>
               )}
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <div className="cl-error">
               <span>⚠️</span>
@@ -244,7 +148,6 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Skeleton */}
           {loading && (
             <div className="cl-sk-grid">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -253,27 +156,23 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Empty state */}
           {!loading && !error && filtered.length === 0 && (
             <div className="cl-empty">
               <span className="cl-empty-ic">🗂</span>
               <h3 className="cl-empty-t">{t("cat_list.no_results")}</h3>
               <p className="cl-empty-s">{t("cat_list.no_results_hint")}</p>
-              <button className="cl-empty-reset" onClick={handleReset}>
-                {t("cat_list.reset")}
-              </button>
+              <button className="cl-empty-reset" onClick={handleReset}>{t("cat_list.reset")}</button>
             </div>
           )}
 
-          {/* ── CATEGORY GRID ── */}
           {!loading && !error && visibleCategories.length > 0 && (
             <>
-            <CategoriesGrid 
-  t={t} 
-  visibleCategories={visibleCategories} 
-  INITIAL_VISIBLE={6} 
-  PLACEHOLDER_IMGS={PLACEHOLDER_IMGS} 
-/>
+              <CategoriesGrid
+                t={t}
+                visibleCategories={visibleCategories}
+                INITIAL_VISIBLE={6}
+                PLACEHOLDER_IMGS={PLACEHOLDER_IMGS}
+              />
               {showToggle && (
                 <div className="cl-toggle-wrap">
                   <div className="cl-toggle-line" />
@@ -282,11 +181,7 @@ useEffect(() => {
                     onClick={() => setExpanded(prev => !prev)}
                   >
                     <span className="cl-toggle-icon">▾</span>
-
-                    {expanded
-                      ? t("cat_list.show_less")
-                      : t("cat_list.show_more")}
-
+                    {expanded ? t("cat_list.show_less") : t("cat_list.show_more")}
                     {!expanded && hiddenCount > 0 && (
                       <span className="cl-toggle-count">+{hiddenCount}</span>
                     )}
@@ -296,7 +191,6 @@ useEffect(() => {
             </>
           )}
         </div>
-
         <Footer />
       </div>
     </>

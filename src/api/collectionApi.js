@@ -1,28 +1,24 @@
-// src/api/collectionApi.js
-// ─────────────────────────────────────────────────────────────
-// Kolleksiya API çağırışları.
-//
-// Backend endpoint nümunələri:
-//   GET /collections                   → bütün kolleksiyalar
-//   GET /collections/featured          → öne çıxanlar (homepage)
-//   GET /collections/:id               → tək kolleksiya + məhsullar
-// ─────────────────────────────────────────────────────────────
-
+// src/api/collectionApi.js  — backend CollectionController-ə uyğun
 import axiosInstance from "./axiosInstance";
 
 const collectionApi = {
+  // GET /collections  →  CollectionDto[]
   getAll: () =>
-    axiosInstance.get("/collections"),
+    axiosInstance.get("/collections").then(r => r.data?.data ?? r.data),
 
-  getFeatured: (params = {}) =>
-    axiosInstance.get("/collections/featured", { params }),
-
+  // GET /collections/:id  →  CollectionDto (products daxil)
   getById: (id) =>
-    axiosInstance.get(`/collections/${id}`),
+    axiosInstance.get(`/collections/${id}`).then(r => r.data?.data ?? r.data),
 
-  // Kolleksiyaya aid məhsullar (ayrı endpoint varsa)
-  getProducts: (id, params = {}) =>
-    axiosInstance.get(`/collections/${id}/products`, { params }),
+  // GET /collection-categories  →  CollectionCategoryDto[]
+  getCategories: () =>
+    axiosInstance.get("/collection-categories").then(r => r.data?.data ?? r.data),
+
+  // GET /collections?collectionCategoryId=X
+  getByCategory: (categoryId) =>
+    axiosInstance.get("/collections", {
+      params: { collectionCategoryId: categoryId }
+    }).then(r => r.data?.data ?? r.data),
 };
 
 export default collectionApi;

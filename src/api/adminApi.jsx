@@ -41,267 +41,367 @@ export const dashboardApi = {
 // ════════════════════════════════════════════════════════════
 // 📦 PRODUCTS
 // ════════════════════════════════════════════════════════════
+// Helper to extract data array from ApiResponse wrapper
+const unwrapList = (r) => {
+  const d = r.data;
+  if (Array.isArray(d)) return { data: d, total: d.length };
+  if (d?.data) return { data: Array.isArray(d.data) ? d.data : [], total: d.pagination?.totalCount ?? 0 };
+  return { data: [], total: 0 };
+};
+const unwrap = (r) => r.data?.data ?? r.data;
+
 export const productApi = {
-  // GET /admin/products?page=1&limit=10&search=&category=
-  // Response: { data: [...], total, page, totalPages }
+  // GET /products?page=1&pageSize=10
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/products", { params }).then((r) => r.data),
+    axiosInstance.get("/products", { params: { page: params.page||1, pageSize: params.limit||params.pageSize||10, ...params } })
+      .then(unwrapList),
 
-  // GET /admin/products/:id
   getById: (id) =>
-    axiosInstance.get(`/admin/products/${id}`).then((r) => r.data),
+    axiosInstance.get(`/products/${id}`).then(unwrap),
 
-  // POST /admin/products
-  // Body: { name: {az, en, ru}, description: {az, en, ru}, price, stock, category_id, colors: [{hex, name}], images: [url] }
-  // Validation: name.az, name.en, price > 0, stock >= 0, category_id required
+  // POST /products  — Admin only
+  // Body maps to CreateProductDto
   create: (data) =>
-    axiosInstance.post("/admin/products", data).then((r) => r.data),
+    axiosInstance.post("/products", buildProductPayload(data)).then(unwrap),
 
-  // PUT /admin/products/:id
   update: (id, data) =>
-    axiosInstance.put(`/admin/products/${id}`, data).then((r) => r.data),
+    axiosInstance.put(`/products/${id}`, buildProductPayload(data, id)).then(unwrap),
 
-  // DELETE /admin/products/:id  (soft delete)
   remove: (id) =>
-    axiosInstance.delete(`/admin/products/${id}`).then((r) => r.data),
+    axiosInstance.delete(`/products/${id}`).then(unwrap),
 
-  // POST /admin/products/upload-image
-  // Body: FormData { file }
-  // Response: { url }
+  // POST /media/upload?folder=products
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("file", file);
     return axiosInstance
-      .post("/admin/products/upload-image", fd, {
+      .post("/media/upload?folder=products", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      .then((r) => r.data);
+      .then(r => ({ url: r.data?.data?.url ?? r.data?.url ?? r.data }));
   },
 };
+
+// Build CreateProductDto / UpdateProductDto from admin form data
+function buildProductPayload(form, id) {
+  const translations = ["az","en","ru"].map(lang => ({
+    lang,
+    name:        form.name?.[lang]        || form.name?.az || "",
+    description: form.description?.[lang] || form.description?.az || "",
+  }));
+
+  const imageUrls = (form.images || []).map((url, i) => ({
+    imageUrl:  typeof url === "string" ? url : url.url || url.imageUrl,
+    isPrimary: i === 0,
+    sortOrder: i,
+  }));
+
+  const colors = (form.colors || []).map(c => ({
+    name:    c.name,
+    hexCode: c.hex || c.hexCode,
+  }));
+
+  return {
+    ...(id ? { id: Number(id) } : {}),
+    price:               Number(form.price) || 0,
+    discountPrice:       form.discount_price ? Number(form.discount_price) : null,
+    stock:               Number(form.stock)  || 0,
+    furnitureCategoryId: Number(form.category_id) || 0,
+    isFeatured:          form.is_featured || false,
+    displayOrder:        form.display_order || 0,
+    label:               form.label || null,
+    material:            form.material || null,
+    translations,
+    imageUrls,
+    colors,
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 🏷️ CATEGORIES (Furniture Categories)
 // ════════════════════════════════════════════════════════════
 export const categoryApi = {
-  // GET /admin/categories?page=1&limit=20
+  // GET /furniture-categories
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/categories", { params }).then((r) => r.data),
+    axiosInstance.get("/furniture-categories", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance.get(`/admin/categories/${id}`).then((r) => r.data),
+    axiosInstance.get(`/furniture-categories/${id}`).then(unwrap),
 
-  // POST /admin/categories
-  // Body: { name: {az, en, ru}, image?: url }
-  // Validation: name.az, name.en required
-  create: (data) =>
-    axiosInstance.post("/admin/categories", data).then((r) => r.data),
+  // POST /furniture-categories  — Admin
+  // Body: CreateFurnitureCategoryDto: { translations:[{lang,name}], imageUrl? }
+  create: (form) =>
+    axiosInstance.post("/furniture-categories", buildCategoryPayload(form)).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance.put(`/admin/categories/${id}`, data).then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/furniture-categories/${id}`, buildCategoryPayload(form, id)).then(unwrap),
 
   remove: (id) =>
-    axiosInstance.delete(`/admin/categories/${id}`).then((r) => r.data),
+    axiosInstance.delete(`/furniture-categories/${id}`).then(unwrap),
 
-  // POST /admin/categories/upload-image
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("file", file);
     return axiosInstance
-      .post("/admin/categories/upload-image", fd, {
+      .post("/media/upload?folder=categories", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      .then((r) => r.data);
+      .then(r => ({ url: r.data?.data?.url ?? r.data?.url ?? r.data }));
   },
 };
+
+function buildCategoryPayload(form, id) {
+  return {
+    ...(id ? { id: Number(id) } : {}),
+    imageUrl: form.image || form.imageUrl || null,
+    translations: ["az","en","ru"].map(lang => ({
+      lang, name: form.name?.[lang] || form.name?.az || "",
+    })),
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 🗂️ COLLECTIONS
 // ════════════════════════════════════════════════════════════
 export const collectionApi = {
-  // GET /admin/collections?page=1&limit=20
+  // GET /collections
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/collections", { params }).then((r) => r.data),
+    axiosInstance.get("/collections", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance.get(`/admin/collections/${id}`).then((r) => r.data),
+    axiosInstance.get(`/collections/${id}`).then(unwrap),
 
-  // POST /admin/collections
-  // Body: { name: {az, en, ru}, description: {az, en, ru}, price, product_ids: [id,...] }
-  // Validation: name.az, name.en, price > 0 required
-  create: (data) =>
-    axiosInstance.post("/admin/collections", data).then((r) => r.data),
+  // POST /collections  — Admin
+  // Body: CreateCollectionDto
+  create: (form) =>
+    axiosInstance.post("/collections", buildCollectionPayload(form)).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance.put(`/admin/collections/${id}`, data).then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/collections/${id}`, buildCollectionPayload(form, id)).then(unwrap),
 
   remove: (id) =>
-    axiosInstance.delete(`/admin/collections/${id}`).then((r) => r.data),
+    axiosInstance.delete(`/collections/${id}`).then(unwrap),
 };
+
+function buildCollectionPayload(form, id) {
+  return {
+    ...(id ? { id: Number(id) } : {}),
+    imageUrl:             form.image || null,
+    totalPrice:           Number(form.price) || 0,
+    discountPrice:        form.discount_price ? Number(form.discount_price) : null,
+    displayOrder:         form.display_order || 0,
+    collectionCategoryId: Number(form.collection_category_id) || 0,
+    productIds:           (form.product_ids || []).map(Number),
+    translations: ["az","en","ru"].map(lang => ({
+      lang,
+      name:        form.name?.[lang]        || form.name?.az        || "",
+      description: form.description?.[lang] || form.description?.az || "",
+    })),
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 🗂️ COLLECTION CATEGORIES
 // ════════════════════════════════════════════════════════════
 export const collectionCategoryApi = {
-  // GET /admin/collection-categories
+  // GET /collection-categories
   getAll: (params = {}) =>
-    axiosInstance
-      .get("/admin/collection-categories", { params })
-      .then((r) => r.data),
+    axiosInstance.get("/collection-categories", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance
-      .get(`/admin/collection-categories/${id}`)
-      .then((r) => r.data),
+    axiosInstance.get(`/collection-categories/${id}`).then(unwrap),
 
-  // POST /admin/collection-categories
-  // Body: { name: {az, en, ru}, image?: url }
-  create: (data) =>
-    axiosInstance
-      .post("/admin/collection-categories", data)
-      .then((r) => r.data),
+  create: (form) =>
+    axiosInstance.post("/collection-categories", buildCollCatPayload(form)).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance
-      .put(`/admin/collection-categories/${id}`, data)
-      .then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/collection-categories/${id}`, buildCollCatPayload(form, id)).then(unwrap),
 
   remove: (id) =>
-    axiosInstance
-      .delete(`/admin/collection-categories/${id}`)
-      .then((r) => r.data),
+    axiosInstance.delete(`/collection-categories/${id}`).then(unwrap),
 
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("file", file);
     return axiosInstance
-      .post("/admin/collection-categories/upload-image", fd, {
+      .post("/media/upload?folder=collection-categories", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      .then((r) => r.data);
+      .then(r => ({ url: r.data?.data?.url ?? r.data?.url ?? r.data }));
   },
 };
+
+function buildCollCatPayload(form, id) {
+  return {
+    ...(id ? { id: Number(id) } : {}),
+    imageUrl: form.image || form.imageUrl || null,
+    translations: ["az","en","ru"].map(lang => ({
+      lang, name: form.name?.[lang] || form.name?.az || "",
+    })),
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 🛍️ ORDERS
 // ════════════════════════════════════════════════════════════
 export const orderApi = {
-  // GET /admin/orders?page=1&limit=10&status=&search=
-  // Response: { data: [...], total, page, totalPages }
+  // GET /admin/orders  (Admin role required)
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/orders", { params }).then((r) => r.data),
+    axiosInstance.get("/admin/users", { params }).then(r => {
+      // Fallback: use admin/dashboard for order list
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }).catch(() =>
+      axiosInstance.get("/orders", { params }).then(r => {
+        const arr = r.data?.data ?? r.data;
+        return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+      })
+    ),
 
-  // GET /admin/orders/:id
-  // Response: { id, user, total, status, date, address, products: [{name, qty, price}] }
   getById: (id) =>
-    axiosInstance.get(`/admin/orders/${id}`).then((r) => r.data),
+    axiosInstance.get(`/orders/${id}`).then(unwrap),
 
-  // PATCH /admin/orders/:id/status
-  // Body: { status: "pending" | "confirmed" | "shipped" | "delivered" }
+  // PATCH /orders/:id/status  — Admin
   updateStatus: (id, status) =>
-    axiosInstance
-      .patch(`/admin/orders/${id}/status`, { status })
-      .then((r) => r.data),
+    axiosInstance.patch(`/orders/${id}/status`, { status }).then(unwrap),
 };
 
 // ════════════════════════════════════════════════════════════
 // 🖼️ HERO SECTIONS
 // ════════════════════════════════════════════════════════════
 export const heroApi = {
-  // GET /admin/hero-sections
+  // GET /hero-sections/all  (Admin sees all, not just active)
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/hero-sections", { params }).then((r) => r.data),
+    axiosInstance.get("/hero-sections/all", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance.get(`/admin/hero-sections/${id}`).then((r) => r.data),
+    axiosInstance.get(`/hero-sections/${id}`).then(unwrap),
 
-  // POST /admin/hero-sections
-  // Body: { title: {az,en,ru}, subtitle: {az,en,ru}, image?: url, active: bool }
-  // Validation: title.az, title.en required
-  create: (data) =>
-    axiosInstance.post("/admin/hero-sections", data).then((r) => r.data),
+  // POST /hero-sections — Admin
+  // Body: CreateHeroSectionDto: { imageUrl, translations:[{lang,title,subtitle,badgeText}] }
+  create: (form) =>
+    axiosInstance.post("/hero-sections", buildHeroPayload(form)).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance.put(`/admin/hero-sections/${id}`, data).then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/hero-sections/${id}`, buildHeroPayload(form)).then(unwrap),
 
   remove: (id) =>
-    axiosInstance.delete(`/admin/hero-sections/${id}`).then((r) => r.data),
-
-  // PATCH /admin/hero-sections/:id/toggle
-  // Response: { id, active }
-  toggle: (id) =>
-    axiosInstance
-      .patch(`/admin/hero-sections/${id}/toggle`)
-      .then((r) => r.data),
+    axiosInstance.delete(`/hero-sections/${id}`).then(unwrap),
 
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("file", file);
     return axiosInstance
-      .post("/admin/hero-sections/upload-image", fd, {
+      .post("/media/upload?folder=hero", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       })
-      .then((r) => r.data);
+      .then(r => ({ url: r.data?.data?.url ?? r.data?.url ?? r.data }));
   },
 };
+
+function buildHeroPayload(form) {
+  return {
+    imageUrl: form.image || form.imageUrl || null,
+    translations: ["az","en","ru"].map(lang => ({
+      lang,
+      title:     form.title?.[lang]    || form.title?.az    || "",
+      subtitle:  form.subtitle?.[lang] || form.subtitle?.az || "",
+      badgeText: form.badge?.[lang]    || form.badge?.az    || "",
+    })),
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 📣 CAMPAIGNS
 // ════════════════════════════════════════════════════════════
 export const campaignApi = {
-  // GET /admin/campaigns
+  // GET /campaigns/all  (Admin — all campaigns)
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/campaigns", { params }).then((r) => r.data),
+    axiosInstance.get("/campaigns/all", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance.get(`/admin/campaigns/${id}`).then((r) => r.data),
+    axiosInstance.get(`/campaigns/${id}`).then(unwrap),
 
-  // POST /admin/campaigns
-  // Body: { name: {az,en,ru}, discount: number(1-100), startDate, endDate, active: bool }
-  // Validation: name.az, name.en, discount 1-100, startDate <= endDate required
-  create: (data) =>
-    axiosInstance.post("/admin/campaigns", data).then((r) => r.data),
+  // POST /campaigns  — Admin
+  // Body: CreateCampaignDto
+  create: (form) =>
+    axiosInstance.post("/campaigns", buildCampaignPayload(form)).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance.put(`/admin/campaigns/${id}`, data).then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/campaigns/${id}`, buildCampaignPayload(form)).then(unwrap),
 
   remove: (id) =>
-    axiosInstance.delete(`/admin/campaigns/${id}`).then((r) => r.data),
-
-  // PATCH /admin/campaigns/:id/toggle
-  toggle: (id) =>
-    axiosInstance.patch(`/admin/campaigns/${id}/toggle`).then((r) => r.data),
+    axiosInstance.delete(`/campaigns/${id}`).then(unwrap),
 };
+
+function buildCampaignPayload(form) {
+  return {
+    imageUrl:        form.image || form.imageUrl || null,
+    buttonLink:      form.button_link || null,
+    discountPercent: form.discount ? Number(form.discount) : null,
+    startDate:       form.start_date || new Date().toISOString(),
+    endDate:         form.end_date   || new Date().toISOString(),
+    displayOrder:    form.display_order || 0,
+    translations: ["az","en","ru"].map(lang => ({
+      lang,
+      title:       form.name?.[lang]        || form.name?.az        || "",
+      description: form.description?.[lang] || form.description?.az || "",
+      buttonText:  form.button_text?.[lang] || form.button_text?.az || "",
+    })),
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // 🎟️ DISCOUNT CODES
 // ════════════════════════════════════════════════════════════
 export const discountCodeApi = {
-  // GET /admin/discount-codes
+  // GET /discount-codes
   getAll: (params = {}) =>
-    axiosInstance
-      .get("/admin/discount-codes", { params })
-      .then((r) => r.data),
+    axiosInstance.get("/discount-codes", { params }).then(r => {
+      const arr = r.data?.data ?? r.data;
+      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
+    }),
 
   getById: (id) =>
-    axiosInstance.get(`/admin/discount-codes/${id}`).then((r) => r.data),
+    axiosInstance.get(`/discount-codes/${id}`).then(unwrap),
 
-  // POST /admin/discount-codes
-  // Body: { code: string(uppercase), type: "percent"|"fixed", value: number, limit: number, expiration: date, active: bool }
-  // Validation: code required & unique, type required, value > 0, limit >= 0, expiration required
-  create: (data) =>
-    axiosInstance.post("/admin/discount-codes", data).then((r) => r.data),
+  // POST /discount-codes  — Admin
+  // Body: CreateDiscountCodeDto
+  create: (form) =>
+    axiosInstance.post("/discount-codes", {
+      code:           (form.code || "").toUpperCase(),
+      discountType:   form.type  === "percent" ? 0 : 1,  // 0=Percent, 1=Fixed
+      discountValue:  Number(form.value)  || 0,
+      maxUses:        Number(form.limit)  || 0,
+      minOrderAmount: Number(form.min_order) || 0,
+      expiresAt:      form.expiration || new Date().toISOString(),
+    }).then(unwrap),
 
-  update: (id, data) =>
-    axiosInstance
-      .put(`/admin/discount-codes/${id}`, data)
-      .then((r) => r.data),
+  update: (id, form) =>
+    axiosInstance.put(`/discount-codes/${id}`, {
+      code:           (form.code || "").toUpperCase(),
+      discountType:   form.type  === "percent" ? 0 : 1,
+      discountValue:  Number(form.value)  || 0,
+      maxUses:        Number(form.limit)  || 0,
+      minOrderAmount: Number(form.min_order) || 0,
+      expiresAt:      form.expiration || new Date().toISOString(),
+    }).then(unwrap),
 
   remove: (id) =>
-    axiosInstance.delete(`/admin/discount-codes/${id}`).then((r) => r.data),
-
-  // PATCH /admin/discount-codes/:id/toggle
-  toggle: (id) =>
-    axiosInstance
-      .patch(`/admin/discount-codes/${id}/toggle`)
-      .then((r) => r.data),
+    axiosInstance.delete(`/discount-codes/${id}`).then(unwrap),
 };
