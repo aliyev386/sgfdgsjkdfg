@@ -98,7 +98,7 @@ export default function RoomCollectionsPage() {
     setHeroLoaded(false);
 
     const found = allRooms.find(r => String(r.id) === String(categoryId));
-    if (found) setCurrentMeta(found);    if (meta) setCurrentMeta(meta);
+    if (found) setCurrentMeta(found);
 
     const fetch = categoryId
       ? collectionApi.getByCategory(categoryId)

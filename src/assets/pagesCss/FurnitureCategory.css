@@ -20,7 +20,7 @@
 img{display:block}
 
 /* ── PAGE ──────────────────────────────────────────────────────────────── */
-.fcp-page{font-family:'Outfit',sans-serif;background:#f5f3ef;color:#1a1a1a;min-height:100vh;}
+.fcp-page{width: 100%; font-family:'Outfit',sans-serif;background:#f7f6f5;color:#1a1a1a;min-height:100vh;}
 
 /* ══════════════════════════════════════════════════════════════════════════
    DYNAMIC BANNER
@@ -64,7 +64,7 @@ img{display:block}
 /* ══════════════════════════════════════════════════════════════════════════
    SIDEBAR
    ══════════════════════════════════════════════════════════════════════════ */
-.fcp-sidebar{width:260px;flex-shrink:0;position:sticky;margin-top:120px;height:calc(100vh - 72px);overflow-y:auto;background:#fff;border:1px solid #ede8e0;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.04);padding:20px 16px 60px;}
+.fcp-sidebar{width:300px;flex-shrink:0;position:sticky;margin-top:120px;height:calc(100vh - 72px);overflow-y:auto;background:#fff;border:1px solid #ede8e0;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.04);padding:20px 16px 60px;}
 .fcp-sidebar::-webkit-scrollbar{width:3px}
 .fcp-sidebar::-webkit-scrollbar-thumb{background:#ddd6cc;border-radius:10px}
 

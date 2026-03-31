@@ -51,7 +51,7 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
     name: "", phone: "", city: "Bakı", address: "",
   });
 
-  const subtotal  = items.reduce((s, it) => s + (it.product?.price ?? 0) * it.quantity, 0);
+  const subtotal  = items.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
   const shipping  = subtotal >= FREE_SHIPPING ? 0 : 15;
   const orderBase = subtotal + shipping;
 
@@ -395,15 +395,15 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
           <div className="cko-order-items">
             {items.map((item, i) => (
               <div className="cko-order-item" key={item.id ?? i}>
-                {item.product?.image || item.product?.images?.[0]
-                  ? <img src={item.product.image ?? item.product.images[0]} alt={item.product?.name} className="cko-order-item-img"/>
+                {item.productImage
+                  ? <img src={item.productImage} alt={item.productName ?? item.collectionName} className="cko-order-item-img"/>
                   : <div className="cko-order-item-img" style={{background:"#EDE7DC"}}/>
                 }
                 <div className="cko-order-item-name">
-                  {item.product?.name}
+                  {item.productName ?? item.collectionName ?? "—"}
                   <div className="cko-order-item-qty">×{item.quantity}</div>
                 </div>
-                <span className="cko-order-item-price">₼{((item.product?.price??0)*item.quantity).toFixed(2)}</span>
+                <span className="cko-order-item-price">₼{((item.productPrice ?? item.collectionPrice ?? 0)*item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -453,7 +453,7 @@ export default function CartDrawer({ isOpen, onClose }) {
     if (!isOpen) return;
     setLoading(true);
     cartApi.get()
-      .then(res => setCart(res.data))
+      .then(res => setCart(res))
       .catch(() => showToast(t("cart.error"), "error"))
       .finally(() => setLoading(false));
   }, [isOpen, t]);
@@ -501,7 +501,7 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   const items      = cart?.items ?? [];
   const totalItems = items.reduce((s, it) => s + (it.quantity ?? 1), 0);
-  const subtotal   = items.reduce((s, it) => s + (it.product?.price??0)*it.quantity, 0);
+  const subtotal   = items.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0)*it.quantity, 0);
   const shippingFree = subtotal >= FREE_SHIPPING;
 
   if (!isOpen) return null;
@@ -589,9 +589,9 @@ export default function CartDrawer({ isOpen, onClose }) {
               </div>
 
               {items.map((item, idx) => {
-                const price    = item.product?.price ?? 0;
-                const image    = item.product?.image ?? item.product?.images?.[0] ?? null;
-                const name     = item.product?.name  ?? "—";
+                const price    = item.productPrice ?? item.collectionPrice ?? 0;
+                const image    = item.productImage ?? null;
+                const name     = item.productName ?? item.collectionName ?? "—";
                 const isUpd    = updating.has(item.id);
                 return (
                   <div key={item.id ?? idx} className={`cd-item${isUpd?" updating":""}`}>
@@ -609,7 +609,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     {/* Info */}
                     <div className="cd-item-info">
                       <p className="cd-item-name">{name}</p>
-                      {item.product?.category && <p className="cd-item-cat">{item.product.category}</p>}
+                      {item.selectedColor && <p className="cd-item-cat">{item.selectedColor}</p>}
                       <p className="cd-item-unit-price">₼{price.toFixed(2)} / {t("cart.price_each")}</p>
                       {/* Qty (shown inline on mobile) */}
                       <div style={{marginTop:10}}>

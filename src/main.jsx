@@ -19,6 +19,7 @@ import RoomsPage from "./pages/public/RoomsPage.jsx";
 import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
+import CheckoutPage from "./pages/order/CheckoutPage.jsx";
 
 const router = createBrowserRouter([
   { element: <HomePage />,             path: "/" },
@@ -38,6 +39,7 @@ const router = createBrowserRouter([
   { element: <LoginPage />,            path: "/login" },
   { element: <RegisterPage />,         path: "/register" },
   { element: <ForgotPasswordPage />,   path: "/forgot-password" },
+  {element:<CheckoutPage/>,path:"/checkout"}
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
