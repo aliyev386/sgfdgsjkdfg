@@ -1,45 +1,120 @@
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "./store/store";
-import "./i18n";
 import { StrictMode } from "react";
-import HomePage from "./pages/public/HomePage.jsx";
-import AdminPanel from "./pages/admin/AdminPage.jsx";
+import "./i18n";
 import "./index.css";
 import "./App.css";
-import CategoryPage from "./pages/public/CategoryPage.jsx";
-import LoginPage from "./pages/auth/LoginPage.jsx";
-import RegisterPage from "./pages/auth/RegisterPage.jsx";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
+import HomePage            from "./pages/public/HomePage.jsx";
+import CategoryPage        from "./pages/public/CategoryPage.jsx";
 import FurnitureCategoryPage from "./pages/public/FurnitureCategoryPage.jsx";
-import CartPage from "./pages/public/CartPage.jsx";
-import ProductDetailPage from "./pages/public/ProductDetailPage.jsx";
-import RoomsPage from "./pages/public/RoomsPage.jsx";
+import ProductDetailPage   from "./pages/public/ProductDetailPage.jsx";
+import RoomsPage           from "./pages/public/RoomsPage.jsx";
 import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
+import LoginPage          from "./pages/auth/LoginPage.jsx";
+import RegisterPage       from "./pages/auth/RegisterPage.jsx";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
-import CheckoutPage from "./pages/order/CheckoutPage.jsx";
+import AdminPanel  from "./pages/admin/AdminPage.jsx";
+import AboutPage from "./pages/common/About.jsx";
+import ContactPage from "./pages/common/Contact.jsx";
+import NotFoundPage from "./pages/common/NotFound.jsx";
+import { store } from "./store/store"; 
+import { Provider } from "react-redux";
 
 const router = createBrowserRouter([
-  { element: <HomePage />,             path: "/" },
-  { element: <CategoryPage />,         path: "/categories" },
-  { element: <RoomsPage />,            path: "/collections" },
-  { element: <AdminPanel />,           path: "/admin" },
-  { element: <ProfilePage />,          path: "/profile" },
-  { element: <FurnitureCategoryPage />,path: "/category" },
-  { element: <FurnitureCategoryPage />,path: "/category/:id" },
-  { element: <CartPage />,             path: "/cart" },
-  { element: <RoomCollectionsPage />,  path: "/room-collections" },
-  { element: <RoomCollectionsPage />,  path: "/room-collections/:categoryId" },
-  { element: <CollectionDetailPage />, path: "/collection-detail" },
-  { element: <CollectionDetailPage />, path: "/collection-detail/:id" },
-  { element: <ProductDetailPage />,    path: "/details" },
-  { element: <ProductDetailPage />,    path: "/details/:id" },
-  { element: <LoginPage />,            path: "/login" },
-  { element: <RegisterPage />,         path: "/register" },
-  { element: <ForgotPasswordPage />,   path: "/forgot-password" },
-  {element:<CheckoutPage/>,path:"/checkout"}
+  {
+    path: "/",
+    element: <HomePage />,
+  },
+  {
+    path: "/categories",
+    element: <CategoryPage />,
+  },
+  {
+    path: "/furnitures",
+    element: <CategoryPage />,
+  },
+  {
+    path: "/category/:slug",
+    element: <FurnitureCategoryPage />,
+  },
+  {
+    // legacy – no slug version still works
+    path: "/category",
+    element: <FurnitureCategoryPage />,
+  },
+  {
+    path: "/product/:id",
+    element: <ProductDetailPage />,
+  },
+  {
+    // legacy – query-param based detail page
+    path: "/details",
+    element: <ProductDetailPage />,
+  },
+  {
+    path: "/collections",
+    element: <RoomsPage />,
+  },
+  {
+    path: "/collections/:slug",
+    element: <RoomCollectionsPage />,
+  },
+  {
+    // legacy
+    path: "/room-collections",
+    element: <RoomCollectionsPage />,
+  },
+  {
+    path: "/collection/:id",
+    element: <CollectionDetailPage />,
+  },
+  {
+    // legacy
+    path: "/collection-detail",
+    element: <CollectionDetailPage />,
+  },
+
+  // ── Common ───────────────────────────────────────────
+  {
+    path: "/about",
+    element: <AboutPage />,
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />,
+  },
+
+  // ── Auth ─────────────────────────────────────────────
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
+
+  // ── Protected ────────────────────────────────────────
+  {
+    path: "/profile",
+    element: <ProfilePage />,
+  },
+  {
+    path: "/admin",
+    element: <AdminPanel />,
+  },
+
+  // ── 404 Fallback ─────────────────────────────────────
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(

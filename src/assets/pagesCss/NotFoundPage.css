@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+.nf-page {
+  font-family: 'DM Sans', sans-serif;
+  min-height: calc(100vh - 72px);
+  padding-top: 72px;
+  background: #F7F5F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 60px;
+}
+
+/* Big background 404 */
+.nf-bg-text {
+  position: absolute;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(180px, 28vw, 340px);
+  font-weight: 700;
+  color: transparent;
+  -webkit-text-stroke: 2px #EDE8E2;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: -10px;
+  white-space: nowrap;
+  z-index: 0;
+  animation: nfBgIn 1s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes nfBgIn   { from{opacity:0;transform:translate(-50%,-50%) scale(1.05)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+@keyframes nfFadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+@keyframes nfFloat  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes nfLine   { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+
+/* Decorative chair */
+.nf-deco {
+  position: absolute;
+  right: clamp(40px, 8vw, 160px);
+  bottom: 60px;
+  z-index: 1;
+  opacity: .6;
+  animation: nfFloat 5s ease-in-out infinite;
+}
+.nf-chair svg { width: clamp(100px, 14vw, 180px); height: auto; }
+
+/* Inner content */
+.nf-inner {
+  position: relative; z-index: 2;
+  max-width: 520px;
+  padding: 0 32px;
+  animation: nfFadeUp .7s .2s cubic-bezier(.22,1,.36,1) both;
+}
+
+.nf-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 9px; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: #B8834A;
+  margin-bottom: 16px;
+}
+.nf-label::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: #B8834A;
+  display: inline-block;
+}
+
+.nf-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(38px, 6vw, 64px);
+  font-weight: 600;
+  color: #1C1917;
+  line-height: 1.05;
+  margin-bottom: 20px;
+  letter-spacing: -.5px;
+}
+
+.nf-desc {
+  font-size: 14px;
+  color: #78716C;
+  line-height: 1.65;
+  margin-bottom: 36px;
+  font-weight: 400;
+  max-width: 400px;
+}
+
+.nf-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.nf-btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px;
+  background: #1C1917;
+  color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .22s;
+  box-shadow: 0 4px 14px rgba(28,25,23,.2);
+}
+.nf-btn-primary:hover {
+  background: #B8834A;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(184,131,74,.3);
+}
+
+.nf-btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 24px;
+  background: transparent;
+  color: #78716C;
+  border: 1.5px solid #EAE5E0; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .22s;
+}
+.nf-btn-ghost:hover {
+  border-color: #B8834A;
+  color: #B8834A;
+  background: #FBF4EB;
+}
+
+.nf-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+}
+.nf-links span {
+  color: #B0A89F;
+  font-size: 10px;
+  letter-spacing: .5px;
+  font-weight: 500;
+}
+.nf-links a {
+  color: #78716C;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: color .18s;
+  padding-bottom: 1px;
+}
+.nf-links a::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: #B8834A;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .22s;
+}
+.nf-links a:hover { color: #B8834A; }
+.nf-links a:hover::after { transform: scaleX(1); }
+
+@media (max-width: 640px) {
+  .nf-deco { display: none; }
+  .nf-inner { padding: 0 24px; }
+  .nf-title { font-size: 38px; }
+  .nf-bg-text { font-size: 140px; }
+}
