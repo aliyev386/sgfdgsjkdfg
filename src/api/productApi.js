@@ -1,0 +1,35 @@
+import axiosInstance from "./axiosInstance";
+
+const productApi = {
+
+  getAll: (params = {}) =>
+    axiosInstance.get("/products", { params }).then(r => r.data),
+
+
+  getFeatured: () =>
+    axiosInstance.get("/products/featured").then(r => r.data?.data ?? r.data),
+
+  getById: (id) =>
+    axiosInstance.get(`/products/${id}`).then(r => r.data?.data ?? r.data),
+
+  getBySlug: (slug) =>
+    axiosInstance.get(`/products/by-name/${slug}`).then(r => r.data?.data ?? r.data),
+
+  search: (keyword, params = {}) =>
+    axiosInstance.get("/products/search", { params: { keyword, ...params } }).then(r => r.data),
+
+  getByCategory: (categoryId, params = {}) =>
+    axiosInstance.get(`/products/by-furniture-category/${categoryId}`, { params }).then(r => r.data),
+
+
+  getByCollection: (collectionId, params = {}) =>
+    axiosInstance.get(`/products/by-collection/${collectionId}`, { params }).then(r => r.data),
+
+  getByColor: (color, params = {}) =>
+    axiosInstance.get("/products/by-color", { params: { color, ...params } }).then(r => r.data),
+
+  getByPriceRange: (min, max, params = {}) =>
+    axiosInstance.get("/products/price-range", { params: { min, max, ...params } }).then(r => r.data),
+};
+
+export default productApi;
