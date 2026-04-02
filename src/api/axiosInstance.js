@@ -6,48 +6,126 @@ const axiosInstance = axios.create({
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
+    Accept: "application/json",
   },
 });
 
-// ── Request interceptor — token + dil header-i ────────────────
+// ── Yardımçı funksiyalar ───────────────────────────────────
+const getAccessToken  = () => localStorage.getItem("arvana_token");
+const getRefreshToken = () => localStorage.getItem("arvana_refresh_token");
+const setTokens = (accessToken, refreshToken) => {
+  localStorage.setItem("arvana_token", accessToken);
+  if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
+};
+const clearTokens = () => {
+  localStorage.removeItem("arvana_token");
+  localStorage.removeItem("arvana_refresh_token");
+  localStorage.removeItem("arvana_user");
+};
+
+// Eyni anda bir neçə sorğunun refresh etməsinin qarşısını almaq üçün
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
+// ── Request interceptor ───────────────────────────────────
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("arvana_token");
+    const token = getAccessToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
-
-    // Backend Accept-Language header-i oxuyur: az, en, ru
     const lang = localStorage.getItem("arvana_lang") || i18n.language || "az";
     config.headers["Accept-Language"] = lang;
-
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor ──────────────────────────────────────
+// ── Response interceptor — refresh token məntiqi ──────────
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("arvana_token");
-      localStorage.removeItem("arvana_user");
-      window.location.href = "/login";
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const refreshToken = getRefreshToken();
+
+      if (!refreshToken) {
+        clearTokens();
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+        window.location.href = "/login";
+        return Promise.reject(formatError(error));
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return axiosInstance(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const currentAccess = getAccessToken() || "";
+        const { data } = await axios.post(
+          (import.meta.env.VITE_API_BASE_URL || "http://localhost:5147/api") + "/auth/refresh",
+          { accessToken: currentAccess, refreshToken: refreshToken },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Accept-Language": localStorage.getItem("arvana_lang") || "az",
+            },
+          }
+        );
+
+        const tokenData = data?.data ?? data;
+        const newAccess  = tokenData.accessToken;
+        const newRefresh = tokenData.refreshToken;
+
+        setTokens(newAccess, newRefresh);
+        window.dispatchEvent(
+          new CustomEvent("auth:token_refreshed", { detail: { accessToken: newAccess } })
+        );
+
+        processQueue(null, newAccess);
+        originalRequest.headers.Authorization = "Bearer " + newAccess;
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        clearTokens();
+        window.dispatchEvent(new CustomEvent("auth:logout"));
+        window.location.href = "/login";
+        return Promise.reject(formatError(refreshError));
+      } finally {
+        isRefreshing = false;
+      }
     }
 
-    // Backend-in qaytardığı validation xətaları (422)
-    // { success: false, message: "...", errors: { "fieldName": ["msg1"] } }
-    const apiData = error.response?.data;
-    const userMessage =
-      apiData?.message ||
-      error.response?.data?.detail ||
-      error.message ||
-      "Naməlum xəta baş verdi.";
-
-    const validationErrors = apiData?.errors || null;
-
-    return Promise.reject({ ...error, userMessage, validationErrors });
+    return Promise.reject(formatError(error));
   }
 );
+
+function formatError(error) {
+  const apiData = error.response?.data;
+  const userMessage =
+    apiData?.message ||
+    error.response?.data?.detail ||
+    error.message ||
+    "Naməlum xəta baş verdi.";
+  const validationErrors = apiData?.errors || null;
+  return { ...error, userMessage, validationErrors };
+}
 
 export default axiosInstance;

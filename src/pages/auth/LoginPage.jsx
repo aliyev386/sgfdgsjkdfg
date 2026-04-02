@@ -2,23 +2,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login, googleAuth } from "../../api/authApi";
+import { login, googleAuth, getMe } from "../../api/authApi";
 import { loginSuccess } from "../../store/slices/authSlice";
 import "../../assets/pagesCss/AuthPage.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
-  id: i,
-  left: `${5 + (i * 5.5) % 95}%`,
-  delay: `${(i * 0.7) % 8}s`,
-  duration: `${5 + (i * 0.9) % 8}s`,
-  size: `${2 + (i * 0.3) % 4}px`,
-}));
-
 export default function LoginPage() {
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
@@ -50,11 +42,24 @@ export default function LoginPage() {
     setLoading(true);
     setAlert(null);
     try {
-      const res = await login({ email: form.email, password: form.password });
+      // login funksiyası artıq tokenləri localStorage-ə saxlayır
+      const tokenData = await login({ email: form.email, password: form.password });
+
+      // İstifadəçi məlumatlarını al
+      let user = { email: form.email };
+      try {
+        user = await getMe();
+      } catch {
+        // getMe uğursuz olsa belə davam et
+        user = { email: form.email };
+      }
+
       dispatch(loginSuccess({
-        token: res.accessToken,
-        user: { email: form.email },
+        token:        tokenData.accessToken,
+        refreshToken: tokenData.refreshToken,
+        user,
       }));
+
       if (rememberMe) localStorage.setItem("arvana_remember", "true");
       setAlert({ type: "success", msg: "Uğurla daxil oldunuz! Yönləndirilirsiniz..." });
       setTimeout(() => navigate("/"), 800);
@@ -64,7 +69,7 @@ export default function LoginPage() {
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
           mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
-        setErrors(prev => ({ ...prev, ...mapped }));
+        setErrors((prev) => ({ ...prev, ...mapped }));
       }
       setAlert({ type: "error", msg: err?.userMessage || "Email və ya şifrə yanlışdır" });
     } finally {
@@ -76,7 +81,14 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setAlert(null);
     try {
-      await googleAuth(response.credential);
+      const tokenData = await googleAuth(response.credential);
+      let user = {};
+      try { user = await getMe(); } catch { user = {}; }
+      dispatch(loginSuccess({
+        token:        tokenData.accessToken,
+        refreshToken: tokenData.refreshToken,
+        user,
+      }));
       setAlert({ type: "success", msg: "Google ilə giriş uğurlu oldu!" });
       setTimeout(() => navigate("/"), 800);
     } catch (err) {
@@ -84,7 +96,7 @@ export default function LoginPage() {
     } finally {
       setGoogleLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, dispatch]);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -109,8 +121,6 @@ export default function LoginPage() {
 
   return (
     <div className="auth-root">
-
-
       <div className="auth-right">
         <div className="auth-form-container">
           <div className="auth-form-header">
@@ -162,7 +172,9 @@ export default function LoginPage() {
           <div className="auth-divider"><span>və ya</span></div>
 
           <button type="button" className="auth-btn-google" onClick={triggerGoogleLogin} disabled={googleLoading}>
-            {googleLoading ? (<><div className="auth-spinner" style={{ borderTopColor: "#aa3bff", borderColor: "#e5e4e7" }} />Google ilə daxil olunur...</>) : (<><GoogleIcon />Google ilə daxil ol</>)}
+            {googleLoading
+              ? (<><div className="auth-spinner" style={{ borderTopColor: "#aa3bff", borderColor: "#e5e4e7" }} />Google ilə daxil olunur...</>)
+              : (<><GoogleIcon />Google ilə daxil ol</>)}
           </button>
 
           <p className="auth-terms">Daxil olmaqla <a href="#">İstifadəçi şərtlərini</a> və <a href="#">Məxfilik Siyasətini</a> qəbul etmiş olursunuz</p>

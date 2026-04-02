@@ -9,24 +9,37 @@ const savedUser  = (() => {
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    token: savedToken || null,
-    user:  savedUser  || null,
+    token:           savedToken || null,
+    refreshToken:    localStorage.getItem("arvana_refresh_token") || null,
+    user:            savedUser  || null,
     isAuthenticated: !!savedToken,
   },
   reducers: {
     loginSuccess(state, action) {
-      const { token, user } = action.payload;
-      state.token = token;
-      state.user  = user;
+      const { token, refreshToken, user } = action.payload;
+      state.token           = token;
+      state.refreshToken    = refreshToken || state.refreshToken;
+      state.user            = user;
       state.isAuthenticated = true;
       localStorage.setItem("arvana_token", token);
-      localStorage.setItem("arvana_user", JSON.stringify(user));
+      if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
+      if (user) localStorage.setItem("arvana_user", JSON.stringify(user));
+    },
+    tokenRefreshed(state, action) {
+      // axiosInstance refresh etdikdə store-u da yenilə
+      const { accessToken, refreshToken } = action.payload;
+      state.token = accessToken;
+      if (refreshToken) state.refreshToken = refreshToken;
+      localStorage.setItem("arvana_token", accessToken);
+      if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
     },
     logoutAction(state) {
-      state.token = null;
-      state.user  = null;
+      state.token           = null;
+      state.refreshToken    = null;
+      state.user            = null;
       state.isAuthenticated = false;
       localStorage.removeItem("arvana_token");
+      localStorage.removeItem("arvana_refresh_token");
       localStorage.removeItem("arvana_user");
     },
     updateUser(state, action) {
@@ -36,8 +49,9 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, logoutAction, updateUser } = authSlice.actions;
-export const selectAuth = (state) => state.auth;
-export const selectUser = (state) => state.auth.user;
-export const selectIsAuth = (state) => state.auth.isAuthenticated;
+export const { loginSuccess, tokenRefreshed, logoutAction, updateUser } = authSlice.actions;
+export const selectAuth    = (state) => state.auth;
+export const selectUser    = (state) => state.auth.user;
+export const selectIsAuth  = (state) => state.auth.isAuthenticated;
+export const selectToken   = (state) => state.auth.token;
 export default authSlice.reducer;
