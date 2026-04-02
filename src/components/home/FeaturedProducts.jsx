@@ -11,9 +11,9 @@ const fmt = (p) => `₼${Number(p).toLocaleString()}`;
 
 function Stars({ n }) {
   return (
-    <div style={{ display: "flex", gap: 2 }}>
+    <div  style={{ display: "flex", gap: 2 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} style={{ color: "#C9A84C", fontSize: 11 }}>{i < n ? "★" : "☆"}</span>
+        <span className="star" key={i} style={{ color: "#C9A84C", fontSize: 15 }}>{i < n ? "★" : "☆"}</span>
       ))}
     </div>
   );
@@ -109,7 +109,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
                   <button className="hp-prod-wish"
                     onClick={() => handleWishlist(product)}
                     style={{ background: "none", border: "none", cursor: "pointer", padding: "6px 10px" }}>
-                    <span style={{ fontSize: 22, color: wished ? "#e53e3e" : "#bbb", lineHeight: 1 }}>
+                    <span style={{ fontSize: 27, color: wished ? "#e53e3e" : "#bbb", lineHeight: 1 }}>
                       {wished ? "♥" : "♡"}
                     </span>
                   </button>

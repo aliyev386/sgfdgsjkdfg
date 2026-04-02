@@ -519,6 +519,8 @@
   inset: 0;
   backdrop-filter: blur(12px);
   /* background: #FFF6C0; */
+  pointer-events: none;   /* klikləri bloklamasın */
+  z-index: 0;             /* form elementlərinin altında qalsın */
 }
 
 .auth-right {
@@ -532,7 +534,7 @@
   box-shadow: 0 8px 40px rgba(0,0,0,0.15);
 
   position: relative;
-  z-index: 2;
+  z-index: 2;  /* ::before pseudo-elementin üstündə olsun */
 }
 .auth-form-container {
   max-width: 100%;
@@ -571,6 +573,8 @@
   background: rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
-.auth-root .register{
-
+.auth-root.register {
+  align-items: flex-start;
+  overflow-y: auto;
+  padding: 40px 0;
 }

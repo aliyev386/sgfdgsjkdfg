@@ -1,6 +1,6 @@
 // src/pages/auth/LoginPage.jsx
 import { useState, useEffect, useCallback } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login, googleAuth, getMe } from "../../api/authApi";
 import { loginSuccess } from "../../store/slices/authSlice";
@@ -10,10 +10,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
-  // ProtectedRoute-dan geri qayıtma üçün
-  const from = location.state?.from?.pathname || "/";
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,7 +24,7 @@ export default function LoginPage() {
     if (!form.email.trim()) errs.email = "Email boş ola bilməz";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Email formatı düzgün deyil";
     if (!form.password) errs.password = "Şifrə boş ola bilməz";
-    else if (form.password.length < 6) errs.password = "Şifrə ən az 6 simvol olmalıdır";
+    else if (form.password.length < 8) errs.password = "Şifrə ən az 8 simvol olmalıdır";
     return errs;
   };
 
@@ -65,7 +62,7 @@ export default function LoginPage() {
 
       if (rememberMe) localStorage.setItem("amore_remember", "true");
       setAlert({ type: "success", msg: "Uğurla daxil oldunuz! Yönləndirilirsiniz..." });
-      setTimeout(() => navigate(from, { replace: true }), 800);
+      setTimeout(() => navigate("/"), 800);
     } catch (err) {
       if (err?.validationErrors) {
         const mapped = {};
@@ -93,7 +90,7 @@ export default function LoginPage() {
         user,
       }));
       setAlert({ type: "success", msg: "Google ilə giriş uğurlu oldu!" });
-      setTimeout(() => navigate(from, { replace: true }), 800);
+      setTimeout(() => navigate("/"), 800);
     } catch (err) {
       setAlert({ type: "error", msg: err?.userMessage || "Google ilə giriş uğursuz oldu" });
     } finally {

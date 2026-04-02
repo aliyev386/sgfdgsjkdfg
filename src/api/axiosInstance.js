@@ -54,6 +54,13 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Auth endpointlərinin özü 401 qaytararsa (məs. yanlış şifrə),
+      // refresh cəhdi etmə — sonsuz loop/page reload yaradır
+      const isAuthEndpoint = originalRequest.url?.includes("/auth/");
+      if (isAuthEndpoint) {
+        return Promise.reject(formatError(error));
+      }
+
       const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
