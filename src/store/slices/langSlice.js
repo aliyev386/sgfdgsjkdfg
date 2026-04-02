@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import i18n from "../../i18n";
 
-const savedLang = localStorage.getItem("arvana_lang") || "az";
+const savedLang = localStorage.getItem("amore_lang") || "az";
 
 const langSlice = createSlice({
   name: "lang",
@@ -10,7 +10,7 @@ const langSlice = createSlice({
     setLang(state, action) {
       const lng = action.payload;
       state.current = lng;
-      localStorage.setItem("arvana_lang", lng);
+      localStorage.setItem("amore_lang", lng);
       i18n.changeLanguage(lng);
       document.documentElement.setAttribute("lang", lng);
     },

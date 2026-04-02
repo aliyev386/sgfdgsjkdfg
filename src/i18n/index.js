@@ -10,7 +10,7 @@ import en from "./en.json";
 import ru from "./ru.json";
 
 // LocalStorage-dan saxlanılmış dili al, yoxdursa default "az"
-const savedLang = localStorage.getItem("arvana_lang") || "az";
+const savedLang = localStorage.getItem("amore_lang") || "az";
 
 i18n
   .use(initReactI18next)
@@ -31,7 +31,7 @@ i18n
 
 // Dil dəyişdikdə LocalStorage-a yaz
 i18n.on("languageChanged", (lng) => {
-  localStorage.setItem("arvana_lang", lng);
+  localStorage.setItem("amore_lang", lng);
   document.documentElement.setAttribute("lang", lng);
 });
 

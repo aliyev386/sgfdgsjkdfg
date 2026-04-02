@@ -60,7 +60,7 @@ export default function LoginPage() {
         user,
       }));
 
-      if (rememberMe) localStorage.setItem("arvana_remember", "true");
+      if (rememberMe) localStorage.setItem("amore_remember", "true");
       setAlert({ type: "success", msg: "Uğurla daxil oldunuz! Yönləndirilirsiniz..." });
       setTimeout(() => navigate("/"), 800);
     } catch (err) {

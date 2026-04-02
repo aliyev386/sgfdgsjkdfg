@@ -3,16 +3,16 @@ import axiosInstance from "./axiosInstance";
 
 // ── Token localStorage helpers ────────────────────────────
 export const saveTokens = (accessToken, refreshToken) => {
-  localStorage.setItem("arvana_token", accessToken);
-  if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
+  localStorage.setItem("amore_token", accessToken);
+  if (refreshToken) localStorage.setItem("amore_refresh_token", refreshToken);
 };
 
-export const getToken = () => localStorage.getItem("arvana_token");
+export const getToken = () => localStorage.getItem("amore_token");
 
 export const removeTokens = () => {
-  localStorage.removeItem("arvana_token");
-  localStorage.removeItem("arvana_refresh_token");
-  localStorage.removeItem("arvana_user");
+  localStorage.removeItem("amore_token");
+  localStorage.removeItem("amore_refresh_token");
+  localStorage.removeItem("amore_user");
 };
 
 export const isAuthenticated = () => !!getToken();
@@ -54,8 +54,8 @@ export const googleAuth = async (credential) => {
 // ── Refresh token ─────────────────────────────────────────
 // POST /auth/refresh  →  { data: { accessToken, refreshToken, expireDate } }
 export const refreshToken = async () => {
-  const currentRefresh = localStorage.getItem("arvana_refresh_token");
-  const currentAccess  = localStorage.getItem("arvana_token") || "";
+  const currentRefresh = localStorage.getItem("amore_refresh_token");
+  const currentAccess  = localStorage.getItem("amore_token") || "";
   if (!currentRefresh) throw new Error("No refresh token");
 
   const { data } = await axiosInstance.post("/auth/refresh", {
@@ -96,6 +96,10 @@ export const resetPassword = async ({ token, email, newPassword }) => {
 
 // ── Get current user ──────────────────────────────────────
 export const getMe = async () => {
+  const { data } = await axiosInstance.get("/users/me");
+  return data?.data ?? data;
+};
+export const getUser = async () => {
   const { data } = await axiosInstance.get("/users/me");
   return data?.data ?? data;
 };

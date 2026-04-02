@@ -11,16 +11,16 @@ const axiosInstance = axios.create({
 });
 
 // ── Yardımçı funksiyalar ───────────────────────────────────
-const getAccessToken  = () => localStorage.getItem("arvana_token");
-const getRefreshToken = () => localStorage.getItem("arvana_refresh_token");
+const getAccessToken  = () => localStorage.getItem("amore_token");
+const getRefreshToken = () => localStorage.getItem("amore_refresh_token");
 const setTokens = (accessToken, refreshToken) => {
-  localStorage.setItem("arvana_token", accessToken);
-  if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
+  localStorage.setItem("amore_token", accessToken);
+  if (refreshToken) localStorage.setItem("amore_refresh_token", refreshToken);
 };
 const clearTokens = () => {
-  localStorage.removeItem("arvana_token");
-  localStorage.removeItem("arvana_refresh_token");
-  localStorage.removeItem("arvana_user");
+  localStorage.removeItem("amore_token");
+  localStorage.removeItem("amore_refresh_token");
+  localStorage.removeItem("amore_user");
 };
 
 // Eyni anda bir neçə sorğunun refresh etməsinin qarşısını almaq üçün
@@ -40,7 +40,7 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    const lang = localStorage.getItem("arvana_lang") || i18n.language || "az";
+    const lang = localStorage.getItem("amore_lang") || i18n.language || "az";
     config.headers["Accept-Language"] = lang;
     return config;
   },
@@ -85,7 +85,7 @@ axiosInstance.interceptors.response.use(
           {
             headers: {
               "Content-Type": "application/json",
-              "Accept-Language": localStorage.getItem("arvana_lang") || "az",
+              "Accept-Language": localStorage.getItem("amore_lang") || "az",
             },
           }
         );

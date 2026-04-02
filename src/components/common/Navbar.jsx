@@ -28,7 +28,6 @@ export default function Navbar() {
 
   const [scrolled,  setScrolled]  = useState(false);
 
-  // Səbəti yüklə
   useEffect(() => {
     if (isAuth) {
       cartApi.get().then(cart => { if (cart) dispatch(setCart(cart)); }).catch(() => {});
@@ -61,6 +60,7 @@ export default function Navbar() {
         <ul className="arv-nav-links">
           <li><Link to="/collections" className={isActive("/collections")}>{t("nav.collections")}</Link></li>
           <li><Link to="/categories"  className={isActive("/categories")}>{t("nav.shop")}</Link></li>
+          <li><Link to="/campaigns"   className={isActive("/campaigns")}>{t("nav.campaigns") || "Kampaniyalar"}</Link></li>
           <li><Link to="/about"       className={isActive("/about")}>{t("nav.story")}</Link></li>
           <li><Link to="/contact"     className={isActive("/contact")}>{t("nav.contact")}</Link></li>
         </ul>

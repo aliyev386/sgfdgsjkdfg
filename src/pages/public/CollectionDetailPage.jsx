@@ -1,177 +1,170 @@
-// Route: /collections/:slug
-// Kolleksiya detalları: hero, şəkil qalereyası, məhsullar, cart
-
+// Route: /collection-detail/:id
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
 import { setCart } from "../../store/slices/cartSlice";
+import { toggleWishlist } from "../../store/slices/wishlistStore";
 import collectionApi from "../../api/collectionApi";
 import cartApi       from "../../api/cartApi";
 import Navbar        from "../../components/common/Navbar";
 import Footer        from "../../components/common/Footer";
 import "../../assets/pagesCss/CollectionDetails.css";
 
+const fmt = (n) => `₼${Number(n).toLocaleString()}`;
+const BADGE_CLR  = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C", NEW:"#7A9E7E", HOT:"#D4714A", SALE:"#C9A84C", LIMITED:"#5C8DB8" };
 
+// ── PRODUCT CARD ────────────────────────────────────────────
+const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wishlisted, t, delay }) {
+  const navigate  = useNavigate();
+  const isAdding  = addingId === product.id;
+  const hasDisc   = !!product.old_price;
 
-// ── HELPERS ───────────────────────────────────────────────────
-const fmt = (n) => `$${Number(n).toLocaleString()}`;
-const BADGE_CLR  = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C" };
-const BADGE_KEYS = { best_seller:"common.best_seller", new_in:"common.new_in", sale:"common.sale" };
-
-function Stars({ n, size=12 }) {
-  return (
-    <span className="cdp-stars">
-      {Array.from({length:5}).map((_,i)=>(
-        <span key={i} className={"cdp-star"+(i<Math.round(n)?" on":"")} style={{fontSize:size}}>★</span>
-      ))}
-    </span>
-  );
-}
-
-// ── PRODUCT CARD ──────────────────────────────────────────────
-const ProdCard = memo(function ProdCard({ product, addingId, onAdd, t }) {
-  const navigate = useNavigate();
-  const save = product.old_price ? product.old_price - product.price : 0;
-  const pct  = product.old_price ? Math.round((save/product.old_price)*100) : 0;
-  const isAdding = addingId === product.id;
+  const goDetail = () => navigate(`/details/${product.id}`);
 
   return (
-    <article className="cdp-prod-card" style={{animationDelay:`${(product.id%12)*55}ms`}}>
+    <article
+      className="cd-prod-card"
+      style={{ animationDelay: `${delay}ms` }}
+    >
       {/* Image */}
-      <div className="cdp-prod-img-box" onClick={()=>navigate(`/details/${product.id}`)}>
-        <img className="cdp-prod-img" src={product.image} alt={product.name} loading="lazy"/>
+      <div className="cd-prod-img-wrap" onClick={goDetail}>
+        <img
+          className="cd-prod-img"
+          src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"}
+          alt={product.name}
+          loading="lazy"
+        />
         {product.badge && (
-          <span className="cdp-prod-badge" style={{background:BADGE_CLR[product.badge]}}>
-            {t(BADGE_KEYS[product.badge])}
+          <span
+            className="cd-prod-badge"
+            style={{ background: BADGE_CLR[product.badge] || "#7A9E7E" }}
+          >
+            {product.badge}
           </span>
         )}
         {!product.in_stock && (
-          <div className="cdp-prod-oos"><span>{t("common.out_of_stock")}</span></div>
+          <div className="cd-prod-oos-overlay">
+            <span className="cd-prod-oos-label">{t("common.out_of_stock")}</span>
+          </div>
         )}
-        {save > 0 && (
-          <span className="cdp-prod-pct-off">−{pct}%</span>
-        )}
-        <div className="cdp-prod-hover-panel">
+
+        {/* Hover overlay */}
+        <div className="cd-prod-hover-overlay">
           <button
-            className="cdp-hover-details"
-            onClick={e=>{e.stopPropagation();navigate(`/details/${product.id}`)}}
+            className="cd-prod-hover-btn"
+            onClick={e => { e.stopPropagation(); goDetail(); }}
           >
             {t("collection_page.view_details")}
           </button>
-          <button className="cdp-hover-wish" onClick={e=>e.stopPropagation()}>♡</button>
+          <button
+            className={`cd-prod-hover-btn cart-btn${isAdding ? " adding" : ""}`}
+            onClick={e => { e.stopPropagation(); onAdd(product); }}
+            disabled={!product.in_stock || isAdding}
+          >
+            {isAdding ? "✓ Əlavə edildi" : t("collection_page.add_to_cart")}
+          </button>
         </div>
       </div>
 
       {/* Body */}
-      <div className="cdp-prod-body">
-        <h3
-          className="cdp-prod-name"
-          onClick={()=>navigate(`/details/${product.id}`)}
-        >{product.name}</h3>
-
-        <div className="cdp-prod-rating-row">
-          <Stars n={product.rating}/>
-          <span className="cdp-prod-rating-n">{product.rating}</span>
-          <span className="cdp-prod-reviews">({product.reviews})</span>
-        </div>
-
-        <div className="cdp-prod-foot">
-          <div className="cdp-prod-prices">
-            <span className="cdp-prod-price">{fmt(product.price)}</span>
-            {product.old_price && (
-              <span className="cdp-prod-old">{fmt(product.old_price)}</span>
-            )}
-          </div>
-          <div className="cdp-prod-actions">
-            <button
-              className="cdp-details-btn"
-              onClick={()=>navigate(`/details/${product.id}`)}
-              title={t("collection_page.view_details")}
-            >⤢</button>
-            <button
-              className={"cdp-cart-btn"+(isAdding?" adding":"")+(product.in_stock?"":" disabled")}
-              disabled={!product.in_stock || isAdding}
-              onClick={()=>onAdd(product)}
-            >
-              {isAdding ? "✓" : t("collection_page.add_to_cart")}
-            </button>
-          </div>
+      <div className="cd-prod-body">
+        {product.categoryName && <p className="cd-prod-cat">{product.categoryName}</p>}
+        <h3 className="cd-prod-name" onClick={goDetail}>{product.name}</h3>
+        <div className="cd-prod-price-row">
+          <span className="cd-prod-price">{fmt(product.price)}</span>
+          {hasDisc && <span className="cd-prod-old-price">{fmt(product.old_price)}</span>}
         </div>
       </div>
     </article>
   );
 });
 
-// ── CSS ───────────────────────────────────────────────────────
+// ── ICON COMPONENTS ─────────────────────────────────────────
+const IconDelivery = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+    <path d="M1 3h15v13H1z M16 8h4l3 3v5h-7V8z M5.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M18.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+  </svg>
+);
+const IconWarranty = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4"/>
+  </svg>
+);
+const IconReturn = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18">
+    <path d="M3 12a9 9 0 109-9H8M8 7l-5 2 2 5"/>
+  </svg>
+);
 
 // ── PAGE ─────────────────────────────────────────────────────
 export default function CollectionDetailPage() {
-  const { id: collId } = useParams();   // route: /collection-detail/:id
+  const { id: collId } = useParams();
   const { t }          = useTranslation();
   const navigate       = useNavigate();
   const dispatch       = useDispatch();
   const lang           = useSelector(selectLang);
+  const wishlist       = useSelector(s => s.wishlist.items);
 
   const [coll,       setColl]       = useState(null);
   const [loading,    setLoading]    = useState(true);
-  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [activeImg,  setActiveImg]  = useState(0);
   const [lbOpen,     setLbOpen]     = useState(false);
-  const [lbIdx,      setLbIdx]      = useState(0);
   const [addingId,   setAddingId]   = useState(null);
   const [toast,      setToast]      = useState(null);
   const [sortBy,     setSortBy]     = useState("default");
   const toastTimer = useRef(null);
 
+  // Fetch collection
   useEffect(() => {
     if (!collId) return;
     setLoading(true);
-    setHeroLoaded(false);
+    setActiveImg(0);
     window.scrollTo({ top: 0 });
 
     collectionApi.getById(collId)
-      .then(res => {
-        // CollectionDto: { id, name, description, imageUrl, totalPrice, discountPrice, products: ProductDto[] }
-        const dto = res;
-        const mapped = {
+      .then(dto => {
+        // Build gallery: main image + product images as additional thumbs
+        const mainImg = dto.imagesUrl || dto.imageUrl || null;
+        const productImgs = (dto.products || [])
+          .map(p => p.images?.[0]?.imageUrl)
+          .filter(Boolean)
+          .slice(0, 5);
+        const gallery = mainImg
+          ? [mainImg, ...productImgs.filter(i => i !== mainImg)]
+          : productImgs;
+
+        setColl({
           id:          dto.id,
-          slug:        String(dto.id),
           name:        dto.name,
-          tagline:     dto.description || dto.name,
           description: dto.description || "",
-          badge:       null,
-          room:        dto.categoryName || "",
+          totalPrice:  dto.totalPrice,
+          discountPrice: dto.discountPrice || null,
           pieces:      dto.products?.length ?? 0,
-          gallery:     dto.imageUrl ? [dto.imageUrl] : [],
+          room:        dto.categoryName || "",
+          gallery,
           products: (dto.products || []).map(p => ({
-            id:        p.id,
-            name:      p.name,
-            slug:      String(p.id),
-            price:     p.discountPrice ?? p.price,
-            old_price: p.discountPrice ? p.price : null,
-            badge:     p.label || null,
-            rating:    4,
-            reviews:   0,
-            in_stock:  p.stock > 0,
-            image:     p.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700&q=80",
+            id:          p.id,
+            name:        p.name,
+            categoryName: p.categoryName || "",
+            price:       p.discountPrice ?? p.price,
+            old_price:   p.discountPrice ? p.price : null,
+            badge:       p.label || null,
+            in_stock:    (p.stock ?? 1) > 0,
+            image:       p.images?.[0]?.imageUrl || null,
           })),
-        };
-        setColl(mapped);
+        });
       })
       .catch(() => navigate("/collections"))
-      .finally(() => {
-        setLoading(false);
-        setTimeout(() => setHeroLoaded(true), 80);
-      });
+      .finally(() => setLoading(false));
   }, [collId, lang, navigate]);
 
-  // Sort products
+  // Sorted products
   const sortedProducts = coll ? (() => {
     const arr = [...(coll.products || [])];
     if (sortBy === "price_asc")  return arr.sort((a,b) => a.price - b.price);
     if (sortBy === "price_desc") return arr.sort((a,b) => b.price - a.price);
-    if (sortBy === "rating")     return arr.sort((a,b) => b.rating - a.rating);
     return arr;
   })() : [];
 
@@ -189,239 +182,296 @@ export default function CollectionDetailPage() {
     setTimeout(() => setAddingId(null), 1400);
   }, [addingId, dispatch]);
 
-  // Lightbox
-  const openLb  = (i) => { setLbIdx(i); setLbOpen(true); };
-  const lbPrev  = () => setLbIdx(i => (i - 1 + (coll?.gallery?.length||1)) % (coll?.gallery?.length||1));
-  const lbNext  = () => setLbIdx(i => (i + 1) % (coll?.gallery?.length||1));
+  // Wishlist
+  const handleWish = useCallback((product) => {
+    dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image }));
+  }, [dispatch]);
 
-  // Close lightbox on ESC
+  // Lightbox keyboard
   useEffect(() => {
-    const handler = (e) => { if (e.key === "Escape") setLbOpen(false); };
+    if (!lbOpen || !coll?.gallery?.length) return;
+    const handler = (e) => {
+      if (e.key === "Escape")      setLbOpen(false);
+      if (e.key === "ArrowLeft")   setActiveImg(i => (i - 1 + coll.gallery.length) % coll.gallery.length);
+      if (e.key === "ArrowRight")  setActiveImg(i => (i + 1) % coll.gallery.length);
+    };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [lbOpen, coll?.gallery?.length]);
 
+  const save = coll?.discountPrice ? coll.totalPrice - coll.discountPrice : 0;
+  const displayPrice = coll?.discountPrice ?? coll?.totalPrice;
+
+  // Loading state
   if (loading) return (
-    <>
-      <div className="cdp-page">
-        <Navbar />
-        <div style={{maxWidth:1400,margin:"100px auto 0",padding:"36px 72px"}}>
-          <div className="cdp-sk-grid">
-            {Array.from({length:6}).map((_,i) => (
-              <div key={i} className="cdp-sk-card">
-                <div className="cdp-sk-img" style={{animationDelay:`${i*.1}s`}}/>
-                <div className="cdp-sk-line"/>
-                <div className="cdp-sk-line sm"/>
-              </div>
-            ))}
-          </div>
+    <div className="cd-page">
+      <Navbar/>
+      <div className="cd-loading-page">
+        <div className="cd-loading-inner">
+          <div className="cd-loader-ring"/>
+          <span className="cd-loading-text">{t("common.loading")}</span>
         </div>
-        <Footer/>
       </div>
-    </>
+    </div>
   );
 
   if (!coll) return null;
 
   return (
-    <>
-      <div className="cdp-page">
-        <Navbar/>
+    <div className="cd-page">
+      <Navbar/>
 
-        {/* ══ HERO ══ */}
-        <div className={"cdp-hero"+(heroLoaded?" loaded":"")}>
-          {coll.gallery?.[0] && (
-            <img className="cdp-hero-bg-img" src={coll.gallery[0]} alt={coll.name}/>
-          )}
-          <div className="cdp-hero-noise"/>
-          <div className="cdp-hero-ov"/>
-          <div className="cdp-hero-inner">
-            <div className="cdp-hero-left">
-              <div className="cdp-breadcrumb">
-                <Link to="/">{t("pdp.home")}</Link>
-                <span className="cdp-bc-sep">/</span>
-                <Link to="/rooms">{t("rooms_page.eyebrow")}</Link>
-                <span className="cdp-bc-sep">/</span>
-                <span className="cdp-bc-cur">{coll.name}</span>
+      {/* ── BREADCRUMB ── */}
+      <nav className="cd-breadcrumb">
+        <Link to="/">{t("pdp.home")}</Link>
+        <span className="cd-bc-sep">/</span>
+        <Link to="/collections">{t("nav.collections")}</Link>
+        <span className="cd-bc-sep">/</span>
+        <span className="cd-bc-cur">{coll.name}</span>
+      </nav>
+
+      {/* ── SPLIT LAYOUT ── */}
+      <div className="cd-split">
+
+        {/* ── LEFT: GALLERY ── */}
+        <div className="cd-gallery">
+          {/* Main image */}
+          <div
+            className="cd-main-img-wrap"
+            onClick={() => coll.gallery.length > 0 && setLbOpen(true)}
+          >
+            {coll.gallery.length > 0 ? (
+              <>
+                <img
+                  key={activeImg}
+                  className="cd-main-img"
+                  src={coll.gallery[activeImg]}
+                  alt={coll.name}
+                />
+                {coll.discountPrice && (
+                  <span className="cd-img-badge">
+                    -{Math.round((save / coll.totalPrice) * 100)}% ENDİRİM
+                  </span>
+                )}
+                <div className="cd-img-zoom-hint">
+                  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16">
+                    <path d="M8 3H3v5M3 3l6 6M12 17h5v-5M17 17l-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </>
+            ) : (
+              <div className="cd-main-img-placeholder">
+                <svg viewBox="0 0 64 64" fill="none" stroke="#1C1C1C" strokeWidth="1.2" width="64" height="64">
+                  <rect x="8" y="18" width="48" height="36" rx="2"/>
+                  <path d="M20 18V14a12 12 0 0124 0v4"/>
+                  <circle cx="32" cy="36" r="6"/>
+                </svg>
               </div>
-              <div className="cdp-hero-eyebrow">{t("cdp.collection")}</div>
-              <h1 className="cdp-hero-name">
-                {coll.name.split(" ").slice(0,-1).join(" ")}{" "}
-                <em>{coll.name.split(" ").slice(-1)[0]}</em>
-              </h1>
-              <p className="cdp-hero-tagline">{coll.tagline}</p>
-              <div className="cdp-hero-tags">
-                <span className="cdp-hero-tag">🏠 {coll.room}</span>
-                <span className="cdp-hero-tag">✦ {coll.designer}</span>
-                <span className="cdp-hero-tag">📅 {coll.year}</span>
-              </div>
-            </div>
-            <div className="cdp-hero-right">
-              <div className="cdp-hero-stat">
-                <span className="cdp-hero-stat-n">{coll.pieces}</span>
-                <span className="cdp-hero-stat-l">{t("collection_page.pieces")}</span>
-              </div>
-              {coll.badge && (
-                <span className="cdp-hero-badge" style={{background:BADGE_CLR[coll.badge]}}>
-                  {t(BADGE_KEYS[coll.badge])}
-                </span>
-              )}
-              <a
-                href="#cdp-products"
-                className="cdp-hero-cta"
-                onClick={e=>{e.preventDefault();document.getElementById("cdp-products")?.scrollIntoView({behavior:"smooth"})}}
-              >
-                {t("cdp.shop_collection")} ↓
-              </a>
-            </div>
+            )}
           </div>
-        </div>
 
-        {/* ══ GALLERY ══ */}
-        {coll.gallery?.length > 0 && (
-          <div className="cdp-gallery">
-            <div className="cdp-gallery-head">
-              <span className="cdp-gallery-title">{t("cdp.gallery")}</span>
-              <span className="cdp-gallery-counter">{coll.gallery.length} {t("cdp.photos")}</span>
-            </div>
-            <div className="cdp-gallery-strip">
-              {coll.gallery.slice(0,4).map((img, i) => (
+          {/* Thumbnails */}
+          {coll.gallery.length > 1 && (
+            <div className="cd-thumbs">
+              {coll.gallery.map((img, i) => (
                 <div
                   key={i}
-                  className={"cdp-gal-item"+(i===3&&coll.gallery.length>4?" more":"")}
-                  onClick={()=>openLb(i)}
+                  className={`cd-thumb${activeImg === i ? " active" : ""}`}
+                  onClick={() => setActiveImg(i)}
                 >
-                  <img className="cdp-gal-img" src={img} alt={`${coll.name} ${i+1}`} loading="lazy"/>
-                  <div className="cdp-gal-item-ov">
-                    {i===3&&coll.gallery.length>4 ? (
-                      <div style={{textAlign:"center"}}>
-                        <div className="cdp-gal-more-n">+{coll.gallery.length-3}</div>
-                        <div className="cdp-gal-more-l">{t("cdp.more_photos")}</div>
-                      </div>
-                    ) : (
-                      <div className="cdp-gal-zoom">⤢</div>
-                    )}
-                  </div>
+                  <img src={img} alt={`${coll.name} ${i + 1}`} loading="lazy"/>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* ══ ABOUT ══ */}
-        <div className="cdp-about">
-          <div className="cdp-about-text">
-            <h2>{t("cdp.about_pre")} <em>{coll.name}</em></h2>
-            <p className="cdp-about-desc">{coll.description}</p>
+        {/* ── RIGHT: INFO PANEL ── */}
+        <div className="cd-info">
+          <div className="cd-eyebrow">{t("cdp.collection")}</div>
+
+          <h1 className="cd-title">
+            {coll.name.split(" ").slice(0, -1).join(" ")}{" "}
+            <em>{coll.name.split(" ").slice(-1)[0]}</em>
+          </h1>
+
+          {coll.description && (
+            <p className="cd-tagline">{coll.description}</p>
+          )}
+
+          {/* Price */}
+          {coll.totalPrice > 0 && (
+            <>
+              <div className="cd-price-block">
+                <span className="cd-price">{fmt(displayPrice)}</span>
+                {save > 0 && (
+                  <>
+                    <span className="cd-price-old">{fmt(coll.totalPrice)}</span>
+                    <span className="cd-price-save">-{Math.round((save/coll.totalPrice)*100)}%</span>
+                  </>
+                )}
+              </div>
+              <p className="cd-price-label">{t("cdp.meta_pieces")} · {coll.pieces} {t("collection_page.pieces")}</p>
+            </>
+          )}
+
+          {/* Meta table */}
+          <div className="cd-meta">
+            {coll.room && (
+              <div className="cd-meta-row">
+                <span className="cd-meta-label">{t("cdp.meta_room")}</span>
+                <span className="cd-meta-val">{coll.room}</span>
+              </div>
+            )}
+            <div className="cd-meta-row">
+              <span className="cd-meta-label">{t("cdp.meta_pieces")}</span>
+              <span className="cd-meta-val">{coll.pieces} {t("collection_page.pieces")}</span>
+            </div>
+            <div className="cd-meta-row">
+              <span className="cd-meta-label">{t("cdp.meta_availability")}</span>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div className="cd-meta-dot"/>
+                <span className="cd-meta-val" style={{ color:"#4A8A50" }}>{t("cdp.meta_available")}</span>
+              </div>
+            </div>
           </div>
-          <div className="cdp-about-meta">
-            <div className="cdp-meta-row">
-              <span className="cdp-meta-label">{t("cdp.meta_room")}</span>
-              <span className="cdp-meta-val">🏠 {coll.room}</span>
+
+          {/* CTA */}
+          <div className="cd-cta-row">
+            <a
+              href="#cd-products"
+              className="cd-btn-primary"
+              onClick={e => { e.preventDefault(); document.getElementById("cd-products")?.scrollIntoView({ behavior:"smooth" }); }}
+            >
+              {t("cdp.shop_collection")}
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16">
+                <path d="M10 4v12M4 10l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+            <Link to="/collections" className="cd-btn-secondary">
+              {t("cdp.collection")} →
+            </Link>
+          </div>
+
+          {/* Perks */}
+          <div className="cd-perks">
+            <div className="cd-perk">
+              <div className="cd-perk-icon"><IconDelivery/></div>
+              <div className="cd-perk-text">
+                <strong>{t("pdp.perk_delivery_title")}</strong>
+                {t("pdp.perk_delivery_desc")}
+              </div>
             </div>
-            <div className="cdp-meta-row">
-              <span className="cdp-meta-label">{t("cdp.meta_designer")}</span>
-              <span className="cdp-meta-val">{coll.designer}</span>
+            <div className="cd-perk">
+              <div className="cd-perk-icon"><IconWarranty/></div>
+              <div className="cd-perk-text">
+                <strong>{t("pdp.perk_guarantee_title")}</strong>
+                {t("pdp.perk_guarantee_desc")}
+              </div>
             </div>
-            <div className="cdp-meta-row">
-              <span className="cdp-meta-label">{t("cdp.meta_year")}</span>
-              <span className="cdp-meta-val">{coll.year}</span>
-            </div>
-            <div className="cdp-meta-row">
-              <span className="cdp-meta-label">{t("cdp.meta_pieces")}</span>
-              <span className="cdp-meta-val">{coll.pieces} {t("collection_page.pieces")}</span>
-            </div>
-            <div className="cdp-meta-row">
-              <span className="cdp-meta-label">{t("cdp.meta_availability")}</span>
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <div className="cdp-meta-dot"/>
-                <span className="cdp-meta-val" style={{color:"#4caf50"}}>{t("cdp.meta_available")}</span>
+            <div className="cd-perk">
+              <div className="cd-perk-icon"><IconReturn/></div>
+              <div className="cd-perk-text">
+                <strong>{t("pdp.perk_returns_title")}</strong>
+                {t("pdp.perk_returns_desc")}
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ══ DIVIDER ══ */}
-        <div className="cdp-divider" style={{marginTop:56}}>
-          <div className="cdp-divider-line"/>
-        </div>
+      {/* ── DIVIDER ── */}
+      <div className="cd-section-divider">
+        <div className="cd-section-divider-line"/>
+      </div>
 
-        {/* ══ PRODUCTS ══ */}
-        <div className="cdp-products" id="cdp-products">
-          <div className="cdp-prod-head">
-            <div>
-              <h2 className="cdp-prod-title">
-                {t("cdp.products_in")} <em>{t("cdp.collection_short")}</em>
+      {/* ── PRODUCTS SECTION ── */}
+      <section className="cd-products-section" id="cd-products">
+        <div className="cd-products-inner">
+          <div className="cd-products-head">
+            <div className="cd-products-head-left">
+              <div className="cd-products-eyebrow">{t("cdp.products_in")}</div>
+              <h2 className="cd-products-title">
+                {t("cdp.collection_short")} <em>{t("collection_page.pieces")}</em>
               </h2>
-              <p className="cdp-prod-count">{sortedProducts.length} {t("collection_page.pieces")}</p>
+              <p className="cd-products-count">{sortedProducts.length} {t("collection_page.pieces")}</p>
             </div>
-            <select
-              className="cdp-prod-sort"
-              value={sortBy}
-              onChange={e=>setSortBy(e.target.value)}
-            >
-              <option value="default">{t("fcp.sort_featured")}</option>
-              <option value="price_asc">{t("fcp.sort_price_asc")}</option>
-              <option value="price_desc">{t("fcp.sort_price_desc")}</option>
-              <option value="rating">{t("fcp.sort_rating")}</option>
-            </select>
+            <div className="cd-sort-wrap">
+              <span className="cd-sort-label">{t("fcp.sort_label")}</span>
+              <select
+                className="cd-sort-select"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+              >
+                <option value="default">{t("fcp.sort_featured")}</option>
+                <option value="price_asc">{t("fcp.sort_price_asc")}</option>
+                <option value="price_desc">{t("fcp.sort_price_desc")}</option>
+              </select>
+            </div>
           </div>
 
           {sortedProducts.length === 0 ? (
-            <div className="cdp-empty">
-              <span className="cdp-empty-ic">🛋</span>
-              <h3 className="cdp-empty-t">{t("collection_page.no_products")}</h3>
-              <p className="cdp-empty-s">{t("rooms_coll.no_collections_hint")}</p>
+            <div className="cd-empty">
+              <span className="cd-empty-ic">🛋</span>
+              <h3 className="cd-empty-t">{t("collection_page.no_products")}</h3>
+              <p className="cd-empty-s">{t("rooms_coll.no_collections_hint")}</p>
             </div>
           ) : (
-            <div className="cdp-prod-grid">
-              {sortedProducts.map((product) => (
+            <div className="cd-prod-grid">
+              {sortedProducts.map((product, i) => (
                 <ProdCard
                   key={product.id}
                   product={product}
                   addingId={addingId}
                   onAdd={handleAdd}
+                  onWish={handleWish}
+                  wishlisted={wishlist.some(w => w.id === product.id)}
                   t={t}
+                  delay={i * 60}
                 />
               ))}
             </div>
           )}
         </div>
+      </section>
 
-        {/* ══ LIGHTBOX ══ */}
-        {lbOpen && (
-          <div className="cdp-lb" onClick={()=>setLbOpen(false)}>
-            <button className="cdp-lb-close" onClick={()=>setLbOpen(false)}>✕</button>
-            <button className="cdp-lb-prev" onClick={e=>{e.stopPropagation();lbPrev()}}>‹</button>
-            <img
-              className="cdp-lb-img"
-              src={coll.gallery[lbIdx]}
-              alt={`${coll.name} ${lbIdx+1}`}
-              onClick={e=>e.stopPropagation()}
-            />
-            <button className="cdp-lb-next" onClick={e=>{e.stopPropagation();lbNext()}}>›</button>
-            <div className="cdp-lb-dots">
-              {coll.gallery.map((_,i)=>(
-                <div
-                  key={i}
-                  className={"cdp-lb-dot"+(i===lbIdx?" on":"")}
-                  onClick={e=>{e.stopPropagation();setLbIdx(i)}}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+      {/* ── LIGHTBOX ── */}
+      {lbOpen && coll.gallery.length > 0 && (
+        <div className="cd-lb" onClick={() => setLbOpen(false)}>
+          <button className="cd-lb-close" onClick={() => setLbOpen(false)}>✕</button>
+          {coll.gallery.length > 1 && (
+            <>
+              <button className="cd-lb-prev"
+                onClick={e => { e.stopPropagation(); setActiveImg(i => (i - 1 + coll.gallery.length) % coll.gallery.length); }}>
+                ‹
+              </button>
+              <button className="cd-lb-next"
+                onClick={e => { e.stopPropagation(); setActiveImg(i => (i + 1) % coll.gallery.length); }}>
+                ›
+              </button>
+            </>
+          )}
+          <img
+            className="cd-lb-img"
+            src={coll.gallery[activeImg]}
+            alt={`${coll.name} ${activeImg + 1}`}
+            onClick={e => e.stopPropagation()}
+          />
+          {coll.gallery.length > 1 && (
+            <div className="cd-lb-counter">{activeImg + 1} / {coll.gallery.length}</div>
+          )}
+        </div>
+      )}
 
-        {/* ══ TOAST ══ */}
-        {toast && (
-          <div className="cdp-toast">
-            <span className="cdp-toast-ic">✓</span>
-            <span><strong>{toast}</strong> {t("fcp.added_to_cart")}</span>
-          </div>
-        )}
+      {/* ── TOAST ── */}
+      {toast && (
+        <div className="cd-toast">
+          <span className="cd-toast-check">✓</span>
+          <span><strong>{toast}</strong> {t("fcp.added_to_cart")}</span>
+        </div>
+      )}
 
-        <Footer/>
-      </div>
-    </>
+      <Footer/>
+    </div>
   );
 }

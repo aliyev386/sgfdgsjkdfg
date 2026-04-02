@@ -23,6 +23,7 @@ import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import CheckoutPage from "./pages/order/CheckoutPage.jsx";
 import ProtectedRoute from "./components/common/ProdtectedRoute.jsx";
 import ResetPasswordPage from "./pages/auth/RePasswordPage.jsx";
+import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
       { path: "/collection-detail/:id",        element: <CollectionDetailPage /> },
       { path: "/details",                      element: <ProductDetailPage /> },
       { path: "/details/:id",                  element: <ProductDetailPage /> },
+            { path: "/campaigns",                   element: <CampaignsPage /> },
       { path: "/login",                        element: <LoginPage /> },
       { path: "/register",                     element: <RegisterPage /> },
       { path: "/forgot-password",              element: <ForgotPasswordPage /> },

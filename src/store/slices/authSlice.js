@@ -1,8 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const savedToken = localStorage.getItem("arvana_token");
+const savedToken = localStorage.getItem("amore_token");
 const savedUser  = (() => {
-  try { return JSON.parse(localStorage.getItem("arvana_user")); }
+  try { return JSON.parse(localStorage.getItem("amore_user")); }
   catch { return null; }
 })();
 
@@ -10,7 +10,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     token:           savedToken || null,
-    refreshToken:    localStorage.getItem("arvana_refresh_token") || null,
+    refreshToken:    localStorage.getItem("amore_refresh_token") || null,
     user:            savedUser  || null,
     isAuthenticated: !!savedToken,
   },
@@ -21,30 +21,30 @@ const authSlice = createSlice({
       state.refreshToken    = refreshToken || state.refreshToken;
       state.user            = user;
       state.isAuthenticated = true;
-      localStorage.setItem("arvana_token", token);
-      if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
-      if (user) localStorage.setItem("arvana_user", JSON.stringify(user));
+      localStorage.setItem("amore_token", token);
+      if (refreshToken) localStorage.setItem("amore_refresh_token", refreshToken);
+      if (user) localStorage.setItem("amore_user", JSON.stringify(user));
     },
     tokenRefreshed(state, action) {
       // axiosInstance refresh etdikdə store-u da yenilə
       const { accessToken, refreshToken } = action.payload;
       state.token = accessToken;
       if (refreshToken) state.refreshToken = refreshToken;
-      localStorage.setItem("arvana_token", accessToken);
-      if (refreshToken) localStorage.setItem("arvana_refresh_token", refreshToken);
+      localStorage.setItem("amore_token", accessToken);
+      if (refreshToken) localStorage.setItem("amore_refresh_token", refreshToken);
     },
     logoutAction(state) {
       state.token           = null;
       state.refreshToken    = null;
       state.user            = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("arvana_token");
-      localStorage.removeItem("arvana_refresh_token");
-      localStorage.removeItem("arvana_user");
+      localStorage.removeItem("amore_token");
+      localStorage.removeItem("amore_refresh_token");
+      localStorage.removeItem("amore_user");
     },
     updateUser(state, action) {
       state.user = { ...state.user, ...action.payload };
-      localStorage.setItem("arvana_user", JSON.stringify(state.user));
+      localStorage.setItem("amore_user", JSON.stringify(state.user));
     },
   },
 });
