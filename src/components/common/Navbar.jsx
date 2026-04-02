@@ -96,8 +96,8 @@ export default function Navbar() {
                   {t("nav.logout") || "Çıxış"}
                 </button>
               </>
-            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>
-                {t("nav.login") || "Giriş"}
+            : <button className="arv-nav-icon-login" onClick={() => navigate("/login")}>
+               <span><img src="/images/log-in (1).png" alt="Login"/></span> {t("nav.login") || "Giriş"}
               </button>
           }
           <button className="arv-nav-mobile-toggle">☰</button>

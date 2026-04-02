@@ -24,28 +24,33 @@ import CheckoutPage from "./pages/order/CheckoutPage.jsx";
 import ProtectedRoute from "./components/common/ProdtectedRoute.jsx";
 import ResetPasswordPage from "./pages/auth/RePasswordPage.jsx";
 import CampaignsPage from "./pages/public/CampaignsPage.jsx";
+import ContactPage from "./pages/common/Contact.jsx";
+import AboutPage from "./pages/common/About.jsx";
+import NotFoundPage from "./pages/common/NotFound.jsx";
 
 const router = createBrowserRouter([
   {
     element: <App />,
     children: [
-      { path: "/",                             element: <HomePage /> },
-      { path: "/categories",                   element: <CategoryPage /> },
-      { path: "/collections",                  element: <RoomsPage /> },
-      { path: "/category",                     element: <FurnitureCategoryPage /> },
-      { path: "/category/:id",                 element: <FurnitureCategoryPage /> },
-      { path: "/cart",                         element: <CartPage /> },
-      { path: "/room-collections",             element: <RoomCollectionsPage /> },
+      { path: "/",element: <HomePage /> },
+      { path: "/categories",element: <CategoryPage /> },
+      { path: "/collections",element: <RoomsPage /> },
+      { path: "/category",element: <FurnitureCategoryPage /> },
+      { path: "/category/:id",element: <FurnitureCategoryPage /> },
+      { path: "/cart",element: <CartPage /> },
+      { path: "/room-collections",element: <RoomCollectionsPage /> },
       { path: "/room-collections/:categoryId", element: <RoomCollectionsPage /> },
-      { path: "/collection-detail",            element: <CollectionDetailPage /> },
-      { path: "/collection-detail/:id",        element: <CollectionDetailPage /> },
-      { path: "/details",                      element: <ProductDetailPage /> },
-      { path: "/details/:id",                  element: <ProductDetailPage /> },
-            { path: "/campaigns",                   element: <CampaignsPage /> },
-      { path: "/login",                        element: <LoginPage /> },
-      { path: "/register",                     element: <RegisterPage /> },
-      { path: "/forgot-password",              element: <ForgotPasswordPage /> },
-      { path: "/reset-password",               element: <ResetPasswordPage /> },
+      { path: "/collection-detail",element: <CollectionDetailPage /> },
+      { path: "/collection-detail/:id",element: <CollectionDetailPage /> },
+      { path: "/details",element: <ProductDetailPage /> },
+      { path: "/details/:id",element: <ProductDetailPage /> },
+      { path: "/campaigns",element: <CampaignsPage /> },
+      { path: "/about",element: <AboutPage /> },
+      { path: "/contact",element: <ContactPage /> },
+      { path: "/login",element: <LoginPage /> },
+      { path: "/register",element: <RegisterPage /> },
+      { path: "/forgot-password",element: <ForgotPasswordPage /> },
+      { path: "/reset-password",element: <ResetPasswordPage /> },
       {
         path: "/profile",
         element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
@@ -58,6 +63,7 @@ const router = createBrowserRouter([
         path: "/admin",
         element: <ProtectedRoute requiredRole="Admin"><AdminPanel /></ProtectedRoute>,
       },
+      { path: "/*",element: <NotFoundPage /> }
     ],
   },
 ]);

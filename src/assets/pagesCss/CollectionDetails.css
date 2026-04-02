@@ -727,3 +727,218 @@
   .cd-prod-grid { grid-template-columns: 1fr; }
   .cd-title { font-size: 34px; }
 }
+/* ── NEW: PRIMARY CTA ROW ──────────────────────────────────── */
+.cd-cta-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.cd-btn-cart {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 24px;
+  background: #1C1C1C;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background .3s, transform .2s, opacity .2s;
+  text-decoration: none;
+}
+.cd-btn-cart:hover { background: #7A9E7E; transform: translateY(-1px); }
+.cd-btn-cart.adding { background: #7A9E7E; opacity: .85; cursor: not-allowed; }
+.cd-btn-cart:disabled { cursor: not-allowed; }
+
+/* ── SAVE (HEART) BUTTON ──────────────────────────────────── */
+.cd-btn-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 22px;
+  background: transparent;
+  color: #1C1C1C;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: 1.5px solid #E5DDD4;
+  cursor: pointer;
+  transition: all .3s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cd-btn-save:hover {
+  border-color: #D4714A;
+  color: #D4714A;
+  transform: translateY(-1px);
+}
+.cd-btn-save.saved {
+  border-color: #D4714A;
+  background: #FFF5F2;
+  color: #D4714A;
+}
+.cd-btn-save.saved:hover {
+  background: #FFE8E2;
+}
+
+/* ── SECONDARY LINK ROW ───────────────────────────────────── */
+.cd-secondary-link-row {
+  margin-bottom: 28px;
+}
+.cd-secondary-link-row .cd-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 36px;
+  background: transparent;
+  color: #1C1C1C;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: 1.5px solid #E5DDD4;
+  cursor: pointer;
+  transition: border-color .3s, color .3s;
+  text-decoration: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.cd-secondary-link-row .cd-btn-secondary:hover { border-color: #1C1C1C; color: #1C1C1C; }
+
+/* ── KREDIT KALKULYATORU TOGGLE ───────────────────────────── */
+.cd-credit-section {
+  margin-bottom: 24px;
+  border: 1.5px solid #E5DDD4;
+  overflow: hidden;
+  transition: border-color .25s;
+}
+.cd-credit-section:has(.cd-credit-body) {
+  border-color: #7A9E7E;
+}
+
+.cd-credit-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.cd-credit-toggle:hover { background: #F7F3EE; }
+
+.cd-credit-toggle-icon {
+  width: 40px;
+  height: 40px;
+  background: #F7F3EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #7A9E7E;
+  border-radius: 0;
+}
+
+.cd-credit-toggle-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1C1C1C;
+  letter-spacing: .3px;
+}
+.cd-credit-toggle-sub {
+  font-size: 11px;
+  color: #A8A09A;
+  font-weight: 400;
+  letter-spacing: .5px;
+}
+
+.cd-credit-toggle-arrow {
+  color: #A8A09A;
+  transition: transform .3s cubic-bezier(.25,.46,.45,.94);
+  flex-shrink: 0;
+}
+.cd-credit-toggle-arrow.open { transform: rotate(180deg); }
+
+.cd-credit-body {
+  padding: 24px 20px 20px;
+  border-top: 1px solid #E5DDD4;
+  background: #fff;
+  animation: cdFadeUp .3s ease;
+}
+
+/* ── PRODUCT CARD: WISH BUTTON ────────────────────────────── */
+.cd-prod-wish-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,.9);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #A8A09A;
+  transition: all .25s;
+  opacity: 0;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+}
+.cd-prod-card:hover .cd-prod-wish-btn { opacity: 1; }
+.cd-prod-wish-btn:hover { background: #fff; color: #D4714A; transform: scale(1.1); }
+.cd-prod-wish-btn.active { opacity: 1; color: #D4714A; background: #fff; }
+
+/* ── PRODUCT CARD: CART BUTTON ────────────────────────────── */
+.cd-prod-cart-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 16px;
+  background: #1C1C1C;
+  color: #fff;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .25s, opacity .2s;
+}
+.cd-prod-cart-btn:hover { background: #7A9E7E; }
+.cd-prod-cart-btn.adding { background: #7A9E7E; }
+.cd-prod-cart-btn.disabled,
+.cd-prod-cart-btn:disabled { background: #D4CCC5; cursor: not-allowed; opacity: .7; }
+
+@media (max-width: 768px) {
+  .cd-cta-row { flex-direction: column; }
+  .cd-btn-cart { width: 100%; }
+  .cd-btn-save { width: 100%; }
+}
