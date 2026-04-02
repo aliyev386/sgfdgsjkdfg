@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { setLang } from "../../store/slices/langSlice";
 import { logoutAction, selectIsAuth } from "../../store/slices/authSlice";
+import { logout as apiLogout } from "../../api/authApi";
 import { selectCartCount } from "../../store/slices/cartSlice";
 import CartDrawer from "../cart/CartDrawer";
 import cartApi from "../../api/cartApi";
@@ -26,7 +27,8 @@ export default function Navbar() {
   const cartCount = useSelector(selectCartCount);
   const activeLng = i18n.language || "az";
 
-  const [scrolled,  setScrolled]  = useState(false);
+  const [scrolled,    setScrolled]    = useState(false);
+  const [mobileOpen,  setMobileOpen]  = useState(false);
 
   useEffect(() => {
     if (isAuth) {
@@ -46,7 +48,8 @@ export default function Navbar() {
     dispatch(setLang(code));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await apiLogout(); } catch { /* backend çatışmasa belə local temizlə */ }
     dispatch(logoutAction());
     navigate("/login");
   };
@@ -55,9 +58,9 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`arv-nav${scrolled ? " scrolled" : ""}`}>
+      <nav className={`arv-nav${scrolled ? " scrolled" : ""}${mobileOpen ? " mobile-open" : ""}`}>
         <Link to="/" className="arv-logo"><span>AMORE</span> MEBEL</Link>
-        <ul className="arv-nav-links">
+        <ul className={`arv-nav-links${mobileOpen ? " mobile-visible" : ""}`}>
           <li><Link to="/collections" className={isActive("/collections")}>{t("nav.collections")}</Link></li>
           <li><Link to="/categories"  className={isActive("/categories")}>{t("nav.shop")}</Link></li>
           <li><Link to="/campaigns"   className={isActive("/campaigns")}>{t("nav.campaigns") || "Kampaniyalar"}</Link></li>
@@ -96,14 +99,17 @@ export default function Navbar() {
                   {t("nav.logout") || "Çıxış"}
                 </button>
               </>
-            : <button className="arv-nav-icon-login" onClick={() => navigate("/login")}>
-               <span><img src="/images/log-in (1).png" alt="Login"/></span> {t("nav.login") || "Giriş"}
+            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>
+                {t("nav.login") || "Giriş"}
               </button>
           }
-          <button className="arv-nav-mobile-toggle">☰</button>
+          <button className="arv-nav-mobile-toggle" onClick={() => setMobileOpen(o => !o)} aria-label="Menyu">
+            {mobileOpen ? "✕" : "☰"}
+          </button>
         </div>
       </nav>
       <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      {mobileOpen && <div className="arv-nav-overlay" onClick={() => setMobileOpen(false)} />}
     </>
   );
 }

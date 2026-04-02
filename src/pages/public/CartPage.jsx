@@ -10,6 +10,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import cartApi from "../../api/cartApi";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/CartPage.css";
 
 // ─── Toast ────────────────────────────────────────────────────
@@ -40,7 +42,7 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
     <div className={`cp-item${updating ? " updating" : ""}`}>
       {/* Image */}
       <div className="cp-item-img-wrap">
-        <Link to={`/products/${slug}`}>
+        <Link to={`/details/${product?.id ?? slug}`}>
           {image
             ? <img src={image} alt={name} className="cp-item-img" />
             : (
@@ -67,7 +69,7 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
       <div className="cp-item-body">
         <div className="cp-item-top">
           <div className="cp-item-info">
-            <Link to={`/products/${slug}`} style={{ textDecoration: "none" }}>
+            <Link to={`/details/${product?.id ?? slug}`} style={{ textDecoration: "none" }}>
               <h3 className="cp-item-name">{name}</h3>
             </Link>
             {product?.category && (
@@ -257,6 +259,8 @@ export default function CartPage() {
 
   // ─────────────────────────────────────────────────────────
   return (
+    <>
+    <Navbar />
     <div className="cp">
       {/* ── Page Header ── */}
       <div className="cp-header">
@@ -376,5 +380,7 @@ export default function CartPage() {
         />
       )}
     </div>
+    <Footer />
+    </>
   );
 }

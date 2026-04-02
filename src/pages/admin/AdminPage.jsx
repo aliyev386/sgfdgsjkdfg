@@ -1555,7 +1555,7 @@ const NAV = [
   { key: "discount-codes", icon: <Icons.Ticket />, label: "discountCodes" },
 ];
 
-const Sidebar = ({ page, setPage, t, collapsed, setCollapsed }) => (
+const Sidebar = ({ page, setPage, t, collapsed, setCollapsed, onLogout }) => (
   <aside className={`h-screen bg-[#1a3a2a] flex flex-col transition-all duration-300 ${collapsed ? "w-16" : "w-60"} flex-shrink-0`}>
     <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
       <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
@@ -1581,7 +1581,7 @@ const Sidebar = ({ page, setPage, t, collapsed, setCollapsed }) => (
       })}
     </nav>
     <div className="p-3 border-t border-white/10">
-      <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all">
+      <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all">
         <Icons.LogOut />
         {!collapsed && <span className="text-sm font-medium">{t.logout}</span>}
       </button>
@@ -1665,7 +1665,7 @@ export default function AdminPanel() {
         .border-3 { border-width: 3px; }
       `}</style>
       <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <Sidebar page={page} setPage={setPage} t={t} collapsed={collapsed} setCollapsed={setCollapsed} />
+        <Sidebar page={page} setPage={setPage} t={t} collapsed={collapsed} setCollapsed={setCollapsed} onLogout={handleLogout} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header t={t} lang={lang} setLang={handleLangChange} page={page} />
           <main className="flex-1 overflow-y-auto p-5">

@@ -254,25 +254,23 @@ function buildCollCatPayload(form, id) {
 // 🛍️ ORDERS
 // ════════════════════════════════════════════════════════════
 export const orderApi = {
-  // GET /admin/orders  (Admin role required)
+  // GET /orders/admin/all  (Admin role required)
   getAll: (params = {}) =>
-    axiosInstance.get("/admin/users", { params }).then(r => {
-      // Fallback: use admin/dashboard for order list
-      const arr = r.data?.data ?? r.data;
-      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
-    }).catch(() =>
-      axiosInstance.get("/orders", { params }).then(r => {
-        const arr = r.data?.data ?? r.data;
-        return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
-      })
-    ),
+    axiosInstance.get("/orders/admin/all", {
+      params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 8 }
+    }).then(r => {
+      const d = r.data?.data ?? r.data;
+      const arr = Array.isArray(d) ? d : [];
+      const total = r.data?.pagination?.totalCount ?? arr.length;
+      return { data: arr, total };
+    }),
 
   getById: (id) =>
     axiosInstance.get(`/orders/${id}`).then(unwrap),
 
-  // PATCH /orders/:id/status  — Admin
+  // PUT /orders/admin/:id/status  — Admin
   updateStatus: (id, status) =>
-    axiosInstance.patch(`/orders/${id}/status`, { status }).then(unwrap),
+    axiosInstance.put(`/orders/admin/${id}/status`, { status }).then(unwrap),
 };
 
 // ════════════════════════════════════════════════════════════
@@ -296,6 +294,9 @@ export const heroApi = {
 
   update: (id, form) =>
     axiosInstance.put(`/hero-sections/${id}`, buildHeroPayload(form)).then(unwrap),
+
+  toggle: (id) =>
+    axiosInstance.patch(`/hero-sections/${id}/toggle`).then(unwrap),
 
   remove: (id) =>
     axiosInstance.delete(`/hero-sections/${id}`).then(unwrap),
@@ -344,6 +345,9 @@ export const campaignApi = {
 
   update: (id, form) =>
     axiosInstance.put(`/campaigns/${id}`, buildCampaignPayload(form)).then(unwrap),
+
+  toggle: (id) =>
+    axiosInstance.patch(`/campaigns/${id}/toggle`).then(unwrap),
 
   remove: (id) =>
     axiosInstance.delete(`/campaigns/${id}`).then(unwrap),

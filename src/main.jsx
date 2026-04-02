@@ -27,7 +27,6 @@ import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 import ContactPage from "./pages/common/Contact.jsx";
 import AboutPage from "./pages/common/About.jsx";
 import NotFoundPage from "./pages/common/NotFound.jsx";
-
 const router = createBrowserRouter([
   {
     element: <App />,
@@ -45,12 +44,13 @@ const router = createBrowserRouter([
       { path: "/details",element: <ProductDetailPage /> },
       { path: "/details/:id",element: <ProductDetailPage /> },
       { path: "/campaigns",element: <CampaignsPage /> },
-      { path: "/about",element: <AboutPage /> },
-      { path: "/contact",element: <ContactPage /> },
       { path: "/login",element: <LoginPage /> },
       { path: "/register",element: <RegisterPage /> },
       { path: "/forgot-password",element: <ForgotPasswordPage /> },
       { path: "/reset-password",element: <ResetPasswordPage /> },
+      { path: "/about",element: <AboutPage /> },
+      { path: "/contact",element: <ContactPage /> },
+      { path: "/*",element:<NotFoundPage />},
       {
         path: "/profile",
         element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
@@ -63,7 +63,6 @@ const router = createBrowserRouter([
         path: "/admin",
         element: <ProtectedRoute requiredRole="Admin"><AdminPanel /></ProtectedRoute>,
       },
-      { path: "/*",element: <NotFoundPage /> }
     ],
   },
 ]);

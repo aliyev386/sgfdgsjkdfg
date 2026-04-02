@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
               </p>
               <div style={{ background: "rgba(170,59,255,0.06)", border: "1px solid rgba(170,59,255,0.2)", borderRadius: "14px", padding: "16px 20px", marginBottom: "28px" }}>
                 <p style={{ fontSize: "13px", color: "#6b6375", margin: 0, lineHeight: 1.6 }}>
-                  ⏱️ Link <strong>30 dəqiqə</strong> ərzində etibarlıdır.<br />
+                  ⏱️ Link <strong>1 saat</strong> ərzində etibarlıdır.<br />
                   Email gəlmədisə, spam qutusunu yoxlayın.
                 </p>
               </div>
