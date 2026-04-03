@@ -38,7 +38,6 @@ export default function CategoriesPage() {
     setError(null);
     categoryApi.getAll()
       .then(res => {
-        // FurnitureCategoryDto: { id, name, imageUrl }
         const arr = Array.isArray(res) ? res : [];
         setAllCategories(arr.map((c, i) => ({
           id:          c.id,

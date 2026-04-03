@@ -17,7 +17,7 @@ img{display:block}
 .rp-page{font-family:'Outfit',sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh}
  
 /* ── HERO ── */
-.rp-hero{position:relative;overflow:hidden;background:#1a1a1a;margin-top:72px;padding:90px 72px 80px}
+.rp-hero{background: url("/images/WhatsApp Image 2026-04-03 at 10.14.36.jpeg"); position:relative;overflow:hidden;margin-top:72px;padding:90px 72px 80px}
 .rp-hero-noise{position:absolute;inset:0;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
 .rp-hero-orb{position:absolute;width:480px;height:480px;border-radius:50%;filter:blur(120px);opacity:.12;pointer-events:none}
 .rp-hero-orb1{top:-120px;right:-60px;background:#7a9e7e}
@@ -26,8 +26,8 @@ img{display:block}
 .rp-hero-left{animation:rpHeroIn .9s cubic-bezier(.25,.46,.45,.94) both}
 .rp-hero-eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7a9e7e;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:12px}
 .rp-hero-eyebrow::before{content:'';display:block;width:32px;height:1.5px;background:#7a9e7e}
-.rp-hero-title{font-family:'Playfair Display',serif;font-size:clamp(48px,6.5vw,88px);font-weight:500;color:#fff;line-height:.93;letter-spacing:-1.5px;margin-bottom:20px}
-.rp-hero-title em{font-style:italic;color:#b5cdb8}
+.rp-hero-title{font-family:'Playfair Display',serif;font-size:clamp(48px,6.5vw,88px);font-weight:500;color:#000000;line-height:.93;letter-spacing:-1.5px;margin-bottom:20px}
+.rp-hero-title em{font-style:italic;color:#5a865e}
 .rp-hero-sub{font-size:16px;color:rgba(255,255,255,.5);max-width:420px;line-height:1.7;font-weight:300}
 .rp-hero-right{animation:rpHeroIn .9s .2s cubic-bezier(.25,.46,.45,.94) both;text-align:right}
 .rp-hero-stat-n{font-family:'Playfair Display',serif;font-size:72px;font-weight:400;color:rgba(255,255,255,.88);line-height:1;display:block}

@@ -15,16 +15,17 @@ import "../../assets/pagesCss/FurnitureCategory.css";
 const PAGE_SIZE = 12;
 const PRICE_MAX = 15000;
 
-const ACCENT_COLORS = [
-  "#6d9b70","#c9a84c","#a07b5a","#c0604a","#5a82b0","#9070b8","#5a7a9e","#d4825a","#7a9ea0"
-];
-const BANNER_IMGS = [
-  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=80",
-  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=80",
-  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=80",
-  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=80",
-  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=80",
-  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=80",
+
+const ACCENT_COLORS = ["#7A9E7E","#C9A84C","#A0856C","#C1654B","#5C8DB8","#9B8AC4","#5A7A9E","#E8A87C","#D4714A"];
+const BANNER_IMGS   = [
+  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=85",
+  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=85",
+  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=85",
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=85",
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85",
+  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=85",
 ];
 
 const BADGE_COLORS = {

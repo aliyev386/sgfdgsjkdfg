@@ -114,26 +114,7 @@ export default function RoomsPage() {
         </div>
  
         {/* BOTTOM BANNER */}
-        <div className="rp-banner">
-          <div className="rp-banner-inner">
-            <div className="rp-banner-orb" />
-            <div className="rp-banner-left">
-              <div className="rp-banner-eyebrow">{t("rooms_page.banner_eyebrow")}</div>
-              <h3 className="rp-banner-title">
-                {t("rooms_page.banner_title")}<br/>
-                <em>{t("rooms_page.banner_title_em")}</em>
-              </h3>
-            </div>
-            <div className="rp-banner-right">
-              <Link to="/furniture-categories" className="rp-banner-btn-p">
-                {t("rooms_page.banner_btn_p")}
-              </Link>
-              <Link to="/furniture-categories" className="rp-banner-btn-s">
-                {t("rooms_page.banner_btn_s")}
-              </Link>
-            </div>
-          </div>
-        </div>
+
  
         <Footer />
       </div>

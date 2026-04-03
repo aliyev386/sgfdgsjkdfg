@@ -25,8 +25,8 @@ import ProtectedRoute from "./components/common/ProdtectedRoute.jsx";
 import ResetPasswordPage from "./pages/auth/RePasswordPage.jsx";
 import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 import ContactPage from "./pages/common/Contact.jsx";
-import AboutPage from "./pages/common/About.jsx";
 import NotFoundPage from "./pages/common/NotFound.jsx";
+import AboutPage from "./pages/common/About.jsx";
 const router = createBrowserRouter([
   {
     element: <App />,
