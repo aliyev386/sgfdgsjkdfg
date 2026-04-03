@@ -370,18 +370,24 @@ const LangTabs = ({ lang, onChange }) => (
 // Single Image Upload Component
 const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setUploadError("");
     if (!uploadFn) { onChange(URL.createObjectURL(file)); return; }
     setUploading(true);
     try {
       const res = await uploadFn(file);
       const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
-      if (url) onChange(url);
-    } catch {
-      // silently ignore
+      if (url) {
+        onChange(url);
+      } else {
+        setUploadError("Şəkil URL-i alınamadı");
+      }
+    } catch (err) {
+      setUploadError(err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -408,6 +414,7 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
           </div>
         )}
       </label>
+      {uploadError && <p className="text-xs text-red-500 mt-1">⚠ {uploadError}</p>}
     </div>
   );
 };
@@ -415,25 +422,34 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
 // Multi Image Upload Component (for products)
 const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploading(true);
+    setUploadError("");
     try {
       const uploaded = [];
       for (const file of files) {
         if (uploadFn) {
           const res = await uploadFn(file);
+          // Backend: { success, data: { url, fileName, sizeBytes } }
+          // adminApi returns: { url: ... } already extracted
           const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
-          if (url) uploaded.push(url);
+          if (url) {
+            uploaded.push(url);
+          } else {
+            setUploadError("Şəkil URL-i alınamadı. Backend cavabını yoxlayın.");
+          }
         } else {
           uploaded.push(URL.createObjectURL(file));
         }
       }
-      onChange([...images, ...uploaded]);
-    } catch {
-      // silently ignore
+      if (uploaded.length > 0) onChange([...images, ...uploaded]);
+    } catch (err) {
+      const msg = err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi";
+      setUploadError(msg);
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -471,6 +487,7 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
           )}
         </label>
       </div>
+      {uploadError && <p className="text-xs text-red-500 mb-1">⚠ {uploadError}</p>}
       {images.length === 0 && (
         <p className="text-xs text-amber-600">⚠ Ən azı 1 şəkil əlavə edin</p>
       )}
@@ -1605,13 +1622,13 @@ const Campaigns = ({ t, lang }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      // adminApi.buildCampaignPayload expects: name (multilang), discount, start_date, end_date, description
       const payload = {
-        name:        form.name,
-        description: form.description,
-        discount:    Number(form.discount),
-        start_date:  form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
-        end_date:    form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
+        name:           form.name,
+        description:    form.description,
+        discount:       Number(form.discount),       // buildCampaignPayload maps this to discountPercent
+        start_date:     form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
+        end_date:       form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
+        display_order:  0,
       };
       if (editing) await campaignApi.update(editing, payload);
       else await campaignApi.create(payload);
