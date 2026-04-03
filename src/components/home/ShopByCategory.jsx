@@ -50,7 +50,6 @@ export default function ShopByCategory({ categories = [], t }) {
 
               <div className="sbc-info">
                 <h3 className="sbc-name">{cat.name}</h3>
-                <p className="sbc-count">{cat.count} {t("shop_by_cat.products")}</p>
               </div>
 
               <div className="sbc-arrow">

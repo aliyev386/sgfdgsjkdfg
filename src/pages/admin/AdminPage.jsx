@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang, setLang as setReduxLang } from "../../store/slices/langSlice";
@@ -14,7 +15,6 @@ import {
   discountCodeApi,
 } from "../../api/adminApi";
 
-// ─── i18n ────────────────────────────────────────────────────────────────────
 const translations = {
   az: {
     dashboard: "İdarə Paneli", products: "Məhsullar", categories: "Kateqoriyalar",
@@ -117,7 +117,6 @@ const translations = {
   },
 };
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
 const Icon = ({ path, size = 20, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d={path} />
@@ -155,7 +154,6 @@ const Icons = {
   RefreshCw: () => <Icon path="M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0 1 14.85-3.36L23 10 M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />,
 };
 
-// ─── Toast Notification ───────────────────────────────────────────────────────
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
     const t = setTimeout(onClose, 3000);
@@ -664,8 +662,21 @@ const Products = ({ t, lang }) => {
   const [categories, setCategories] = useState([]);
   const PER_PAGE = 8;
 
-  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", stock: "", category_id: "", material: "", label: "", width: "", height: "", depth: "", weight: "", colors: [], images: [] };
-  const [form, setForm] = useState(emptyForm);
+  const emptyForm = { 
+    name: { az: "", en: "", ru: "" }, 
+    description: { az: "", en: "", ru: "" }, 
+    price: "", 
+    stock: "", 
+    category_id: "", 
+    material: "", 
+    label: "", 
+    width: "", 
+    height: "", 
+    depth: "", 
+    weight: "", 
+    colors: [], 
+    images: [] 
+  };  const [form, setForm] = useState(emptyForm);
 
   const { data: products, total, loading, reload } = useAdminData(
     (params) => productApi.getAll(params),
@@ -751,7 +762,7 @@ const Products = ({ t, lang }) => {
         ...form,
         price: Number(form.price),
         stock: Number(form.stock),
-        category_id: form.category_id || undefined,
+        category_id: Number(form.category_id) || undefined,
       };
       if (editing) await productApi.update(editing, payload);
       else await productApi.create(payload);
@@ -1492,31 +1503,35 @@ const HeroSections = ({ t, lang }) => {
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : (
         <div className="grid lg:grid-cols-2 gap-4">
-          {heros.map(h => {
-            const isActive = h.isActive !== undefined ? h.isActive : h.active;
-            return (
-            <Card key={h.id} className={`overflow-hidden group transition-all ${isActive ? "ring-2 ring-emerald-400" : ""}`}>
-              <div className="h-36 bg-gradient-to-br from-slate-800 to-slate-600 relative flex items-center justify-center overflow-hidden">
-                {(h.imageUrl || h.image) && <img src={h.imageUrl || h.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />}
-                <div className="text-center text-white relative z-10">
-                  <p className="text-xl font-bold">{typeof h.title === "object" ? h.title[lang] : h.title}</p>
-                  <p className="text-sm text-slate-300">{typeof h.subtitle === "object" ? h.subtitle[lang] : h.subtitle}</p>
-                </div>
-                {isActive && <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Active</div>}
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <button onClick={() => onToggle(h)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
-                  {isActive ? t.deactivate : t.activate}
-                </button>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Btn size="sm" variant="secondary" onClick={() => openEdit(h)}><Icons.Edit /></Btn>
-                  <Btn size="sm" variant="danger" onClick={() => onDelete(h)}><Icons.Trash /></Btn>
-                </div>
-              </div>
-            </Card>
-            );
-          })}
+{heros?.map(h => {
+  const isActive = h.isActive !== undefined ? h.isActive : h.active;
+
+  // 🔹 Təhlükəsiz title/subtitle oxuma
+  const title = h.title?.[lang] ?? (typeof h.title === "string" ? h.title : "");
+  const subtitle = h.subtitle?.[lang] ?? (typeof h.subtitle === "string" ? h.subtitle : "");
+
+  return (
+    <Card key={h.id} className={`overflow-hidden group transition-all ${isActive ? "ring-2 ring-emerald-400" : ""}`}>
+      <div className="h-36 bg-gradient-to-br from-slate-800 to-slate-600 relative flex items-center justify-center overflow-hidden">
+        {(h.imageUrl || h.image) && <img src={h.imageUrl || h.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />}
+        <div className="text-center text-white relative z-10">
+          <p className="text-xl font-bold">{title}</p>
+          <p className="text-sm text-slate-300">{subtitle}</p>
         </div>
+        {isActive && <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Active</div>}
+      </div>
+      <div className="p-4 flex items-center justify-between">
+        <button onClick={() => onToggle(h)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
+          {isActive ? t.deactivate : t.activate}
+        </button>
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Btn size="sm" variant="secondary" onClick={() => openEdit(h)}><Icons.Edit /></Btn>
+          <Btn size="sm" variant="danger" onClick={() => onDelete(h)}><Icons.Trash /></Btn>
+        </div>
+      </div>
+    </Card>
+  );
+})}     </div>
       )}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
         <div className="space-y-4">
