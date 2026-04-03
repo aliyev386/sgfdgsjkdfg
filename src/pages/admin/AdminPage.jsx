@@ -367,7 +367,7 @@ const LangTabs = ({ lang, onChange }) => (
   </div>
 );
 
-// Image Upload Component
+// Single Image Upload Component
 const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
   const [uploading, setUploading] = useState(false);
 
@@ -378,11 +378,13 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
     setUploading(true);
     try {
       const res = await uploadFn(file);
-      onChange(res.url || res);
+      const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
+      if (url) onChange(url);
     } catch {
       // silently ignore
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -406,6 +408,72 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
           </div>
         )}
       </label>
+    </div>
+  );
+};
+
+// Multi Image Upload Component (for products)
+const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        if (uploadFn) {
+          const res = await uploadFn(file);
+          const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
+          if (url) uploaded.push(url);
+        } else {
+          uploaded.push(URL.createObjectURL(file));
+        }
+      }
+      onChange([...images, ...uploaded]);
+    } catch {
+      // silently ignore
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const removeImage = (idx) => onChange(images.filter((_, i) => i !== idx));
+
+  return (
+    <div>
+      {label && <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{label}</label>}
+      <div className="flex flex-wrap gap-2 mb-2">
+        {images.map((url, idx) => (
+          <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-emerald-300 group">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            {idx === 0 && (
+              <span className="absolute top-0.5 left-0.5 bg-emerald-600 text-white text-[9px] px-1 rounded font-bold">Ana</span>
+            )}
+            <button
+              type="button"
+              onClick={() => removeImage(idx)}
+              className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold"
+            >×</button>
+          </div>
+        ))}
+        <label className={`w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 transition-colors ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}>
+          <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} disabled={uploading} />
+          {uploading ? (
+            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <Icons.Upload />
+              <span className="text-[9px] text-gray-400 mt-1 text-center px-1">Şəkil əlavə et</span>
+            </>
+          )}
+        </label>
+      </div>
+      {images.length === 0 && (
+        <p className="text-xs text-amber-600">⚠ Ən azı 1 şəkil əlavə edin</p>
+      )}
     </div>
   );
 };
@@ -579,7 +647,7 @@ const Products = ({ t, lang }) => {
   const [categories, setCategories] = useState([]);
   const PER_PAGE = 8;
 
-  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", stock: "", category_id: "", material: "", label: "", colors: [], images: [] };
+  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", stock: "", category_id: "", material: "", label: "", width: "", height: "", depth: "", weight: "", colors: [], images: [] };
   const [form, setForm] = useState(emptyForm);
 
   const { data: products, total, loading, reload } = useAdminData(
@@ -600,9 +668,14 @@ const Products = ({ t, lang }) => {
 
   const validate = () => {
     const e = {};
-    if (!form.name?.az?.trim()) e.name = t.required;
+    if (!form.name?.az?.trim()) e.name_az = t.required;
+    if (!form.name?.en?.trim()) e.name_en = t.required;
+    if (!form.name?.ru?.trim()) e.name_ru = t.required;
     if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice;
     if (form.stock === "" || Number(form.stock) < 0) e.stock = t.invalidStock;
+    if (!form.category_id) e.category_id = t.required;
+    if (!form.images || form.images.length === 0) e.images = "Ən azı 1 şəkil əlavə edin";
+    if (!form.colors || form.colors.length === 0) e.colors = "Ən azı 1 rəng əlavə edin";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -610,14 +683,12 @@ const Products = ({ t, lang }) => {
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (p) => {
     setEditing(p.id);
-    // Backend returns name/description as plain string (current lang only).
-    // We keep it in the currently selected lang so the user can see it, and
-    // fill other langs with the same value as a sensible default.
     const normalizeLang = (val) => {
       if (!val) return { az: "", en: "", ru: "" };
       if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
       return { az: val, en: val, ru: val };
     };
+    // Backend returns images as array of {imageUrl, isPrimary} objects
     const imgUrls = (p.images || []).map(img =>
       typeof img === "string" ? img : img?.imageUrl || img?.url || ""
     ).filter(Boolean);
@@ -633,6 +704,10 @@ const Products = ({ t, lang }) => {
       category_id: p.furnitureCategoryId || p.category_id || p.category?.id || "",
       material:    p.material || "",
       label:       p.label || "",
+      width:       p.width ?? "",
+      height:      p.height ?? "",
+      depth:       p.depth ?? "",
+      weight:      p.weight ?? "",
       colors:      clrs,
       images:      imgUrls,
     });
@@ -707,7 +782,11 @@ const Products = ({ t, lang }) => {
             { key: "name", label: t.name, render: r => (
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 overflow-hidden flex-shrink-0">
-                  {r.images?.[0] ? <img src={r.images[0]} alt="" className="w-full h-full object-cover" /> : <Icons.Package />}
+                  {(() => {
+                    const img = r.images?.[0];
+                    const src = typeof img === "string" ? img : img?.imageUrl || img?.url;
+                    return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <Icons.Package />;
+                  })()}
                 </div>
                 <div>
                   <p className="font-semibold text-gray-800 text-sm">{typeof r.name === "object" ? r.name[lang] : r.name}</p>
@@ -723,7 +802,7 @@ const Products = ({ t, lang }) => {
             )},
             { key: "colors", label: t.colors, render: r => (
               <div className="flex gap-1">{(r.colors || []).map((c, i) => (
-                <div key={i} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ background: c.hex }} title={c.name} />
+                <div key={i} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ background: c.hexCode || c.hex }} title={c.name} />
               ))}</div>
             )},
           ]}
@@ -734,58 +813,86 @@ const Products = ({ t, lang }) => {
         <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.editProduct : t.addProduct}>
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.editProduct : t.addProduct} width="max-w-3xl">
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
-              onChange={v => setLangField("name", formLang, v)} required error={errors.name} />
-            <Input label={t.price} value={form.price} onChange={v => setField("price", v)} type="number" error={errors.price} />
+          {/* Name fields - all 3 langs required by backend */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə məcburidir)</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az} onChange={v => setLangField("name", "az", v)} error={errors.name_az} />
+              <Input label="EN *" value={form.name.en} onChange={v => setLangField("name", "en", v)} error={errors.name_en} />
+              <Input label="RU *" value={form.name.ru} onChange={v => setLangField("name", "ru", v)} error={errors.name_ru} />
+            </div>
           </div>
-          <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
-            onChange={v => setLangField("description", formLang, v)} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label={t.stock} value={form.stock} onChange={v => setField("stock", v)} type="number" error={errors.stock} />
-            <Select label={t.category} value={form.category_id} onChange={v => setField("category_id", v)}
-              options={[{ value: "", label: "— Seçin —" }, ...categories.map(c => ({
-                value: c.id,
-                label: typeof c.name === "object" ? c.name[lang] : c.name,
-              }))]} />
+
+          {/* Description - tabbed */}
+          <div>
+            <LangTabs lang={formLang} onChange={setFormLang} />
+            <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
+              onChange={v => setLangField("description", formLang, v)} />
           </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Input label={t.price + " *"} value={form.price} onChange={v => setField("price", v)} type="number" error={errors.price} />
+            <Input label={t.stock + " *"} value={form.stock} onChange={v => setField("stock", v)} type="number" error={errors.stock} />
+            <div>
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{t.category} *</label>
+              <select value={form.category_id} onChange={e => setField("category_id", e.target.value)}
+                className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${errors.category_id ? "border-red-400 bg-red-50" : "border-gray-200"}`}>
+                <option value="">— Seçin —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{typeof c.name === "object" ? c.name[lang] : c.name}</option>
+                ))}
+              </select>
+              {errors.category_id && <p className="text-xs text-red-500 mt-1">{errors.category_id}</p>}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
-            <Input label={t.materials || "Material"} value={form.material || ""}
-              onChange={v => setField("material", v)} placeholder="Wood, Fabric..." />
-            <Input label="Label" value={form.label || ""}
-              onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
+            <Input label="Material" value={form.material || ""} onChange={v => setField("material", v)} placeholder="Wood, Fabric..." />
+            <Input label="Label" value={form.label || ""} onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
+          </div>
+
+          {/* Dimensions */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ölçülər (cm / kg)</label>
+            <div className="grid grid-cols-4 gap-3">
+              <Input label="En (cm)" value={form.width || ""} onChange={v => setField("width", v)} type="number" placeholder="0" />
+              <Input label="Hündürlük" value={form.height || ""} onChange={v => setField("height", v)} type="number" placeholder="0" />
+              <Input label="Dərinlik" value={form.depth || ""} onChange={v => setField("depth", v)} type="number" placeholder="0" />
+              <Input label="Çəki (kg)" value={form.weight || ""} onChange={v => setField("weight", v)} type="number" placeholder="0" />
+            </div>
           </div>
 
           {/* Colors */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.colors}</label>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.colors} *</label>
             <div className="flex flex-wrap gap-2">
               {form.colors.map((c, i) => (
                 <div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs">
-                  <div className="w-4 h-4 rounded-full" style={{ background: c.hex }} />
+                  <div className="w-4 h-4 rounded-full border border-gray-300" style={{ background: c.hex || c.hexCode }} />
                   <span>{c.name}</span>
                   <button type="button" onClick={() => setField("colors", form.colors.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500"><Icons.X /></button>
                 </div>
               ))}
               <Btn size="sm" variant="secondary" onClick={() => {
-                const hex = prompt("Hex color (e.g. #FF0000)");
-                const name = prompt("Color name");
-                if (hex && name) setField("colors", [...form.colors, { hex, name }]);
-              }} type="button"><Icons.Plus />Add Color</Btn>
+                const hex = prompt("Hex rəng kodu (məs: #FF0000)");
+                const name = prompt("Rəng adı (məs: Qırmızı)");
+                if (hex && name) setField("colors", [...form.colors, { hex: hex.startsWith("#") ? hex : "#" + hex, name }]);
+              }} type="button"><Icons.Plus />Rəng əlavə et</Btn>
             </div>
+            {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
           </div>
 
-          {/* Image Upload */}
-          <ImageUpload
-            label={t.images}
-            value={form.images?.[0]}
-            onChange={(url) => setField("images", [url])}
+          {/* Multi Image Upload */}
+          <MultiImageUpload
+            label={`${t.images} * (ilk şəkil əsas şəkil olacaq)`}
+            images={form.images || []}
+            onChange={urls => setField("images", urls)}
             uploadFn={productApi.uploadImage}
             t={t}
           />
+          {errors.images && <p className="text-xs text-red-500">{errors.images}</p>}
 
           <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
@@ -820,7 +927,17 @@ const Categories = ({ t, lang }) => {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (c) => { setEditing(c.id); setForm({ name: c.name || { az: "", en: "", ru: "" }, image: c.image || null }); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    const normName = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({ name: normName(c.name), image: c.imageUrl || c.image || null });
+    setErrors({});
+    setModal(true);
+  };
 
   const onDelete = async (c) => {
     if (!window.confirm(t.confirmDelete)) return;
@@ -871,7 +988,7 @@ const Categories = ({ t, lang }) => {
           {cats.map(c => (
             <Card key={c.id} className="p-4 hover:shadow-md transition-shadow group">
               <div className="w-full h-24 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-                {c.image ? <img src={c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-emerald-400"><Icons.Grid /></div>}
+                {(c.imageUrl || c.image) ? <img src={c.imageUrl || c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-emerald-400"><Icons.Grid /></div>}
               </div>
               <h3 className="font-semibold text-gray-800 text-sm">{typeof c.name === "object" ? c.name[lang] : c.name}</h3>
               <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -884,10 +1001,14 @@ const Categories = ({ t, lang }) => {
       )}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCategory}>
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
-            onChange={v => setForm(f => ({ ...f, name: { ...f.name, [formLang]: v } }))}
-            required error={errors.name} />
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə)</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
           <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
             uploadFn={categoryApi.uploadImage} t={t} />
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
@@ -932,9 +1053,20 @@ const Collections = ({ t, lang }) => {
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (c) => {
+    const normName = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
     setEditing(c.id);
-    setForm({ name: c.name || { az: "", en: "", ru: "" }, description: c.description || { az: "", en: "", ru: "" }, price: c.price || "", product_ids: c.product_ids || c.products?.map(p => p.id || p) || [] });
-    setErrors({}); setModal(true);
+    setForm({
+      name:        normName(c.name),
+      description: normName(c.description),
+      price:       c.totalPrice ?? c.price ?? "",
+      product_ids: c.product_ids || c.products?.map(p => p.id ?? p) || [],
+    });
+    setErrors({});
+    setModal(true);
   };
 
   const onDelete = async (c) => {
@@ -984,12 +1116,23 @@ const Collections = ({ t, lang }) => {
       </Card>
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCollection}>
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
-            onChange={v => setForm(f => ({ ...f, name: { ...f.name, [formLang]: v } }))} required error={errors.name} />
-          <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
-            onChange={v => setForm(f => ({ ...f, description: { ...f.description, [formLang]: v } }))} />
-          <Input label={t.price} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.description}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Textarea label="AZ" value={form.description.az || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, az: v } }))} rows={2} />
+              <Textarea label="EN" value={form.description.en || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, en: v } }))} rows={2} />
+              <Textarea label="RU" value={form.description.ru || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, ru: v } }))} rows={2} />
+            </div>
+          </div>
+          <Input label={t.price + " *"} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.selectProducts}</label>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
@@ -1035,7 +1178,17 @@ const CollectionCategories = ({ t, lang }) => {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (c) => { setEditing(c.id); setForm({ name: c.name || { az: "", en: "", ru: "" }, image: c.image || null }); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    const normName = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({ name: normName(c.name), image: c.imageUrl || c.image || null });
+    setErrors({});
+    setModal(true);
+  };
 
   const onDelete = async (c) => {
     if (!window.confirm(t.confirmDelete)) return;
@@ -1070,7 +1223,7 @@ const CollectionCategories = ({ t, lang }) => {
           {cats.map(c => (
             <Card key={c.id} className="p-4 hover:shadow-md transition-shadow group">
               <div className="w-full h-20 bg-gradient-to-br from-blue-50 to-purple-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-                {c.image ? <img src={c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-purple-400"><Icons.Layers /></div>}
+                {(c.imageUrl || c.image) ? <img src={c.imageUrl || c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-purple-400"><Icons.Layers /></div>}
               </div>
               <h3 className="font-semibold text-gray-800">{typeof c.name === "object" ? c.name[lang] : c.name}</h3>
               <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1083,9 +1236,14 @@ const CollectionCategories = ({ t, lang }) => {
       )}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
-            onChange={v => setForm(f => ({ ...f, name: { ...f.name, [formLang]: v } }))} required error={errors.name} />
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
           <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
             uploadFn={collectionCategoryApi.uploadImage} t={t} />
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
@@ -1345,11 +1503,22 @@ const HeroSections = ({ t, lang }) => {
       )}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <Input label={`${t.title} (${formLang.toUpperCase()})`} value={form.title[formLang]}
-            onChange={v => setForm(f => ({ ...f, title: { ...f.title, [formLang]: v } }))} required error={errors.title} />
-          <Input label={`${t.subtitle} (${formLang.toUpperCase()})`} value={form.subtitle[formLang]}
-            onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, [formLang]: v } }))} />
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.title} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.title.az || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, az: v } }))} required error={errors.title} />
+              <Input label="EN" value={form.title.en || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, en: v } }))} />
+              <Input label="RU" value={form.title.ru || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, ru: v } }))} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.subtitle}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ" value={form.subtitle.az || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, az: v } }))} />
+              <Input label="EN" value={form.subtitle.en || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, en: v } }))} />
+              <Input label="RU" value={form.subtitle.ru || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, ru: v } }))} />
+            </div>
+          </div>
           <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
             uploadFn={heroApi.uploadImage} t={t} />
           <label className="flex items-center gap-2 cursor-pointer">
@@ -1487,15 +1656,18 @@ const Campaigns = ({ t, lang }) => {
       </Card>
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
         <div className="space-y-4">
-          <LangTabs lang={formLang} onChange={setFormLang} />
-          <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
-            onChange={v => setForm(f => ({ ...f, name: { ...f.name, [formLang]: v } }))} required error={errors.name} />
-          <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
-            onChange={v => setForm(f => ({ ...f, description: { ...f.description, [formLang]: v } }))} />
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
           <Input label={`${t.discount} %`} value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" error={errors.discount} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Start Date" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
-            <Input label="End Date"   value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
+            <Input label="Başlanğıc tarixi" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
+            <Input label="Bitmə tarixi"     value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
           </div>
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
