@@ -44,7 +44,7 @@ export default function CategoriesPage() {
           id:          c.id,
           name:        c.name,
           image_url:   c.imageUrl || PLACEHOLDER_IMGS[i % PLACEHOLDER_IMGS.length],
-          product_count: 0,
+          product_count: c.productCount || 0,
           description: c.name,
         })));
       })

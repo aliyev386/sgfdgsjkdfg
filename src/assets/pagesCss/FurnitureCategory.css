@@ -321,3 +321,15 @@ img{display:block}
   .fcp-banner-cats{gap:6px}
   .fcp-banner-cat{padding:6px 13px;font-size:10px}
 }
+/* ── IN-CART STATE ──────────────────────────────────────── */
+.fcp-add.in-cart {
+  background: #4A8A50;
+  border-color: #4A8A50;
+  color: #fff;
+  cursor: default;
+}
+.fcp-add.in-cart:hover {
+  background: #4A8A50;
+  border-color: #4A8A50;
+  transform: none;
+}

@@ -329,7 +329,38 @@
     "explore_more_em": "Like",
     "see_all": "View All",
     "view_product": "View Product",
-    "based_on": "Based on"
+    "based_on": "Based on",
+    "no_description": "No product description available.",
+    "material_label": "Material",
+    "dimensions": "Dimensions",
+    "width": "Width",
+    "height": "Height",
+    "depth": "Depth",
+    "weight": "Weight",
+    "cm": "cm",
+    "kg": "kg",
+    "no_reviews_yet": "No reviews yet. Be the first to write one!",
+    "write_review": "Write a Review",
+    "review_name": "Your Name",
+    "review_email": "Email (optional)",
+    "review_comment": "Your Review",
+    "submit_review": "Submit Review",
+    "review_submitted": "Your review was submitted successfully!",
+    "review_error": "Something went wrong. Please try again.",
+    "rating_label": "Rating",
+    "load_more_reviews": "Load More Reviews",
+    "similar_products": "You May Also",
+    "similar_subtitle": "Like",
+    "no_similar": "No similar products found.",
+    "no_specs": "No specifications available.",
+    "spec_material": "Material",
+    "spec_width": "Width (cm)",
+    "spec_height": "Height (cm)",
+    "spec_depth": "Depth (cm)",
+    "spec_weight": "Weight (kg)",
+    "spec_sku": "SKU",
+    "spec_category": "Category",
+    "spec_stock": "In Stock"
   },
   "rooms_page": {
     "eyebrow": "Shop by Room",
@@ -380,7 +411,7 @@
     "view_all": "View All",
     "products": "products"
   },
-    "profile": {
+  "profile": {
     "member": "Member",
     "since": "Member since",
     "logout": "Sign Out",
@@ -475,18 +506,18 @@
     "item_removed": "Removed from saved",
     "card_deleted": "Card deleted"
   },
-  "notfound":{
-    "label":"Page not found",
-    "title":"Nothing<br/>is here",
-    "desc":"The page you were looking for has been deleted, moved or never existed.",
-    "home":"Home",
-    "back":"Go Back",
-    "links":{
-      "title":"Perhaps you'd like:",
-      "products":"Products",
-      "collections":"Collections",
-      "about":"About",
-      "contact":"Contact"
+  "notfound": {
+    "label": "Page not found",
+    "title": "Nothing<br/>is here",
+    "desc": "The page you were looking for has been deleted, moved or never existed.",
+    "home": "Home",
+    "back": "Go Back",
+    "links": {
+      "title": "Perhaps you'd like:",
+      "products": "Products",
+      "collections": "Collections",
+      "about": "About",
+      "contact": "Contact"
     }
   }
-} 
+}

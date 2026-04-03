@@ -742,3 +742,166 @@
   .pdp-name { font-size: 32px; }
   .pdp-cta-row { flex-wrap: wrap; }
 }
+/* ── DESCRIPTION LAYOUT ────────────────────────────────── */
+.pdp-desc-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 48px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .pdp-desc-layout { grid-template-columns: 1fr; gap: 32px; }
+}
+.pdp-desc-main {}
+.pdp-desc-block { margin-top: 28px; }
+.pdp-desc-block-title {
+  font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase; color: #A8A09A;
+  font-weight: 500; margin-bottom: 12px;
+}
+
+/* ── DIMENSION CARD ─────────────────────────────────────── */
+.pdp-dim-card {
+  background: #fff;
+  border: 1.5px solid #E5DDD4;
+  padding: 28px 24px;
+}
+.pdp-dim-title {
+  font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase; color: #A8A09A;
+  font-weight: 500; margin-bottom: 16px;
+}
+.pdp-dim-visual {
+  display: flex; justify-content: center;
+  margin-bottom: 20px; opacity: .7;
+}
+.pdp-dim-rows { display: flex; flex-direction: column; gap: 0; }
+.pdp-dim-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #F0EBE2;
+}
+.pdp-dim-row:last-child { border-bottom: none; }
+.pdp-dim-label {
+  font-size: 11px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #A8A09A; font-weight: 500;
+}
+.pdp-dim-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 400; color: #1C1C1C;
+  display: flex; align-items: baseline; gap: 4px;
+}
+.pdp-dim-val small { font-size: 11px; color: #A8A09A; font-family: 'DM Sans', sans-serif; }
+
+/* ── REVIEW FORM ────────────────────────────────────────── */
+.pdp-review-form {
+  background: #fff;
+  border: 1.5px solid #E5DDD4;
+  padding: 32px 28px;
+  margin-bottom: 32px;
+}
+.pdp-review-form-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 400;
+  color: #1C1C1C; margin-bottom: 20px;
+}
+.pdp-review-form-rating {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px;
+}
+.pdp-review-form-label {
+  font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #A8A09A;
+  font-weight: 500;
+}
+.pdp-review-form-fields {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 12px;
+}
+@media (max-width: 600px) {
+  .pdp-review-form-fields { grid-template-columns: 1fr; }
+}
+.pdp-review-input, .pdp-review-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: #1C1C1C;
+  background: #F7F3EE;
+  border: 1.5px solid transparent;
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.pdp-review-input:focus, .pdp-review-textarea:focus {
+  border-color: #7A9E7E;
+  background: #fff;
+}
+.pdp-review-input::placeholder, .pdp-review-textarea::placeholder {
+  color: #B8B0A8;
+}
+.pdp-review-textarea { margin-bottom: 12px; }
+.pdp-review-err {
+  font-size: 12px; color: #C94B4B;
+  margin-bottom: 12px;
+}
+.pdp-review-submit {
+  padding: 13px 32px;
+  background: #1C1C1C;
+  color: #fff;
+  font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  border: none; cursor: pointer;
+  transition: background .25s, opacity .25s;
+}
+.pdp-review-submit:hover { background: #7A9E7E; }
+.pdp-review-submit:disabled { opacity: .5; cursor: not-allowed; }
+.pdp-review-submit.sending { opacity: .6; }
+
+/* ── REVIEW SUCCESS ─────────────────────────────────────── */
+.pdp-review-success {
+  background: #E8F0E8;
+  border: 1.5px solid #7A9E7E;
+  color: #3A6A40;
+  padding: 14px 20px;
+  font-size: 14px;
+  margin-bottom: 24px;
+  animation: pdpFadeUp .4s ease both;
+}
+
+/* ── LOAD MORE BUTTON ───────────────────────────────────── */
+.pdp-load-more-btn {
+  padding: 12px 40px;
+  background: transparent;
+  border: 1.5px solid #1C1C1C;
+  color: #1C1C1C;
+  font-size: 11px; letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .25s;
+}
+.pdp-load-more-btn:hover { background: #1C1C1C; color: #fff; }
+.pdp-load-more-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── INTERACTIVE STARS ──────────────────────────────────── */
+.pdp-stars { display: inline-flex; gap: 2px; }
+.pdp-star { color: #E5DDD4; transition: color .15s; }
+.pdp-star.on { color: #C9A84C; }
+
+/* ── IN-CART BUTTON STATES ──────────────────────────────── */
+.pdp-btn-buy.in-cart,
+.pdp-btn-cart.in-cart {
+  background: #4A8A50;
+  opacity: 1;
+  cursor: default;
+}
+.pdp-btn-buy.in-cart:hover,
+.pdp-btn-cart.in-cart:hover {
+  background: #4A8A50;
+}

@@ -1,4 +1,3 @@
-// src/pages/public/FurnitureCategoryPage.jsx
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,77 +13,93 @@ import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/FurnitureCategory.css";
 
 const PAGE_SIZE = 12;
+const PRICE_MAX = 15000;
 
-// ── CATEGORIES (sidebar üçün) ──────────────────────────────────────────────
-// Categories API-dan gəlir (aşağıda useEffect-də)
-const ACCENT_COLORS = ["#7A9E7E","#C9A84C","#A0856C","#C1654B","#5C8DB8","#9B8AC4","#5A7A9E","#E8A87C","#D4714A"];
-const BANNER_IMGS   = [
-  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85",
-  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=85",
-  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=85",
-  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=85",
-  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85",
-  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=85",
-  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85",
-  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=85",
+const ACCENT_COLORS = [
+  "#6d9b70","#c9a84c","#a07b5a","#c0604a","#5a82b0","#9070b8","#5a7a9e","#d4825a","#7a9ea0"
 ];
-const ALL_CAT = { id: null, key: "all", labelKey: "fcp.cat_all", count: 0, image: BANNER_IMGS[0], accent: "#7A9E7E", tagline: "fcp.banner_all" };
+const BANNER_IMGS = [
+  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=80",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=80",
+  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=80",
+  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=80",
+  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=80",
+  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=80",
+];
 
+const BADGE_COLORS = {
+  best_seller: "#c0604a",
+  new_in:      "#6d9b70",
+  sale:        "#c9a84c",
+  new:         "#6d9b70",
+  hot:         "#c0604a",
+  featured:    "#5a82b0",
+};
 
+const SORT_OPTIONS = [
+  { value: "featured",   labelKey: "fcp.sort_featured"   },
+  { value: "price_asc",  labelKey: "fcp.sort_price_asc"  },
+  { value: "price_desc", labelKey: "fcp.sort_price_desc" },
+  { value: "newest",     labelKey: "fcp.sort_newest"      },
+];
 
-const fmt   = (n) => `$${Number(n).toLocaleString()}`;
+const fmt = n => `$${Number(n).toLocaleString()}`;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const BADGE_COLORS = { best_seller: "#D4714A", new_in: "#7A9E7E", sale: "#C9A84C" };
 
-// ── STARS ──────────────────────────────────────────────────────────────────
-function Stars({ n, count }) {
-  return (
-    <div className="fcp-stars">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={"fcp-star" + (i < n ? " on" : "")}>★</span>
-      ))}
-      {count != null && <span className="fcp-star-c">({count})</span>}
-    </div>
-  );
-}
+// ─── PRODUCT CARD ──────────────────────────────────────────────────────────────
+const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToCart, wishlist, dispatch, t }) {
+  const navigate  = useNavigate();
+  const wished    = wishlist?.some(w => w.id === product.id);
+  const badgeKey  = product.badge?.toLowerCase().replace(/\s+/, "_");
+  const badgeBg   = BADGE_COLORS[badgeKey] || "#6d9b70";
 
-// ── PRODUCT CARD ───────────────────────────────────────────────────────────
-const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToCart, t, wishlist, dispatch }) {  const navigate = useNavigate();
   return (
     <article
       className="fcp-card"
-      style={{ animationDelay: `${(idx % PAGE_SIZE) * 50}ms` }}
+      style={{ animationDelay: `${(idx % PAGE_SIZE) * 40}ms` }}
       onClick={() => navigate(`/details/${product.id}`)}
     >
-      <div className="fcp-card-img-box">
-        <img className="fcp-card-img" src={product.image} alt={product.name} loading="lazy" />
-        {product.badge && (
-          <span className="fcp-badge" style={{ background: BADGE_COLORS[product.badge] }}>
-            {t(`common.${product.badge}`)}
+      <div className="fcp-card-img-wrap">
+        <img
+          className="fcp-card-img"
+          src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"}
+          alt={product.name}
+          loading="lazy"
+        />
+        {badgeKey && (
+          <span className="fcp-card-badge" style={{ background: badgeBg }}>
+            {product.badge}
           </span>
         )}
-        <div className="fcp-card-hover-actions">
+        <div className="fcp-card-actions">
           <button
-            className="fcp-btn-view"
+            className="fcp-card-view"
             onClick={e => { e.stopPropagation(); navigate(`/details/${product.id}`); }}
           >
             {t("fcp.view_details")}
           </button>
-          <button className="fcp-btn-wish" onClick={e => { e.stopPropagation(); dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image })); }}>
-          {wishlist && wishlist.some(w => w.id === product.id) ? <span style={{color:"#e53e3e"}}>♥</span> : "♡"}
-        </button>
+          <button
+            className="fcp-card-wish"
+            onClick={e => {
+              e.stopPropagation();
+              dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image }));
+            }}
+          >
+            {wished ? <span style={{ color: "#e53e3e" }}>♥</span> : "♡"}
+          </button>
         </div>
       </div>
+
       <div className="fcp-card-body">
         <h3 className="fcp-card-name">{product.name}</h3>
-        <Stars n={product.rating} count={product.review_count} />
+        {product.categoryName && <p className="fcp-card-cat">{product.categoryName}</p>}
         <div className="fcp-card-foot">
-          <div className="fcp-prices">
-            <span className="fcp-price">{fmt(product.price)}</span>
-            {product.old_price && <span className="fcp-old-price">{fmt(product.old_price)}</span>}
+          <div className="fcp-card-prices">
+            <span className="fcp-card-price">{fmt(product.price)}</span>
+            {product.oldPrice && <span className="fcp-card-old">{fmt(product.oldPrice)}</span>}
           </div>
           <button
-            className={"fcp-add" + (addingId === product.id ? " adding" : "")}
+            className={`fcp-card-add${addingId === product.id ? " adding" : ""}`}
             onClick={e => { e.stopPropagation(); onAddToCart(product); }}
           >
             {addingId === product.id ? "✓" : "+"}
@@ -95,224 +110,167 @@ const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToC
   );
 });
 
-// ── ACCORDION SECTION ──────────────────────────────────────────────────────
-function AccSection({ label, open, onToggle, children }) {
+// ─── ACCORDION SECTION ─────────────────────────────────────────────────────────
+function Section({ label, open, onToggle, children }) {
   return (
     <div className="fcp-section">
-      <button className="fcp-section-head" onClick={onToggle}>
+      <button className="fcp-section-btn" onClick={onToggle}>
         <span>{label}</span>
-        <span className={"fcp-chevron" + (open ? " open" : "")}>›</span>
+        <span className={`fcp-section-arrow${open ? " open" : ""}`}>›</span>
       </button>
-      <div className={"fcp-section-body" + (open ? " open" : "")}>
-        <div className="fcp-section-inner">{children}</div>
+      <div className={`fcp-section-body${open ? " open" : ""}`}>
+        <div className="fcp-section-content">{children}</div>
       </div>
     </div>
   );
 }
 
-// ── PRICE RANGE SLIDER (fixed dual-thumb + debounce) ──────────────────────
-function PriceRange({ priceMin, priceMax, draftMin, draftMax, onDraftChange, onCommit, pMin, pMax }) {
-  const pct = v => ((v - pMin) / (pMax - pMin)) * 100;
-  const leftPct  = pct(draftMin);
-  const rightPct = pct(draftMax);
+// ─── DUAL PRICE SLIDER ──────────────────────────────────────────────────────────
+function PriceSlider({ min, max, pMin = 0, pMax = PRICE_MAX, onChange }) {
+  const pct   = v => ((v - pMin) / (pMax - pMin)) * 100;
+  const lPct  = pct(min);
+  const rPct  = pct(max);
+
+  const [localMin, setLocalMin] = useState(min);
+  const [localMax, setLocalMax] = useState(max);
+
+  useEffect(() => { setLocalMin(min); }, [min]);
+  useEffect(() => { setLocalMax(max); }, [max]);
+
+  const commit = () => onChange(localMin, localMax);
 
   return (
     <>
       <div className="fcp-price-vals">
-        <span>{fmt(draftMin)}</span>
-        <span>{fmt(draftMax)}</span>
+        <span>{fmt(localMin)}</span>
+        <span>{fmt(localMax)}</span>
       </div>
-
-      {/* dual-range track */}
-      <div className="fcp-track-wrap">
+      <div className="fcp-track">
         <div className="fcp-track-bg" />
-        <div className="fcp-track-fill" style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }} />
-
-        {/* MIN thumb — rendered second so it can receive pointer events on left side */}
+        <div className="fcp-track-fill" style={{ left: `${lPct}%`, right: `${100 - rPct}%` }} />
         <input
-          type="range"
-          className="fcp-range fcp-range-min"
-          min={pMin} max={pMax} step={50}
-          value={draftMin}
-          onChange={e => {
-            const v = clamp(Number(e.target.value), pMin, draftMax - 50);
-            onDraftChange("min", v);
-          }}
-          onMouseUp={onCommit}
-          onTouchEnd={onCommit}
+          type="range" className="fcp-range fcp-range-min"
+          min={pMin} max={pMax} step={50} value={localMin}
+          onChange={e => setLocalMin(clamp(+e.target.value, pMin, localMax - 50))}
+          onMouseUp={commit} onTouchEnd={commit}
         />
-
-        {/* MAX thumb */}
         <input
-          type="range"
-          className="fcp-range fcp-range-max"
-          min={pMin} max={pMax} step={50}
-          value={draftMax}
-          onChange={e => {
-            const v = clamp(Number(e.target.value), draftMin + 50, pMax);
-            onDraftChange("max", v);
-          }}
-          onMouseUp={onCommit}
-          onTouchEnd={onCommit}
+          type="range" className="fcp-range fcp-range-max"
+          min={pMin} max={pMax} step={50} value={localMax}
+          onChange={e => setLocalMax(clamp(+e.target.value, localMin + 50, pMax))}
+          onMouseUp={commit} onTouchEnd={commit}
         />
       </div>
-
       <div className="fcp-price-inputs">
-        <div className="fcp-price-field">
-          <label>{fmt(pMin)}</label>
-          <input
-            type="number"
-            value={draftMin}
-            min={pMin} max={draftMax - 50}
-            onChange={e => onDraftChange("min", clamp(Number(e.target.value), pMin, draftMax - 50))}
-            onBlur={onCommit}
-          />
-        </div>
-        <div className="fcp-price-sep">—</div>
-        <div className="fcp-price-field">
-          <label>{fmt(pMax)}</label>
-          <input
-            type="number"
-            value={draftMax}
-            min={draftMin + 50} max={pMax}
-            onChange={e => onDraftChange("max", clamp(Number(e.target.value), draftMin + 50, pMax))}
-            onBlur={onCommit}
-          />
-        </div>
+        <input
+          className="fcp-price-input" type="number"
+          value={localMin} min={pMin} max={localMax - 50}
+          onChange={e => setLocalMin(clamp(+e.target.value, pMin, localMax - 50))}
+          onBlur={commit}
+        />
+        <span className="fcp-price-dash">—</span>
+        <input
+          className="fcp-price-input" type="number"
+          value={localMax} min={localMin + 50} max={pMax}
+          onChange={e => setLocalMax(clamp(+e.target.value, localMin + 50, pMax))}
+          onBlur={commit}
+        />
       </div>
     </>
   );
 }
 
-// ── FILTER SIDEBAR ─────────────────────────────────────────────────────────
-function FilterSidebar({ categories, selectedCatId, onCategoryChange, filterData, local, onChange, onPriceCommit, onReset, hasActive, t }) {
-  const [open, setOpen] = useState({ category: true, price: true, materials: false, styles: false, rating: false });
+// ─── FILTER SIDEBAR INNER ──────────────────────────────────────────────────────
+function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, onFilterChange, onPriceChange, onReset, hasActive, t, currentSort, onSortChange }) {
+  const [open, setOpen] = useState({ category: true, price: true, sort: true });
   const tog = k => setOpen(p => ({ ...p, [k]: !p[k] }));
 
-  const checkToggle = (key, val) => {
-    const cur = local[key] || [];
-    onChange(key, cur.includes(val) ? cur.filter(x => x !== val) : [...cur, val]);
-  };
-
-  const { price, materials, styles } = filterData;
-
-  const [draftMin, setDraftMin] = useState(() => Number(local.price_min !== "" ? local.price_min : price.min));
-  const [draftMax, setDraftMax] = useState(() => Number(local.price_max !== "" ? local.price_max : price.max));
-
-  useEffect(() => {
-    setDraftMin(local.price_min !== "" ? Number(local.price_min) : price.min);
-    setDraftMax(local.price_max !== "" ? Number(local.price_max) : price.max);
-  }, [local.price_min, local.price_max, price.min, price.max]);
-
-  const handleDraftChange = (which, val) => {
-    if (which === "min") setDraftMin(val);
-    else setDraftMax(val);
-  };
-
-  const handleCommit = () => onPriceCommit(draftMin, draftMax);
+  const priceMin = filters.priceMin !== "" ? Number(filters.priceMin) : 0;
+  const priceMax = filters.priceMax !== "" ? Number(filters.priceMax) : PRICE_MAX;
 
   return (
-    <aside className="fcp-sidebar">
-      <div className="fcp-sidebar-head">
+    <div className="fcp-sidebar-inner">
+      <div className="fcp-sidebar-header">
         <span className="fcp-sidebar-title">{t("fcp.filter_title")}</span>
         {hasActive && (
-          <button className="fcp-sidebar-reset" onClick={onReset}>{t("fcp.clear_all")}</button>
+          <button className="fcp-sidebar-clear" onClick={onReset}>
+            {t("fcp.clear_all")}
+          </button>
         )}
       </div>
 
       {/* CATEGORY */}
-      <AccSection label={t("fcp.categories")} open={open.category} onToggle={() => tog("category")}>
+      <Section label={t("fcp.categories")} open={open.category} onToggle={() => tog("category")}>
         <div className="fcp-cat-list">
           {categories.map(cat => (
             <button
               key={cat.id ?? "all"}
-              className={"fcp-cat-item" + (selectedCatId === cat.id ? " active" : "")}
+              className={`fcp-cat-btn${selectedCatId === cat.id ? " active" : ""}`}
               onClick={() => onCategoryChange(cat.id)}
             >
               <span className="fcp-cat-dot" style={{ background: cat.accent }} />
-              <span className="fcp-cat-label">{t(cat.labelKey)}</span>
-              <span className="fcp-cat-count">{cat.count}</span>
+              <span className="fcp-cat-name">{cat.name}</span>
             </button>
           ))}
         </div>
-      </AccSection>
+      </Section>
 
       {/* PRICE */}
-      <AccSection label={t("fcp.price_range")} open={open.price} onToggle={() => tog("price")}>
-        <PriceRange
-          draftMin={draftMin}
-          draftMax={draftMax}
-          onDraftChange={handleDraftChange}
-          onCommit={handleCommit}
-          pMin={price.min}
-          pMax={price.max}
+      <Section label={t("fcp.price_range")} open={open.price} onToggle={() => tog("price")}>
+        <PriceSlider
+          min={priceMin}
+          max={priceMax}
+          pMin={0}
+          pMax={PRICE_MAX}
+          onChange={onPriceChange}
         />
-      </AccSection>
+      </Section>
 
-      {/* MATERIALS */}
-      <AccSection label={t("fcp.materials")} open={open.materials} onToggle={() => tog("materials")}>
-        <div className="fcp-checklist">
-          {materials.map(m => (
-            <label key={m.value} className="fcp-check-row" onClick={() => checkToggle("materials", m.value)}>
-              <span className={"fcp-checkbox" + ((local.materials || []).includes(m.value) ? " on" : "")}>
-                {(local.materials || []).includes(m.value) && "✓"}
-              </span>
-              <span className="fcp-check-label">{m.label}</span>
-              <span className="fcp-check-count">{m.count}</span>
-            </label>
-          ))}
-        </div>
-      </AccSection>
-
-      {/* STYLE */}
-      <AccSection label={t("fcp.style")} open={open.styles} onToggle={() => tog("styles")}>
-        <div className="fcp-chips">
-          {styles.map(s => (
-            <button key={s.value}
-              className={"fcp-chip" + ((local.styles || []).includes(s.value) ? " active" : "")}
-              onClick={() => checkToggle("styles", s.value)}>
-              {s.label}
+      {/* SORT */}
+      <Section label={t("fcp.sort_label")} open={open.sort} onToggle={() => tog("sort")}>
+        <div className="fcp-sort-group">
+          {SORT_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              className={`fcp-sort-opt${currentSort === opt.value ? " active" : ""}`}
+              onClick={() => onSortChange(opt.value)}
+            >
+              <span className="fcp-sort-radio" />
+              <span>{t(opt.labelKey)}</span>
             </button>
           ))}
         </div>
-      </AccSection>
-
-      {/* RATING */}
-      <AccSection label={t("fcp.min_rating")} open={open.rating} onToggle={() => tog("rating")}>
-        <div className="fcp-ratings">
-          {[5, 4, 3].map(r => (
-            <button key={r}
-              className={"fcp-rating-btn" + (local.min_rating === r ? " active" : "")}
-              onClick={() => onChange("min_rating", local.min_rating === r ? null : r)}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className={"fcp-rstar" + (i < r ? " on" : "")}>★</span>
-              ))}
-              <span className="fcp-rating-and">{t("fcp.and_above")}</span>
-            </button>
-          ))}
-        </div>
-      </AccSection>
-    </aside>
+      </Section>
+    </div>
   );
 }
 
-// ── CUSTOM PAGINATION ──────────────────────────────────────────────────────
-function FcpPagination({ current, total, onChange }) {
+// ─── PAGINATION ────────────────────────────────────────────────────────────────
+function Pagination({ current, total, onChange }) {
   if (total <= 1) return null;
-  const pages = [];
-  for (let i = 1; i <= total; i++) pages.push(i);
+  const range = [];
+  const delta = 2;
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) range.push(i);
   return (
     <div className="fcp-pagination">
       <button className="fcp-pg-btn" disabled={current === 1} onClick={() => onChange(current - 1)}>‹</button>
-      {pages.map(p => (
-        <button key={p} className={"fcp-pg-num" + (p === current ? " active" : "")} onClick={() => onChange(p)}>{p}</button>
+      {range[0] > 1 && <>
+        <button className="fcp-pg-num" onClick={() => onChange(1)}>1</button>
+        {range[0] > 2 && <span style={{ color: "#aaa", padding: "0 4px" }}>…</span>}
+      </>}
+      {range.map(p => (
+        <button key={p} className={`fcp-pg-num${p === current ? " active" : ""}`} onClick={() => onChange(p)}>{p}</button>
       ))}
+      {range[range.length - 1] < total && <>
+        {range[range.length - 1] < total - 1 && <span style={{ color: "#aaa", padding: "0 4px" }}>…</span>}
+        <button className="fcp-pg-num" onClick={() => onChange(total)}>{total}</button>
+      </>}
       <button className="fcp-pg-btn" disabled={current === total} onClick={() => onChange(current + 1)}>›</button>
     </div>
   );
 }
 
-// ── MAIN PAGE ──────────────────────────────────────────────────────────────
+// ─── MAIN PAGE ─────────────────────────────────────────────────────────────────
 export default function FurnitureCategoryPage() {
   const { id: routeId }                 = useParams();
   const { t }                           = useTranslation();
@@ -322,172 +280,185 @@ export default function FurnitureCategoryPage() {
   const lang                            = useSelector(selectLang);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // API-dan gələn kategoriyalar
-  const [apiCategories, setApiCategories] = useState([]);
-
-  // selected category id — null = "All"
-  const [selectedCatId, setSelectedCatId] = useState(routeId ?? null);
-
-  // Kategoriyaları API-dan yüklə (lang dəyişəndə yenidən)
-  useEffect(() => {
-    categoryApi.getAll().then(res => {
-      const arr = Array.isArray(res) ? res : [];
-      const mapped = arr.map((c, i) => ({
-        id:       c.id,
-        key:      String(c.id),
-        labelKey: c.name,           // birbaşa ad istifadə edirik
-        count:    0,
-        image:    c.imageUrl || BANNER_IMGS[i % BANNER_IMGS.length],
-        accent:   ACCENT_COLORS[i % ACCENT_COLORS.length],
-        tagline:  c.name,
-      }));
-      setApiCategories([ALL_CAT, ...mapped]);
-    }).catch(() => setApiCategories([ALL_CAT]));
-  }, [lang]);
-
-  const CATEGORIES = apiCategories.length ? apiCategories : [ALL_CAT];
-
-  const activeCat = useMemo(
-    () => CATEGORIES.find(c => String(c.id) === String(selectedCatId)) ?? CATEGORIES[0],
-    [selectedCatId, CATEGORIES]
-  );
-
+  // ── state ──────────────────────────────────────────────────────────────────
+  const [apiCats,     setApiCats]     = useState([]);
+  const [selectedId,  setSelectedId]  = useState(routeId ? Number(routeId) : null);
   const [products,    setProducts]    = useState([]);
   const [pagination,  setPagination]  = useState({ total: 0, totalPages: 1 });
-  const [filterData]                  = useState({ price: { min: 0, max: 15000 }, materials: [], styles: [] });
-  const [prodLoading, setProdLoading] = useState(true);
-  const [bannerReady, setBannerReady] = useState(false);
+  const [loading,     setLoading]     = useState(true);
   const [addingId,    setAddingId]    = useState(null);
   const [toast,       setToast]       = useState(null);
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const [gridCols,    setGridCols]    = useState(3);
-  const toastTimer = useRef(null);
-  const gridRef    = useRef(null);
+  const [bannerReady, setBannerReady] = useState(false);
 
-  const [local, setLocal] = useState({
-    price_min:  searchParams.get("price_min") ? Number(searchParams.get("price_min")) : "",
-    price_max:  searchParams.get("price_max") ? Number(searchParams.get("price_max")) : "",
-    materials:  searchParams.getAll("materials"),
-    styles:     searchParams.getAll("styles"),
-    min_rating: searchParams.get("min_rating") ? Number(searchParams.get("min_rating")) : null,
+  const [filters, setFilters] = useState({
+    priceMin: searchParams.get("priceMin") || "",
+    priceMax: searchParams.get("priceMax") || "",
   });
 
   const currentPage = Number(searchParams.get("page") || 1);
   const currentSort = searchParams.get("sort") || "featured";
 
-  // Banner entrance animation
+  const gridRef    = useRef(null);
+  const toastTimer = useRef(null);
+
+  // ── load categories ────────────────────────────────────────────────────────
+  useEffect(() => {
+    categoryApi.getAll().then(res => {
+      const arr = Array.isArray(res) ? res : [];
+      setApiCats(arr.map((c, i) => ({
+        id:     c.id,
+        name:   c.name || `Category ${c.id}`,
+        image:  c.imageUrl || BANNER_IMGS[i % BANNER_IMGS.length],
+        accent: ACCENT_COLORS[i % ACCENT_COLORS.length],
+      })));
+    }).catch(() => {});
+  }, [lang]);
+
+  const allCategories = useMemo(() => [
+    { id: null, name: t("fcp.cat_all"), image: BANNER_IMGS[0], accent: "#6d9b70" },
+    ...apiCats,
+  ], [apiCats, t]);
+
+  const activeCat = useMemo(
+    () => allCategories.find(c => c.id === selectedId) ?? allCategories[0],
+    [selectedId, allCategories]
+  );
+
+  // ── banner entrance ────────────────────────────────────────────────────────
   useEffect(() => {
     setBannerReady(false);
-    const t = setTimeout(() => setBannerReady(true), 80);
-    return () => clearTimeout(t);
-  }, [selectedCatId]);
+    const tid = setTimeout(() => setBannerReady(true), 60);
+    return () => clearTimeout(tid);
+  }, [selectedId]);
 
-  // Fetch products from API
+  // ── fetch products ─────────────────────────────────────────────────────────
   const fetchProducts = useCallback(() => {
-    setProdLoading(true);
-    const params = {
-      page:     currentPage,
-      pageSize: PAGE_SIZE,
-    };
-    if (searchParams.get("price_min")) params.minPrice = searchParams.get("price_min");
-    if (searchParams.get("price_max")) params.maxPrice = searchParams.get("price_max");
+    setLoading(true);
 
-    const apiFn = selectedCatId
-      ? productApi.getByCategory(selectedCatId, params)
-      : productApi.getAll(params);
+    const pMin = searchParams.get("priceMin");
+    const pMax = searchParams.get("priceMax");
 
-    Promise.resolve(apiFn)
+    // Build request depending on active filters
+    let request;
+
+    if (pMin || pMax) {
+      // Use price-range endpoint when price filter is set
+      const min = pMin ? Number(pMin) : 0;
+      const max = pMax ? Number(pMax) : PRICE_MAX;
+      request = productApi.getByPriceRange(min, max, { page: currentPage, pageSize: PAGE_SIZE });
+    } else if (selectedId) {
+      // Category endpoint
+      request = productApi.getByCategory(selectedId, { page: currentPage, pageSize: PAGE_SIZE });
+    } else {
+      // All products
+      request = productApi.getAll({ page: currentPage, pageSize: PAGE_SIZE });
+    }
+
+    Promise.resolve(request)
       .then(res => {
-        const data  = res?.data  ?? (Array.isArray(res) ? res : []);
+        const items = res?.data ?? (Array.isArray(res) ? res : []);
         const pag   = res?.pagination ?? {};
-        // Map ProductDto to UI format
-        const mapped = data.map(p => ({
+
+        const mapped = items.map(p => ({
           id:           p.id,
           name:         p.name,
-          slug:         String(p.id),
+          categoryName: p.categoryName || null,
           price:        p.discountPrice ?? p.price,
-          old_price:    p.discountPrice ? p.price : null,
-          badge:        p.label?.toLowerCase().replace(" ", "_") || null,
-          rating:       4,
-          review_count: 0,
-          image:        p.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
+          oldPrice:     p.discountPrice ? p.price : null,
+          badge:        p.label || null,
+          image:        p.images?.[0]?.imageUrl || null,
         }));
-        setProducts(mapped);
-        setPagination({
-          total:      pag.totalCount ?? mapped.length,
-          totalPages: pag.totalPages ?? Math.ceil((pag.totalCount ?? mapped.length) / PAGE_SIZE),
+
+        // Client-side sort (backend doesn't expose sort param in these endpoints)
+        const sorted = [...mapped].sort((a, b) => {
+          if (currentSort === "price_asc")  return a.price - b.price;
+          if (currentSort === "price_desc") return b.price - a.price;
+          return 0;
         });
+
+        setProducts(sorted);
+        setPagination({
+          total:      pag.totalCount ?? sorted.length,
+totalPages: (pag?.totalPages ?? Math.ceil((pag?.totalCount ?? sorted.length) / PAGE_SIZE)) || 1        });
       })
-      .catch(() => setProducts([]))
-      .finally(() => setProdLoading(false));
-  }, [currentPage, currentSort, selectedCatId, searchParams, lang]);
+      .catch(() => { setProducts([]); setPagination({ total: 0, totalPages: 1 }); })
+      .finally(() => setLoading(false));
+  }, [currentPage, currentSort, selectedId, searchParams]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
-
   useEffect(() => { window.scrollTo({ top: 0 }); }, []);
 
-  // Instant filter for non-price filters
-  const handleChange = useCallback((key, val) => {
-    setLocal(p => {
-      const next = { ...p, [key]: val };
-      const params = new URLSearchParams(searchParams);
-      params.set("page", 1);
-      if (next.price_min !== "") params.set("price_min", next.price_min); else params.delete("price_min");
-      if (next.price_max !== "") params.set("price_max", next.price_max); else params.delete("price_max");
-      if (next.min_rating)       params.set("min_rating", next.min_rating); else params.delete("min_rating");
-      params.delete("materials"); (next.materials || []).forEach(v => params.append("materials", v));
-      params.delete("styles");    (next.styles    || []).forEach(v => params.append("styles", v));
-      setSearchParams(params, { replace: true });
-      return next;
+  // ── filter / sort handlers ─────────────────────────────────────────────────
+  const updateParams = useCallback((updates) => {
+    const p = new URLSearchParams(searchParams);
+    p.set("page", 1);
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v !== null && v !== "" && v !== undefined) p.set(k, v);
+      else p.delete(k);
     });
+    setSearchParams(p, { replace: true });
   }, [searchParams, setSearchParams]);
 
-  // Price commits only on mouseUp / blur — no flickering
-  const handlePriceCommit = useCallback((min, max) => {
-    setLocal(p => ({ ...p, price_min: min, price_max: max }));
-    const params = new URLSearchParams(searchParams);
-    params.set("page", 1);
-    params.set("price_min", min);
-    params.set("price_max", max);
-    setSearchParams(params, { replace: true });
-  }, [searchParams, setSearchParams]);
+  const handlePriceChange = useCallback((min, max) => {
+    const updates = {};
+    if (min > 0)       updates.priceMin = min;
+    else               updates.priceMin = null;
+    if (max < PRICE_MAX) updates.priceMax = max;
+    else                 updates.priceMax = null;
+    setFilters({ priceMin: min > 0 ? min : "", priceMax: max < PRICE_MAX ? max : "" });
+    updateParams(updates);
+  }, [updateParams]);
 
-  const handleReset = useCallback(() => {
-    setLocal({ price_min: "", price_max: "", materials: [], styles: [], min_rating: null });
-    const p = new URLSearchParams(); p.set("sort", currentSort);
-    setSearchParams(p); setMobileOpen(false);
-  }, [currentSort, setSearchParams]);
+  const handleSortChange = useCallback((val) => {
+    updateParams({ sort: val });
+  }, [updateParams]);
 
   const handleCategoryChange = useCallback((catId) => {
-    setSelectedCatId(catId);
-    handleReset();
+    setSelectedId(catId);
+    setFilters({ priceMin: "", priceMax: "" });
+    // Reset all params, keep sort
+    const p = new URLSearchParams();
+    if (currentSort !== "featured") p.set("sort", currentSort);
+    setSearchParams(p);
     if (catId) navigate(`/category/${catId}`, { replace: true });
     else       navigate("/category", { replace: true });
     setMobileOpen(false);
-  }, [navigate, handleReset]);
+  }, [navigate, currentSort, setSearchParams]);
+
+  const handleReset = useCallback(() => {
+    setFilters({ priceMin: "", priceMax: "" });
+    const p = new URLSearchParams();
+    if (currentSort !== "featured") p.set("sort", currentSort);
+    setSearchParams(p);
+    setMobileOpen(false);
+  }, [currentSort, setSearchParams]);
 
   const handlePageChange = useCallback(pg => {
-    const p = new URLSearchParams(searchParams); p.set("page", pg); setSearchParams(p);
-    requestAnimationFrame(() => gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  }, [searchParams, setSearchParams]);
+    updateParams({ page: pg });
+    requestAnimationFrame(() =>
+      gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+  }, [updateParams]);
 
-  const handleSortChange = useCallback(e => {
-    const p = new URLSearchParams(searchParams); p.set("sort", e.target.value); p.set("page", 1); setSearchParams(p);
-  }, [searchParams, setSearchParams]);
-
-  // Active filter chips
+  // ── active chips ───────────────────────────────────────────────────────────
   const activeChips = useMemo(() => {
     const chips = [];
-    const pm = searchParams.get("price_min"), px = searchParams.get("price_max");
-    if (pm || px) chips.push({ id: "price", label: `$${pm || 0} – $${px || "∞"}`, onRemove: () => { handleChange("price_min", ""); handleChange("price_max", ""); } });
-    if (searchParams.get("min_rating")) chips.push({ id: "min_rating", label: `★ ${searchParams.get("min_rating")}+`, onRemove: () => handleChange("min_rating", null) });
-    searchParams.getAll("materials").forEach(v => chips.push({ id: `m-${v}`, label: filterData.materials.find(m => m.value === v)?.label || v, onRemove: () => handleChange("materials", (local.materials || []).filter(x => x !== v)) }));
-    searchParams.getAll("styles").forEach(v    => chips.push({ id: `s-${v}`, label: v, onRemove: () => handleChange("styles", (local.styles || []).filter(x => x !== v)) }));
+    const pMin = searchParams.get("priceMin");
+    const pMax = searchParams.get("priceMax");
+    if (pMin || pMax)
+      chips.push({
+        id: "price",
+        label: `${fmt(pMin || 0)} – ${pMax ? fmt(pMax) : fmt(PRICE_MAX)}`,
+        onRemove: () => handlePriceChange(0, PRICE_MAX),
+      });
     return chips;
-  }, [searchParams, filterData, local, handleChange]);
+  }, [searchParams, handlePriceChange]);
 
   const hasActive = activeChips.length > 0;
 
+  // ── add to cart ────────────────────────────────────────────────────────────
   const handleAddToCart = useCallback(async product => {
     if (addingId === product.id) return;
     setAddingId(product.id);
@@ -496,76 +467,68 @@ export default function FurnitureCategoryPage() {
       if (cart) dispatch(setCart(cart));
       clearTimeout(toastTimer.current);
       setToast(product.name);
-      toastTimer.current = setTimeout(() => setToast(null), 2900);
+      toastTimer.current = setTimeout(() => setToast(null), 2800);
     } catch {}
-    setTimeout(() => setAddingId(null), 1500);
+    setTimeout(() => setAddingId(null), 1400);
   }, [addingId, dispatch]);
 
-  const sortOptions = [
-    { v: "featured",   l: t("fcp.sort_featured")   },
-    { v: "price_asc",  l: t("fcp.sort_price_asc")  },
-    { v: "price_desc", l: t("fcp.sort_price_desc") },
-    { v: "newest",     l: t("fcp.sort_newest")      },
-    { v: "popular",    l: t("fcp.sort_popular")     },
-    { v: "rating",     l: t("fcp.sort_rating")      },
-  ];
-
+  // ── sidebar node ───────────────────────────────────────────────────────────
   const SidebarNode = (
-    <FilterSidebar
-      categories={CATEGORIES}
-      selectedCatId={selectedCatId}
+    <SidebarContent
+      categories={allCategories}
+      selectedCatId={selectedId}
       onCategoryChange={handleCategoryChange}
-      filterData={filterData}
-      local={local}
-      onChange={handleChange}
-      onPriceCommit={handlePriceCommit}
+      filters={filters}
+      onFilterChange={() => {}}
+      onPriceChange={handlePriceChange}
       onReset={handleReset}
       hasActive={hasActive}
       t={t}
+      currentSort={currentSort}
+      onSortChange={handleSortChange}
     />
   );
 
+  // ── render ─────────────────────────────────────────────────────────────────
   return (
     <div className="fcp-page">
       <Navbar />
 
-      {/* ── DYNAMIC BANNER ── */}
-      <div className={"fcp-banner" + (bannerReady ? " ready" : "")}
-           style={{ "--accent": activeCat.accent }}>
+      {/* ── BANNER ── */}
+      <div
+        className={`fcp-banner${bannerReady ? " ready" : ""}`}
+        style={{ "--accent": activeCat.accent }}
+      >
         <div className="fcp-banner-bg" style={{ backgroundImage: `url(${activeCat.image})` }} />
         <div className="fcp-banner-overlay" />
         <div className="fcp-banner-content">
-          {/* breadcrumb */}
           <nav className="fcp-breadcrumb">
             <Link to="/">{t("fcp.home")}</Link>
             <span className="fcp-bc-sep">/</span>
-            <span className="fcp-bc-cur">{t(activeCat.labelKey)}</span>
+            <span className="fcp-bc-cur">{activeCat.name}</span>
           </nav>
 
-          <div className="fcp-banner-body">
-            <div className="fcp-banner-left">
+          <div className="fcp-banner-inner">
+            <div>
               <p className="fcp-banner-eyebrow">{t("fcp.collection")}</p>
-              <h1 className="fcp-banner-title">{t(activeCat.labelKey)}</h1>
-              <p className="fcp-banner-sub">{t(activeCat.tagline)}</p>
+              <h1 className="fcp-banner-title">{activeCat.name}</h1>
+              <p className="fcp-banner-sub">{t("fcp.banner_sub")}</p>
             </div>
-            <div className="fcp-banner-right">
-              <div className="fcp-banner-stat">
-                <span className="fcp-stat-n">{activeCat.count}</span>
-                <span className="fcp-stat-l">{t("fcp.products")}</span>
-              </div>
+            <div className="fcp-banner-stat">
+              <span className="fcp-stat-n">{pagination.total}</span>
+              <span className="fcp-stat-l">{t("fcp.products")}</span>
             </div>
           </div>
 
-          {/* Category pills inside banner */}
           <div className="fcp-banner-cats">
-            {CATEGORIES.map(cat => (
+            {allCategories.map(cat => (
               <button
                 key={cat.id ?? "all"}
-                className={"fcp-banner-cat" + (selectedCatId === cat.id ? " active" : "")}
-                style={selectedCatId === cat.id ? { "--ac": cat.accent } : {}}
+                className={`fcp-banner-cat${selectedId === cat.id ? " active" : ""}`}
+                style={selectedId === cat.id ? { "--ac": cat.accent } : {}}
                 onClick={() => handleCategoryChange(cat.id)}
               >
-                {t(cat.labelKey)}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -574,24 +537,24 @@ export default function FurnitureCategoryPage() {
 
       {/* ── LAYOUT ── */}
       <div className="fcp-layout">
-
-        {/* Sidebar */}
-        {SidebarNode}
+        {/* Sidebar desktop */}
+        <aside className="fcp-sidebar">
+          {SidebarNode}
+        </aside>
 
         {/* Main */}
-        <main className="fcp-main" ref={gridRef} style={{ scrollMarginTop: 80 }}>
+        <main className="fcp-main" ref={gridRef} style={{ scrollMarginTop: 88 }}>
 
-          {/* ── Active filter chips — toolbar-dan üstdə ── */}
+          {/* Active filter chips */}
           {activeChips.length > 0 && (
-            <div className="fcp-active-chips">
-              <span className="fcp-achips-label">{t("fcp.filter_title")}:</span>
+            <div className="fcp-chips-bar">
               {activeChips.map(chip => (
-                <div key={chip.id} className="fcp-achip">
+                <div key={chip.id} className="fcp-chip">
                   <span>{chip.label}</span>
-                  <button className="fcp-achip-x" onClick={chip.onRemove} title="Sil">×</button>
+                  <button className="fcp-chip-x" onClick={chip.onRemove} title="Remove">×</button>
                 </div>
               ))}
-              <button className="fcp-clear-all" onClick={handleReset}>
+              <button className="fcp-chip-clear" onClick={handleReset}>
                 {t("fcp.clear_all")}
               </button>
             </div>
@@ -600,73 +563,86 @@ export default function FurnitureCategoryPage() {
           {/* Toolbar */}
           <div className="fcp-toolbar">
             <div className="fcp-toolbar-left">
-              <button className="fcp-mob-btn" onClick={() => setMobileOpen(true)}>
-                <span>≡</span> {t("fcp.filter_title")}{hasActive ? ` (${activeChips.length})` : ""}
+              <button className="fcp-mob-filter-btn" onClick={() => setMobileOpen(true)}>
+                <span className="fcp-filter-icon">⊞</span>
+                {t("fcp.filter_title")}
+                {hasActive ? ` (${activeChips.length})` : ""}
               </button>
-              <p className="fcp-result-info">
+              <p className="fcp-result-count">
                 <strong>{pagination.total}</strong> {t("fcp.products")}
               </p>
             </div>
             <div className="fcp-toolbar-right">
-              <span className="fcp-sort-label">{t("fcp.sort_label")}</span>
-              <select className="fcp-sort-select" value={currentSort} onChange={handleSortChange}>
-                {sortOptions.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-              </select>
               <div className="fcp-view-btns">
-                <button className={"fcp-view-btn" + (gridCols === 3 ? " active" : "")} onClick={() => setGridCols(3)}>⊞</button>
-                <button className={"fcp-view-btn" + (gridCols === 4 ? " active" : "")} onClick={() => setGridCols(4)}>⊟</button>
+                <button
+                  className={`fcp-view-btn${gridCols === 3 ? " active" : ""}`}
+                  onClick={() => setGridCols(3)}
+                  title="3 columns"
+                >⊞</button>
+                <button
+                  className={`fcp-view-btn${gridCols === 4 ? " active" : ""}`}
+                  onClick={() => setGridCols(4)}
+                  title="4 columns"
+                >⊟</button>
               </div>
             </div>
           </div>
 
           {/* Skeleton */}
-          {prodLoading && (
+          {loading && (
             <div className="fcp-sk-grid">
               {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <div key={i} className="fcp-sk-card">
                   <div className="fcp-sk-img" />
-                  <div className="fcp-sk-line" />
-                  <div className="fcp-sk-line sm" />
+                  <div className="fcp-sk-body">
+                    <div className="fcp-sk-line" />
+                    <div className="fcp-sk-line short" />
+                    <div className="fcp-sk-line xs" />
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Empty */}
-          {!prodLoading && products.length === 0 && (
+          {/* Empty state */}
+          {!loading && products.length === 0 && (
             <div className="fcp-empty">
-              <span className="fcp-empty-ic">🛋</span>
-              <h3 className="fcp-empty-t">{t("category_page.no_products")}</h3>
-              <p className="fcp-empty-s">{t("category_page.no_products_hint")}</p>
+              <span className="fcp-empty-icon">🛋</span>
+              <h3 className="fcp-empty-title">{t("category_page.no_products")}</h3>
+              <p className="fcp-empty-sub">{t("category_page.no_products_hint")}</p>
               {hasActive && (
-                <button className="fcp-empty-btn" onClick={handleReset}>
+                <button className="fcp-empty-reset" onClick={handleReset}>
                   {t("category_page.reset_filters")}
                 </button>
               )}
             </div>
           )}
 
-          {/* Grid */}
-          {!prodLoading && products.length > 0 && (
-            <div className={"fcp-grid cols-" + gridCols}>
+          {/* Product grid */}
+          {!loading && products.length > 0 && (
+            <div className={`fcp-grid cols-${gridCols}`}>
               {products.map((p, i) => (
-                <ProductCard 
-  key={p.id} 
-  product={p} 
-  idx={i}
-  addingId={addingId} 
-  onAddToCart={handleAddToCart} 
-  t={t}
-  wishlist={wishlist}
-  dispatch={dispatch}
-/>
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  idx={i}
+                  addingId={addingId}
+                  onAddToCart={handleAddToCart}
+                  wishlist={wishlist}
+                  dispatch={dispatch}
+                  t={t}
+                />
               ))}
             </div>
           )}
 
           {/* Pagination */}
-          {!prodLoading && products.length > 0 && (
-            <FcpPagination current={currentPage} total={pagination.totalPages} onChange={handlePageChange} />
+          {!loading && products.length > 0 && (
+            <Pagination
+              current={currentPage}
+              total={pagination.totalPages}
+              onChange={handlePageChange}
+            />
           )}
         </main>
       </div>
@@ -676,11 +652,11 @@ export default function FurnitureCategoryPage() {
         <>
           <div className="fcp-overlay" onClick={() => setMobileOpen(false)} />
           <div className="fcp-drawer">
-            <div className="fcp-drawer-head">
+            <div className="fcp-drawer-header">
               <span className="fcp-drawer-title">{t("fcp.filter_title")}</span>
               <button className="fcp-drawer-close" onClick={() => setMobileOpen(false)}>✕</button>
             </div>
-            <div style={{ padding: "0 0 48px" }}>{SidebarNode}</div>
+            <div className="fcp-drawer-body">{SidebarNode}</div>
           </div>
         </>
       )}
@@ -688,8 +664,10 @@ export default function FurnitureCategoryPage() {
       {/* Toast */}
       {toast && (
         <div className="fcp-toast">
-          <span className="fcp-toast-ic">✓</span>
-          <span><strong>{toast}</strong> {t("fcp.added_to_cart")}</span>
+          <span className="fcp-toast-check">✓</span>
+          <span>
+            <strong>{toast}</strong> {t("fcp.added_to_cart")}
+          </span>
         </div>
       )}
 

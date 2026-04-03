@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
 import { selectIsAuth } from "../../store/slices/authSlice";
-import { setCart } from "../../store/slices/cartSlice";
+import { setCart, selectCart } from "../../store/slices/cartSlice";
 import campaignApi from "../../api/campaignApi";
 import productApi from "../../api/productApi";
 import collectionApi from "../../api/collectionApi";
@@ -164,12 +164,13 @@ function CampaignStrip({ campaigns }) {
 }
 
 // ─── Product Card ──────────────────────────────────────────
-function ProductCard({ product, onAddCart, adding }) {
+function ProductCard({ product, onAddCart, adding, inCart }) {
   const navigate = useNavigate();
   const price = product.discountPrice ?? product.price;
   const oldPrice = product.discountPrice ? product.price : null;
   const img = product.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80";
   const pct = oldPrice ? Math.round((1 - price / oldPrice) * 100) : null;
+  const isInCart = inCart(product.id);
 
   return (
     <div className="cp-prod-card" onClick={() => navigate(`/details/${product.id}`)}>
@@ -178,10 +179,10 @@ function ProductCard({ product, onAddCart, adding }) {
         {pct && <span className="cp-prod-badge">−{pct}%</span>}
         {product.label === "new_in" && !pct && <span className="cp-prod-badge new">YENİ</span>}
         <div className="cp-prod-hover">
-          <button className="cp-prod-hover-btn"
-            onClick={e => { e.stopPropagation(); onAddCart(product.id); }}
-            disabled={adding === product.id || product.stock === 0}>
-            {adding === product.id ? "✓ Əlavə edildi" : product.stock === 0 ? "Stokda yoxdur" : "+ Səbətə"}
+          <button className={`cp-prod-hover-btn${isInCart ? " in-cart" : ""}`}
+            onClick={e => { e.stopPropagation(); if (!isInCart) onAddCart(product.id); }}
+            disabled={adding === product.id || product.stock === 0 || isInCart}>
+            {adding === product.id ? "✓ Əlavə edildi" : isInCart ? "Səbətdə" : product.stock === 0 ? "Stokda yoxdur" : "+ Səbətə"}
           </button>
         </div>
       </div>
@@ -234,6 +235,8 @@ export default function CampaignsPage() {
   const { t } = useTranslation();
   const lang = useSelector(selectLang);
   const isAuth = useSelector(selectIsAuth);
+  const cartItems = useSelector(s => s.cart.items);
+  const inCart = (id) => cartItems.some(i => i.productId === id);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -283,6 +286,7 @@ export default function CampaignsPage() {
   // ── Add to cart ─────────────────────────────────────────
   const handleAddCart = useCallback(async (productId) => {
     if (!isAuth) { navigate("/login"); return; }
+    if (inCart(productId)) return;
     setAdding(productId);
     try {
       const cart = await cartApi.addItem({ productId, quantity: 1 });
@@ -394,7 +398,7 @@ export default function CampaignsPage() {
               ? (
                 <div className="cp-prod-grid">
                   {sorted.map(p => (
-                    <ProductCard key={p.id} product={p} onAddCart={handleAddCart} adding={adding} />
+                    <ProductCard key={p.id} product={p} onAddCart={handleAddCart} adding={adding} inCart={inCart} />
                   ))}
                 </div>
               )
@@ -588,6 +592,8 @@ const CSS = `
 .cp-prod-hover-btn{width:100%;padding:13px;background:#1C1C1C;color:#fff;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:background .3s}
 .cp-prod-hover-btn:hover:not(:disabled){background:#7A9E7E}
 .cp-prod-hover-btn:disabled{opacity:.6;cursor:not-allowed}
+.cp-prod-hover-btn.in-cart{background:#4A8A50;cursor:default}
+.cp-prod-hover-btn.in-cart:hover{background:#4A8A50}
 .cp-prod-body{padding:0 4px}
 .cp-prod-cat{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#9CA3AF;margin-bottom:6px}
 .cp-prod-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;color:#1C1C1C;margin-bottom:10px;line-height:1.3}

@@ -385,26 +385,30 @@ export const discountCodeApi = {
     axiosInstance.get(`/discount-codes/${id}`).then(unwrap),
 
   // POST /discount-codes  — Admin
-  // Body: CreateDiscountCodeDto
+  // Backend DiscountType enum: 1=Percent, 2=Fixed
   create: (form) =>
     axiosInstance.post("/discount-codes", {
       code:           (form.code || "").toUpperCase(),
-      discountType:   form.type  === "percent" ? 0 : 1,  // 0=Percent, 1=Fixed
-      discountValue:  Number(form.value)  || 0,
-      maxUses:        Number(form.limit)  || 0,
-      minOrderAmount: Number(form.min_order) || 0,
-      expiresAt:      form.expiration || new Date().toISOString(),
+      type:           form.type === "percent" ? 1 : 2,   // DiscountType: 1=Percent, 2=Fixed
+      value:          Number(form.value)  || 0,
+      maxUses:        Number(form.limit)  || null,
+      minOrderAmount: Number(form.min_order) || null,
+      expiresAt:      form.expiration ? new Date(form.expiration).toISOString() : null,
     }).then(unwrap),
 
   update: (id, form) =>
     axiosInstance.put(`/discount-codes/${id}`, {
       code:           (form.code || "").toUpperCase(),
-      discountType:   form.type  === "percent" ? 0 : 1,
-      discountValue:  Number(form.value)  || 0,
-      maxUses:        Number(form.limit)  || 0,
-      minOrderAmount: Number(form.min_order) || 0,
-      expiresAt:      form.expiration || new Date().toISOString(),
+      type:           form.type === "percent" ? 1 : 2,
+      value:          Number(form.value)  || 0,
+      maxUses:        Number(form.limit)  || null,
+      minOrderAmount: Number(form.min_order) || null,
+      expiresAt:      form.expiration ? new Date(form.expiration).toISOString() : null,
     }).then(unwrap),
+
+  // PATCH /discount-codes/:id/deactivate
+  deactivate: (id) =>
+    axiosInstance.patch(`/discount-codes/${id}/deactivate`).then(unwrap),
 
   remove: (id) =>
     axiosInstance.delete(`/discount-codes/${id}`).then(unwrap),

@@ -4,7 +4,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
-import { setCart } from "../../store/slices/cartSlice";
+import { setCart, selectCart } from "../../store/slices/cartSlice";
 import { toggleWishlist } from "../../store/slices/wishlistStore";
 import collectionApi from "../../api/collectionApi";
 import cartApi       from "../../api/cartApi";
@@ -44,9 +44,10 @@ const IconReturn = () => (
 );
 
 // ── PRODUCT CARD ────────────────────────────────────────────
-const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wishlisted, t, delay }) {
+const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wishlisted, t, delay, inCart }) {
   const navigate = useNavigate();
   const isAdding = addingId === product.id;
+  const isInCart = inCart(product.id);
   const hasDisc  = !!product.old_price;
   const goDetail = () => navigate(`/details/${product.id}`);
 
@@ -76,11 +77,11 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
             {t("collection_page.view_details")}
           </button>
           <button
-            className={`cd-prod-hover-btn cart-btn${isAdding ? " adding" : ""}`}
-            onClick={e => { e.stopPropagation(); onAdd(product); }}
-            disabled={!product.in_stock || isAdding}
+            className={`cd-prod-hover-btn cart-btn${isAdding ? " adding" : ""}${isInCart ? " in-cart" : ""}`}
+            onClick={e => { e.stopPropagation(); if (!isInCart) onAdd(product); }}
+            disabled={!product.in_stock || isAdding || isInCart}
           >
-            {isAdding ? "✓ Əlavə edildi" : t("collection_page.add_to_cart")}
+            {isAdding ? "✓ Əlavə edildi" : isInCart ? "Səbətdə" : t("collection_page.add_to_cart")}
           </button>
         </div>
 
@@ -105,14 +106,14 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
         </div>
         {/* Səbətə əlavə et button below card */}
         <button
-          className={`cd-prod-cart-btn${isAdding ? " adding" : ""}${!product.in_stock ? " disabled" : ""}`}
-          onClick={e => { e.stopPropagation(); onAdd(product); }}
-          disabled={!product.in_stock || isAdding}
+          className={`cd-prod-cart-btn${isAdding ? " adding" : ""}${isInCart ? " in-cart" : ""}${!product.in_stock ? " disabled" : ""}`}
+          onClick={e => { e.stopPropagation(); if (!isInCart) onAdd(product); }}
+          disabled={!product.in_stock || isAdding || isInCart}
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="13" height="13">
             <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          {isAdding ? "Əlavə edildi ✓" : "Səbətə əlavə et"}
+          {isAdding ? "Əlavə edildi ✓" : isInCart ? "Səbətdə" : "Səbətə əlavə et"}
         </button>
       </div>
     </article>
@@ -127,6 +128,8 @@ export default function CollectionDetailPage() {
   const dispatch       = useDispatch();
   const lang           = useSelector(selectLang);
   const wishlist       = useSelector(s => s.wishlist.items);
+  const cartItems      = useSelector(s => s.cart.items);
+  const inCart         = (id) => cartItems.some(i => i.productId === id);
 
   const [coll,        setColl]       = useState(null);
   const [loading,     setLoading]    = useState(true);
@@ -482,6 +485,7 @@ export default function CollectionDetailPage() {
                   onAdd={handleAdd}
                   onWish={handleWish}
                   wishlisted={wishlist.some(w => w.id === product.id)}
+                  inCart={inCart}
                   t={t}
                   delay={i * 60}
                 />

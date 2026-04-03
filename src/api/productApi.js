@@ -5,7 +5,6 @@ const productApi = {
   getAll: (params = {}) =>
     axiosInstance.get("/products", { params }).then(r => r.data),
 
-
   getFeatured: () =>
     axiosInstance.get("/products/featured").then(r => r.data?.data ?? r.data),
 
@@ -21,7 +20,6 @@ const productApi = {
   getByCategory: (categoryId, params = {}) =>
     axiosInstance.get(`/products/by-furniture-category/${categoryId}`, { params }).then(r => r.data),
 
-
   getByCollection: (collectionId, params = {}) =>
     axiosInstance.get(`/products/by-collection/${collectionId}`, { params }).then(r => r.data),
 
@@ -30,6 +28,17 @@ const productApi = {
 
   getByPriceRange: (min, max, params = {}) =>
     axiosInstance.get("/products/price-range", { params: { min, max, ...params } }).then(r => r.data),
+
+  // Oxşar məhsullar: eyni kateqoriya + yaxın qiymət aralığı + material
+  getSimilar: (productId) =>
+    axiosInstance.get(`/products/${productId}/similar`).then(r => r.data?.data ?? r.data),
+
+  // Reviews
+  getReviews: (productId, params = {}) =>
+    axiosInstance.get(`/reviews/by-product/${productId}`, { params }).then(r => r.data),
+
+  addReview: (dto) =>
+    axiosInstance.post("/reviews", dto).then(r => r.data?.data ?? r.data),
 };
 
 export default productApi;

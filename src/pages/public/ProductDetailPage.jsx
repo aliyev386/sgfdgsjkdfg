@@ -1,5 +1,5 @@
 // src/pages/public/ProductDetailPage.jsx
-// Route: /details/:id  — CollectionDetails dizayn dili ilə uyğunlaşdırılmış
+// Route: /details/:id
 
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -17,14 +17,26 @@ import "../../assets/pagesCss/ProductDetail.css";
 
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
 const BADGE_CLR = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C" };
+const REVIEWS_PER_PAGE = 5;
 
 // ── STARS ────────────────────────────────────────────────────
-function Stars({ n, size = 13 }) {
+function Stars({ n, size = 13, interactive = false, onSet }) {
+  const [hover, setHover] = useState(0);
   return (
-    <span className="pdp-stars">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={"pdp-star" + (i < Math.round(n) ? " on" : "")} style={{ fontSize: size }}>★</span>
-      ))}
+    <span className="pdp-stars" style={interactive ? { cursor:"pointer" } : {}}>
+      {Array.from({ length: 5 }).map((_, i) => {
+        const filled = interactive ? (hover || n) > i : Math.round(n) > i;
+        return (
+          <span
+            key={i}
+            className={"pdp-star" + (filled ? " on" : "")}
+            style={{ fontSize: size }}
+            onMouseEnter={interactive ? () => setHover(i + 1) : undefined}
+            onMouseLeave={interactive ? () => setHover(0) : undefined}
+            onClick={interactive && onSet ? () => onSet(i + 1) : undefined}
+          >★</span>
+        );
+      })}
     </span>
   );
 }
@@ -50,6 +62,11 @@ const RelCard = memo(function RelCard({ item, t }) {
           <span className="pdp-rel-price">{fmt(item.price)}</span>
           {item.old_price && <span className="pdp-rel-old">{fmt(item.old_price)}</span>}
         </div>
+        {item.material && (
+          <span style={{ fontSize:11, color:"#A8A09A", letterSpacing:"0.5px", marginTop:4, display:"block" }}>
+            {item.material}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -82,6 +99,72 @@ const IconReturn = () => (
   </svg>
 );
 
+// ── REVIEW FORM ───────────────────────────────────────────────
+function ReviewForm({ productId, t, onSuccess }) {
+  const [name,    setName]    = useState("");
+  const [email,   setEmail]   = useState("");
+  const [rating,  setRating]  = useState(0);
+  const [comment, setComment] = useState("");
+  const [sending, setSending] = useState(false);
+  const [err,     setErr]     = useState("");
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !comment.trim() || rating < 1) {
+      setErr("Ad, reytinq və rəy mütləqdir.");
+      return;
+    }
+    setSending(true);
+    setErr("");
+    try {
+      await productApi.addReview({ productId, authorName: name.trim(), authorEmail: email.trim() || undefined, rating, comment: comment.trim() });
+      setName(""); setEmail(""); setRating(0); setComment("");
+      onSuccess();
+    } catch {
+      setErr(t("pdp.review_error"));
+    }
+    setSending(false);
+  };
+
+  return (
+    <div className="pdp-review-form">
+      <h3 className="pdp-review-form-title">{t("pdp.write_review")}</h3>
+      <div className="pdp-review-form-rating">
+        <span className="pdp-review-form-label">{t("pdp.rating_label")}</span>
+        <Stars n={rating} size={22} interactive onSet={setRating} />
+      </div>
+      <div className="pdp-review-form-fields">
+        <input
+          className="pdp-review-input"
+          placeholder={t("pdp.review_name")}
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+        <input
+          className="pdp-review-input"
+          placeholder={t("pdp.review_email")}
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+      </div>
+      <textarea
+        className="pdp-review-textarea"
+        placeholder={t("pdp.review_comment")}
+        value={comment}
+        onChange={e => setComment(e.target.value)}
+        rows={4}
+      />
+      {err && <p className="pdp-review-err">{err}</p>}
+      <button
+        className={"pdp-review-submit" + (sending ? " sending" : "")}
+        onClick={handleSubmit}
+        disabled={sending}
+      >
+        {sending ? "..." : t("pdp.submit_review")}
+      </button>
+    </div>
+  );
+}
+
 // ── PAGE ─────────────────────────────────────────────────────
 export default function ProductDetailPage() {
   const { id: productId } = useParams();
@@ -90,10 +173,19 @@ export default function ProductDetailPage() {
   const dispatch          = useDispatch();
   const lang              = useSelector(selectLang);
   const wishlist          = useSelector(s => s.wishlist.items);
+  const cartItems         = useSelector(s => s.cart.items);
 
   const [product,    setProduct]    = useState(null);
-  const [related,    setRelated]    = useState([]);
+  const [similar,    setSimilar]    = useState([]);
   const [loading,    setLoading]    = useState(true);
+
+  // Reviews state
+  const [reviews,       setReviews]       = useState([]);
+  const [reviewsTotal,  setReviewsTotal]  = useState(0);
+  const [reviewsPage,   setReviewsPage]   = useState(1);
+  const [reviewsLoading,setReviewsLoading]= useState(false);
+  const [avgRating,     setAvgRating]     = useState(0);
+  const [revSuccess,    setRevSuccess]    = useState(false);
 
   const [activeImg,  setActiveImg]  = useState(0);
   const [lbOpen,     setLbOpen]     = useState(false);
@@ -109,61 +201,82 @@ export default function ProductDetailPage() {
   const [toast,      setToast]      = useState(null);
   const toastTimer = useRef(null);
 
+  // Load reviews
+  const loadReviews = useCallback(async (pid, page = 1, append = false) => {
+    setReviewsLoading(true);
+    try {
+      const res = await productApi.getReviews(pid, { page, pageSize: REVIEWS_PER_PAGE });
+      const items = res?.data ?? [];
+      const meta  = res?.pagination;
+      setReviews(prev => append ? [...prev, ...items] : items);
+      setReviewsTotal(meta?.totalCount ?? items.length);
+      if (meta?.totalCount && items.length) {
+        const avg = items.reduce((s, r) => s + r.rating, 0) / items.length;
+        setAvgRating(prev => append ? prev : avg);
+      }
+    } catch { }
+    setReviewsLoading(false);
+  }, []);
+
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
     setActiveImg(0); setSelColor(null); setSelSize(null); setQty(1);
+    setReviews([]); setReviewsPage(1); setReviewsTotal(0); setAvgRating(0);
     window.scrollTo({ top: 0 });
 
     productApi.getById(productId)
       .then(p => {
         const imgs = (p.images || []).map(i => i.imageUrl).filter(Boolean);
         const mapped = {
-          id:           p.id,
-          name:         p.name,
-          price:        p.discountPrice ?? p.price,
-          old_price:    p.discountPrice ? p.price : null,
-          badge:        p.label || null,
-          rating:       4,
-          review_count: 0,
-          in_stock:     p.stock > 0,
-          stock_qty:    p.stock,
-          sku:          `ARV-${p.id}`,
-          images:       imgs.length ? imgs : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90"],
-          colors:       (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode })),
-          materials:    p.material ? [p.material] : [],
-          sizes:        [],
-          description:  p.description || "",
-          specs:        [],
-          reviews:      [],
-          category:     { id: p.furnitureCategoryId, name: p.categoryName || "" },
+          id:          p.id,
+          name:        p.name,
+          price:       p.discountPrice ?? p.price,
+          old_price:   p.discountPrice ? p.price : null,
+          badge:       p.label || null,
+          in_stock:    p.stock > 0,
+          stock_qty:   p.stock,
+          sku:         `ARV-${p.id}`,
+          images:      imgs.length ? imgs : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90"],
+          colors:      (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode })),
+          material:    p.material || null,
+          sizes:       [],
+          description: p.description || "",
+          width:       p.width  ?? null,
+          height:      p.height ?? null,
+          depth:       p.depth  ?? null,
+          weight:      p.weight ?? null,
+          category:    { id: p.furnitureCategoryId, name: p.categoryName || "" },
         };
         setProduct(mapped);
 
-        if (p.furnitureCategoryId) {
-          productApi.getByCategory(p.furnitureCategoryId, { page: 1, pageSize: 4 })
-            .then(r => {
-              const arr = (r?.data ?? []).filter(x => x.id !== p.id).slice(0, 4);
-              setRelated(arr.map(x => ({
-                id:        x.id,
-                name:      x.name,
-                price:     x.discountPrice ?? x.price,
-                old_price: x.discountPrice ? x.price : null,
-                rating:    4,
-                image:     x.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
-              })));
-            })
-            .catch(() => {});
-        }
+        // Load similar products
+        productApi.getSimilar(p.id)
+          .then(arr => {
+            setSimilar((arr ?? []).map(x => ({
+              id:        x.id,
+              name:      x.name,
+              price:     x.discountPrice ?? x.price,
+              old_price: x.discountPrice ? x.price : null,
+              rating:    0,
+              material:  x.material || null,
+              image:     x.images?.[0]?.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80",
+            })));
+          })
+          .catch(() => {});
+
+        // Load reviews
+        loadReviews(p.id, 1, false);
       })
       .catch(() => navigate("/categories"))
       .finally(() => setLoading(false));
-  }, [productId, lang, navigate]);
+  }, [productId, lang, navigate, loadReviews]);
 
   const isSaved = product ? wishlist.some(w => w.id === product.id) : false;
+  const inCart  = product ? cartItems.some(i => i.productId === product.id) : false;
 
   const doCart = useCallback(async (setBusy) => {
-    if (!product?.in_stock || cartAdding || buyAdding) return;
+    if (!product?.in_stock || cartAdding || buyAdding || cartItems.some(i => i.productId === product.id)) return;
     setBusy(true);
     try {
       const cart = await cartApi.addItem({ productId: product.id, selectedColor: selColor, quantity: qty });
@@ -179,6 +292,19 @@ export default function ProductDetailPage() {
     if (!product) return;
     dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.images[0] }));
   }, [product, dispatch]);
+
+  const handleLoadMore = () => {
+    const nextPage = reviewsPage + 1;
+    setReviewsPage(nextPage);
+    loadReviews(productId, nextPage, true);
+  };
+
+  const handleReviewSuccess = () => {
+    setRevSuccess(true);
+    setReviewsPage(1);
+    loadReviews(productId, 1, false);
+    setTimeout(() => setRevSuccess(false), 4000);
+  };
 
   // Lightbox keyboard
   useEffect(() => {
@@ -217,11 +343,19 @@ export default function ProductDetailPage() {
     { months: 24, val: calcCredit({ price: product.price, downPct: 20, months: 24, bankRate: defaultBank.rate24 }).monthly.toFixed(2), badge: null, label: "24 ay" },
   ];
 
+  const hasSpecs = product.material || product.width || product.height || product.depth || product.weight;
+
+  const displayRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : avgRating > 0 ? avgRating.toFixed(1) : "—";
+
   const tabs = [
     { key: "description",    label: t("pdp.tab_description") },
     { key: "specifications", label: t("pdp.tab_specs") },
-    { key: "reviews",        label: `${t("pdp.tab_reviews")} (${product.review_count})` },
+    { key: "reviews",        label: `${t("pdp.tab_reviews")} (${reviewsTotal})` },
   ];
+
+  const hasMoreReviews = reviews.length < reviewsTotal;
 
   return (
     <div className="pdp-page">
@@ -287,10 +421,10 @@ export default function ProductDetailPage() {
 
           {/* Rating row */}
           <div className="pdp-rating-row">
-            <Stars n={product.rating} size={14} />
-            <span className="pdp-rating-n">{product.rating}</span>
+            <Stars n={parseFloat(displayRating) || 0} size={14} />
+            {displayRating !== "—" && <span className="pdp-rating-n">{displayRating}</span>}
             <button className="pdp-reviews-link" onClick={() => setActiveTab("reviews")}>
-              {product.review_count} {t("pdp.reviews")}
+              {reviewsTotal} {t("pdp.reviews")}
             </button>
             <span className="pdp-sku">SKU: {product.sku}</span>
           </div>
@@ -321,10 +455,29 @@ export default function ProductDetailPage() {
                 <span className="pdp-meta-val">{product.category.name}</span>
               </div>
             )}
-            {product.materials.length > 0 && (
+            {product.material && (
               <div className="pdp-meta-row">
-                <span className="pdp-meta-label">Material</span>
-                <span className="pdp-meta-val">{product.materials.join(", ")}</span>
+                <span className="pdp-meta-label">{t("pdp.material_label")}</span>
+                <span className="pdp-meta-val">{product.material}</span>
+              </div>
+            )}
+            {(product.width || product.height || product.depth) && (
+              <div className="pdp-meta-row">
+                <span className="pdp-meta-label">{t("pdp.dimensions")}</span>
+                <span className="pdp-meta-val">
+                  {[
+                    product.width  && `${product.width} ${t("pdp.cm")}`,
+                    product.height && `${product.height} ${t("pdp.cm")}`,
+                    product.depth  && `${product.depth} ${t("pdp.cm")}`,
+                  ].filter(Boolean).join(" × ")}
+                  {" ("}W×H×D{")"}
+                </span>
+              </div>
+            )}
+            {product.weight && (
+              <div className="pdp-meta-row">
+                <span className="pdp-meta-label">{t("pdp.weight")}</span>
+                <span className="pdp-meta-val">{product.weight} {t("pdp.kg")}</span>
               </div>
             )}
             <div className="pdp-meta-row">
@@ -411,22 +564,22 @@ export default function ProductDetailPage() {
               <button className="pdp-qty-btn" onClick={() => setQty(q => Math.min(product.stock_qty, q + 1))}>+</button>
             </div>
             <button
-              className={`pdp-btn-buy${buyAdding ? " adding" : ""}`}
-              disabled={!product.in_stock || cartAdding || buyAdding}
+              className={`pdp-btn-buy${buyAdding ? " adding" : ""}${inCart ? " in-cart" : ""}`}
+              disabled={!product.in_stock || cartAdding || buyAdding || inCart}
               onClick={() => doCart(setBuyAdding)}
             >
-              {buyAdding ? `✓ ${t("pdp.added")}` : t("pdp.buy_now")}
+              {buyAdding ? `✓ ${t("pdp.added")}` : inCart ? "Səbətdə" : t("pdp.buy_now")}
             </button>
           </div>
 
           <div className="pdp-secondary-row">
             <button
-              className={`pdp-btn-cart${cartAdding ? " adding" : ""}`}
-              disabled={!product.in_stock || cartAdding || buyAdding}
+              className={`pdp-btn-cart${cartAdding ? " adding" : ""}${inCart ? " in-cart" : ""}`}
+              disabled={!product.in_stock || cartAdding || buyAdding || inCart}
               onClick={() => doCart(setCartAdding)}
             >
               <IconCart />
-              {cartAdding ? "Əlavə edildi ✓" : t("pdp.add_to_cart")}
+              {cartAdding ? "Əlavə edildi ✓" : inCart ? "Səbətdə ✓" : t("pdp.add_to_cart")}
             </button>
             <button
               className={`pdp-btn-wish${isSaved ? " saved" : ""}`}
@@ -482,83 +635,215 @@ export default function ProductDetailPage() {
           ))}
         </div>
 
+        {/* ── DESCRIPTION TAB ── */}
         {activeTab === "description" && (
           <div className="pdp-tab-panel">
-            <p className="pdp-desc">{product.description || t("pdp.no_description")}</p>
-            {product.materials.length > 0 && (
-              <div className="pdp-mat-chips">
-                {product.materials.map(m => <span key={m} className="pdp-mat-chip">{m}</span>)}
+            <div className="pdp-desc-layout">
+              <div className="pdp-desc-main">
+                <p className="pdp-desc">{product.description || t("pdp.no_description")}</p>
+                {product.material && (
+                  <div className="pdp-desc-block">
+                    <h4 className="pdp-desc-block-title">{t("pdp.material_label")}</h4>
+                    <div className="pdp-mat-chips">
+                      <span className="pdp-mat-chip">{product.material}</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Dimension card */}
+              {(product.width || product.height || product.depth || product.weight) && (
+                <div className="pdp-dim-card">
+                  <h4 className="pdp-dim-title">{t("pdp.dimensions")}</h4>
+                  <div className="pdp-dim-visual">
+                    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" width="160" height="140">
+                      <rect x="30" y="40" width="100" height="70" rx="2" stroke="#7A9E7E" strokeWidth="1.5" fill="#F7F3EE"/>
+                      <line x1="30" y1="125" x2="130" y2="125" stroke="#D4CCC5" strokeWidth="1" strokeDasharray="3 3"/>
+                      <line x1="20" y1="40" x2="20" y2="110" stroke="#D4CCC5" strokeWidth="1" strokeDasharray="3 3"/>
+                      <text x="80" y="136" textAnchor="middle" fontSize="9" fill="#A8A09A" fontFamily="DM Sans">W</text>
+                      <text x="10" y="78" textAnchor="middle" fontSize="9" fill="#A8A09A" fontFamily="DM Sans">H</text>
+                    </svg>
+                  </div>
+                  <div className="pdp-dim-rows">
+                    {product.width && (
+                      <div className="pdp-dim-row">
+                        <span className="pdp-dim-label">{t("pdp.width")}</span>
+                        <span className="pdp-dim-val">{product.width} <small>{t("pdp.cm")}</small></span>
+                      </div>
+                    )}
+                    {product.height && (
+                      <div className="pdp-dim-row">
+                        <span className="pdp-dim-label">{t("pdp.height")}</span>
+                        <span className="pdp-dim-val">{product.height} <small>{t("pdp.cm")}</small></span>
+                      </div>
+                    )}
+                    {product.depth && (
+                      <div className="pdp-dim-row">
+                        <span className="pdp-dim-label">{t("pdp.depth")}</span>
+                        <span className="pdp-dim-val">{product.depth} <small>{t("pdp.cm")}</small></span>
+                      </div>
+                    )}
+                    {product.weight && (
+                      <div className="pdp-dim-row">
+                        <span className="pdp-dim-label">{t("pdp.weight")}</span>
+                        <span className="pdp-dim-val">{product.weight} <small>{t("pdp.kg")}</small></span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
+        {/* ── SPECIFICATIONS TAB ── */}
         {activeTab === "specifications" && (
           <div className="pdp-tab-panel">
-            {product.specs.length > 0 ? (
+            {hasSpecs ? (
               <div className="pdp-specs-grid">
-                {product.specs.map(s => (
-                  <div key={s.label} className="pdp-spec-row">
-                    <span className="pdp-spec-label">{s.label}</span>
-                    <span className="pdp-spec-val">{s.value}</span>
+                {product.category.name && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_category")}</span>
+                    <span className="pdp-spec-val">{product.category.name}</span>
                   </div>
-                ))}
+                )}
+                {product.material && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_material")}</span>
+                    <span className="pdp-spec-val">{product.material}</span>
+                  </div>
+                )}
+                {product.width && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_width")}</span>
+                    <span className="pdp-spec-val">{product.width} {t("pdp.cm")}</span>
+                  </div>
+                )}
+                {product.height && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_height")}</span>
+                    <span className="pdp-spec-val">{product.height} {t("pdp.cm")}</span>
+                  </div>
+                )}
+                {product.depth && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_depth")}</span>
+                    <span className="pdp-spec-val">{product.depth} {t("pdp.cm")}</span>
+                  </div>
+                )}
+                {product.weight && (
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_weight")}</span>
+                    <span className="pdp-spec-val">{product.weight} {t("pdp.kg")}</span>
+                  </div>
+                )}
+                <div className="pdp-spec-row">
+                  <span className="pdp-spec-label">{t("pdp.spec_sku")}</span>
+                  <span className="pdp-spec-val">{product.sku}</span>
+                </div>
+                <div className="pdp-spec-row">
+                  <span className="pdp-spec-label">{t("pdp.spec_stock")}</span>
+                  <span className="pdp-spec-val" style={{ color: product.in_stock ? "#4A8A50" : "#C94B4B" }}>
+                    {product.in_stock ? `${product.stock_qty} ədəd` : t("common.out_of_stock")}
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="pdp-empty-tab">
                 <span className="pdp-empty-ic">📋</span>
-                <p>Spesifikasiya məlumatı mövcud deyil.</p>
+                <p>{t("pdp.no_specs")}</p>
               </div>
             )}
           </div>
         )}
 
+        {/* ── REVIEWS TAB ── */}
         {activeTab === "reviews" && (
           <div className="pdp-tab-panel">
+            {/* Rating summary */}
             <div className="pdp-reviews-hero">
-              <span className="pdp-rev-big-n">{product.rating}</span>
+              <span className="pdp-rev-big-n">{displayRating}</span>
               <div className="pdp-rev-right">
-                <Stars n={product.rating} size={18} />
-                <span className="pdp-rev-label">{t("pdp.based_on")} {product.review_count} {t("pdp.tab_reviews").toLowerCase()}</span>
+                <Stars n={parseFloat(displayRating) || 0} size={18} />
+                <span className="pdp-rev-label">{t("pdp.based_on")} {reviewsTotal} {t("pdp.tab_reviews").toLowerCase()}</span>
               </div>
             </div>
-            {product.reviews.length > 0 ? (
-              <div className="pdp-reviews-list">
-                {product.reviews.map((r, i) => (
-                  <div key={r.id} className="pdp-review-card" style={{ animationDelay: `${i * 80}ms` }}>
-                    <div className="pdp-review-head">
-                      <div>
-                        <p className="pdp-rev-author">{r.author}</p>
-                        <p className="pdp-rev-meta">{r.location} · {r.date}</p>
-                      </div>
-                      <Stars n={r.rating} size={13} />
-                    </div>
-                    <p className="pdp-rev-text">{r.text}</p>
-                  </div>
-                ))}
+
+            {/* Review success banner */}
+            {revSuccess && (
+              <div className="pdp-review-success">
+                ✓ {t("pdp.review_submitted")}
               </div>
+            )}
+
+            {/* Review form */}
+            <ReviewForm
+              productId={parseInt(productId)}
+              t={t}
+              onSuccess={handleReviewSuccess}
+            />
+
+            {/* Reviews list */}
+            {reviewsLoading && reviews.length === 0 ? (
+              <div className="pdp-empty-tab">
+                <div className="pdp-loader-ring" style={{ margin: "0 auto" }} />
+              </div>
+            ) : reviews.length > 0 ? (
+              <>
+                <div className="pdp-reviews-list">
+                  {reviews.map((r, i) => (
+                    <div key={r.id} className="pdp-review-card" style={{ animationDelay: `${i * 60}ms` }}>
+                      <div className="pdp-review-head">
+                        <div>
+                          <p className="pdp-rev-author">{r.authorName}</p>
+                          <p className="pdp-rev-meta">
+                            {new Date(r.createdAt).toLocaleDateString(
+                              lang === "az" ? "az-AZ" : lang === "ru" ? "ru-RU" : "en-US",
+                              { year: "numeric", month: "long", day: "numeric" }
+                            )}
+                          </p>
+                        </div>
+                        <Stars n={r.rating} size={13} />
+                      </div>
+                      <p className="pdp-rev-text">{r.comment}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {hasMoreReviews && (
+                  <div style={{ textAlign: "center", marginTop: 32 }}>
+                    <button
+                      className="pdp-load-more-btn"
+                      onClick={handleLoadMore}
+                      disabled={reviewsLoading}
+                    >
+                      {reviewsLoading ? "..." : t("pdp.load_more_reviews")}
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="pdp-empty-tab">
                 <span className="pdp-empty-ic">💬</span>
-                <p>Hələ ki rəy yoxdur.</p>
+                <p>{t("pdp.no_reviews_yet")}</p>
               </div>
             )}
           </div>
         )}
       </section>
 
-      {/* RELATED */}
-      {related.length > 0 && (
+      {/* SIMILAR / YOU MAY ALSO LIKE */}
+      {similar.length > 0 && (
         <section className="pdp-related">
           <div className="pdp-related-head">
-            <div className="pdp-related-eyebrow">{t("pdp.explore_more_pre")}</div>
+            <div className="pdp-related-eyebrow">{t("pdp.similar_products")}</div>
             <h2 className="pdp-related-title">
-              {t("pdp.explore_more_pre")} <em>{t("pdp.explore_more_em")}</em>
+              {t("pdp.similar_products")} <em>{t("pdp.similar_subtitle")}</em>
             </h2>
             <Link to="/furniture-categories" className="pdp-see-all">{t("pdp.see_all")} →</Link>
           </div>
           <div className="pdp-related-grid">
-            {related.map(item => <RelCard key={item.id} item={item} t={t} />)}
+            {similar.map(item => <RelCard key={item.id} item={item} t={t} />)}
           </div>
         </section>
       )}

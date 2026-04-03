@@ -3,7 +3,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import cartApi from "../../api/cartApi";
-import { setCart } from "../../store/slices/cartSlice";
+import { setCart, selectCart } from "../../store/slices/cartSlice";
 import { toggleWishlist } from "../../store/slices/wishlistStore";
 
 const ITEMS_PER_PAGE = 8;
@@ -23,6 +23,8 @@ export default function FeaturedProductsSection({ products = [], categories = []
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
   const wishlist  = useSelector(s => s.wishlist.items);
+  const cartItems = useSelector(s => s.cart.items);
+  const inCart = (id) => cartItems.some(i => i.productId === id);
   const [activeTab, setActiveTab] = useState("all");
   const [addingId,  setAddingId]  = useState(null);
   const [toast,     setToast]     = useState(null);
@@ -102,9 +104,9 @@ export default function FeaturedProductsSection({ products = [], categories = []
                   style={{ cursor: "pointer" }}
                 />
                 <div className="hp-prod-acts">
-                  <button className={`hp-prod-add${adding ? " adding" : ""}`}
-                    onClick={() => handleAddToCart(product)} disabled={adding}>
-                    {adding ? "✓" : t("common.add_to_cart")}
+                  <button className={`hp-prod-add${adding ? " adding" : ""}${inCart(product.id) ? " in-cart" : ""}`}
+                    onClick={() => handleAddToCart(product)} disabled={adding || inCart(product.id)}>
+                    {adding ? "✓" : inCart(product.id) ? "Səbətdə" : t("common.add_to_cart")}
                   </button>
                   <button className="hp-prod-wish"
                     onClick={() => handleWishlist(product)}

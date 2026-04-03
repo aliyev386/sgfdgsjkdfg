@@ -329,7 +329,38 @@
     "explore_more_em": "kəşf edin",
     "see_all": "Hamısına bax",
     "view_product": "Məhsula bax",
-    "based_on": "Əsasında"
+    "based_on": "Əsasında",
+    "no_description": "Məhsul haqqında məlumat mövcud deyil.",
+    "material_label": "Material",
+    "dimensions": "Ölçülər",
+    "width": "En",
+    "height": "Hündürlük",
+    "depth": "Dərinlik",
+    "weight": "Çəki",
+    "cm": "sm",
+    "kg": "kq",
+    "no_reviews_yet": "Hələ rəy yazılmayıb. İlk rəyi siz yazın!",
+    "write_review": "Rəy yazın",
+    "review_name": "Adınız",
+    "review_email": "E-poçt (ixtiyari)",
+    "review_comment": "Rəyiniz",
+    "submit_review": "Rəyi göndər",
+    "review_submitted": "Rəyiniz uğurla göndərildi!",
+    "review_error": "Xəta baş verdi. Yenidən cəhd edin.",
+    "rating_label": "Qiymətləndirmə",
+    "load_more_reviews": "Daha çox rəy",
+    "similar_products": "Oxşar Məhsullar",
+    "similar_subtitle": "kəşf edin",
+    "no_similar": "Oxşar məhsul tapılmadı.",
+    "no_specs": "Spesifikasiya məlumatı mövcud deyil.",
+    "spec_material": "Material",
+    "spec_width": "En (sm)",
+    "spec_height": "Hündürlük (sm)",
+    "spec_depth": "Dərinlik (sm)",
+    "spec_weight": "Çəki (kq)",
+    "spec_sku": "Məhsul kodu",
+    "spec_category": "Kateqoriya",
+    "spec_stock": "Stok"
   },
   "rooms_page": {
     "eyebrow": "Otaqlar",
@@ -380,7 +411,7 @@
     "view_all": "Hamısını gör",
     "products": "məhsul"
   },
-    "profile": {
+  "profile": {
     "member": "Üzv",
     "since": "İlk alış",
     "logout": "Çıxış",
@@ -475,17 +506,18 @@
     "item_removed": "Siyahıdan silindi",
     "card_deleted": "Kart silindi"
   },
-  "notfound":{
-    "label":"Səhifə tapılmadı",
-    "title":"Bu ünvanda<br/>heç nə yoxdur", 
-    "desc":"Axtardığınız səhifə silinmiş, köçürülmüş və ya heç vaxt mövcud olmamışdır.", 
-    "home":"Ana Səhifə",
-    "back":"Geri qayıt",
-    "links":
-    {"title":"Sizi istiqamətləndirək:",
-    "products":"Məhsullar",
-    "collections":"Kolleksiyalar",
-    "about":"Haqqımızda",
-    "contact":"Əlaqə"
+  "notfound": {
+    "label": "Səhifə tapılmadı",
+    "title": "Bu ünvanda<br/>heç nə yoxdur",
+    "desc": "Axtardığınız səhifə silinmiş, köçürülmüş və ya heç vaxt mövcud olmamışdır.",
+    "home": "Ana Səhifə",
+    "back": "Geri qayıt",
+    "links": {
+      "title": "Sizi istiqamətləndirək:",
+      "products": "Məhsullar",
+      "collections": "Kolleksiyalar",
+      "about": "Haqqımızda",
+      "contact": "Əlaqə"
+    }
+  }
 }
-  }}

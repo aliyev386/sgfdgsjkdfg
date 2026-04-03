@@ -942,3 +942,23 @@
   .cd-btn-cart { width: 100%; }
   .cd-btn-save { width: 100%; }
 }
+/* ── IN-CART STATE ──────────────────────────────────────── */
+.cd-prod-hover-btn.cart-btn.in-cart {
+  background: #4A8A50;
+  color: #fff;
+  border-color: #4A8A50;
+  cursor: default;
+}
+.cd-prod-hover-btn.cart-btn.in-cart:hover {
+  background: #4A8A50;
+  color: #fff;
+  border-color: #4A8A50;
+}
+.cd-prod-cart-btn.in-cart {
+  background: #4A8A50;
+  color: #fff;
+  cursor: default;
+}
+.cd-prod-cart-btn.in-cart:hover {
+  background: #4A8A50;
+}

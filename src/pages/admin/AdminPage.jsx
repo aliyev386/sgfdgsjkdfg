@@ -600,7 +600,7 @@ const Products = ({ t, lang }) => {
 
   const validate = () => {
     const e = {};
-    if (validateLangField(form.name)) e.name = t.required;
+    if (!form.name?.az?.trim()) e.name = t.required;
     if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice;
     if (form.stock === "" || Number(form.stock) < 0) e.stock = t.invalidStock;
     setErrors(e);
@@ -610,16 +610,31 @@ const Products = ({ t, lang }) => {
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (p) => {
     setEditing(p.id);
+    // Backend returns name/description as plain string (current lang only).
+    // We keep it in the currently selected lang so the user can see it, and
+    // fill other langs with the same value as a sensible default.
+    const normalizeLang = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    const imgUrls = (p.images || []).map(img =>
+      typeof img === "string" ? img : img?.imageUrl || img?.url || ""
+    ).filter(Boolean);
+    const clrs = (p.colors || []).map(c => ({
+      name: c.name || "",
+      hex:  c.hexCode || c.hex || "#000000",
+    }));
     setForm({
-      name: p.name || { az: "", en: "", ru: "" },
-      description: p.description || { az: "", en: "", ru: "" },
-      price: p.price ?? "",
-      stock: p.stock ?? "",
-      category_id: p.category_id || p.category?.id || "",
-      material: p.material || "",
-      label: p.label || "",
-      colors: p.colors || [],
-      images: p.images || [],
+      name:        normalizeLang(p.name),
+      description: normalizeLang(p.description),
+      price:       p.price ?? "",
+      stock:       p.stock ?? "",
+      category_id: p.furnitureCategoryId || p.category_id || p.category?.id || "",
+      material:    p.material || "",
+      label:       p.label || "",
+      colors:      clrs,
+      images:      imgUrls,
     });
     setErrors({});
     setModal(true);
@@ -1243,13 +1258,29 @@ const HeroSections = ({ t, lang }) => {
 
   const validate = () => {
     const e = {};
-    if (validateLangField(form.title)) e.title = t.required;
+    if (!form.title?.az?.trim()) e.title = t.required;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (h) => { setEditing(h.id); setForm({ title: h.title || { az: "", en: "", ru: "" }, subtitle: h.subtitle || { az: "", en: "", ru: "" }, image: h.image, active: h.active }); setErrors({}); setModal(true); };
+  const openEdit = (h) => {
+    // Backend returns title/subtitle as plain string (current lang). Normalize to multilang object.
+    const normalizeLang = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(h.id);
+    setForm({
+      title:    normalizeLang(h.title),
+      subtitle: normalizeLang(h.subtitle),
+      image:    h.imageUrl || h.image || null,
+      active:   h.isActive !== undefined ? h.isActive : (h.active !== undefined ? h.active : true),
+    });
+    setErrors({});
+    setModal(true);
+  };
 
   const onToggle = async (h) => {
     try { await heroApi.toggle(h.id); reload(); }
@@ -1286,19 +1317,21 @@ const HeroSections = ({ t, lang }) => {
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : (
         <div className="grid lg:grid-cols-2 gap-4">
-          {heros.map(h => (
-            <Card key={h.id} className={`overflow-hidden group transition-all ${h.active ? "ring-2 ring-emerald-400" : ""}`}>
+          {heros.map(h => {
+            const isActive = h.isActive !== undefined ? h.isActive : h.active;
+            return (
+            <Card key={h.id} className={`overflow-hidden group transition-all ${isActive ? "ring-2 ring-emerald-400" : ""}`}>
               <div className="h-36 bg-gradient-to-br from-slate-800 to-slate-600 relative flex items-center justify-center overflow-hidden">
-                {h.image && <img src={h.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />}
+                {(h.imageUrl || h.image) && <img src={h.imageUrl || h.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />}
                 <div className="text-center text-white relative z-10">
                   <p className="text-xl font-bold">{typeof h.title === "object" ? h.title[lang] : h.title}</p>
                   <p className="text-sm text-slate-300">{typeof h.subtitle === "object" ? h.subtitle[lang] : h.subtitle}</p>
                 </div>
-                {h.active && <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Active</div>}
+                {isActive && <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Active</div>}
               </div>
               <div className="p-4 flex items-center justify-between">
-                <button onClick={() => onToggle(h)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${h.active ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
-                  {h.active ? t.deactivate : t.activate}
+                <button onClick={() => onToggle(h)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
+                  {isActive ? t.deactivate : t.activate}
                 </button>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Btn size="sm" variant="secondary" onClick={() => openEdit(h)}><Icons.Edit /></Btn>
@@ -1306,7 +1339,8 @@ const HeroSections = ({ t, lang }) => {
                 </div>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
@@ -1342,14 +1376,22 @@ const Campaigns = ({ t, lang }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  const emptyForm = { name: { az: "", en: "", ru: "" }, discount: "", startDate: "", endDate: "", active: true };
+  // Form uses: name (multilang obj), discount (number string), startDate (YYYY-MM-DD), endDate (YYYY-MM-DD), active (bool)
+  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, discount: "", startDate: "", endDate: "", active: true };
   const [form, setForm] = useState(emptyForm);
 
   const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());
 
+  // Helper: convert ISO datetime string to YYYY-MM-DD for <input type="date">
+  const toDateStr = (val) => {
+    if (!val) return "";
+    if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
+    return val;
+  };
+
   const validate = () => {
     const e = {};
-    if (validateLangField(form.name)) e.name = t.required;
+    if (!form.name?.az?.trim()) e.name = t.required;
     if (!form.discount || Number(form.discount) < 1 || Number(form.discount) > 100) e.discount = t.invalidDiscount;
     if (!form.startDate) e.startDate = t.required;
     if (!form.endDate) e.endDate = t.required;
@@ -1359,7 +1401,25 @@ const Campaigns = ({ t, lang }) => {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (c) => { setEditing(c.id); setForm({ name: c.name || { az: "", en: "", ru: "" }, discount: c.discount, startDate: c.startDate, endDate: c.endDate, active: c.active }); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    // Backend returns title as string (not multilang object)
+    const normalizeLang = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({
+      name:        normalizeLang(c.title || c.name),
+      description: normalizeLang(c.description),
+      discount:    c.discountPercent ?? c.discount ?? "",
+      startDate:   toDateStr(c.startDate),
+      endDate:     toDateStr(c.endDate),
+      active:      c.isActive !== undefined ? c.isActive : (c.active !== undefined ? c.active : true),
+    });
+    setErrors({});
+    setModal(true);
+  };
 
   const onToggle = async (c) => {
     try { await campaignApi.toggle(c.id); reload(); }
@@ -1376,7 +1436,14 @@ const Campaigns = ({ t, lang }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { ...form, discount: Number(form.discount) };
+      // adminApi.buildCampaignPayload expects: name (multilang), discount, start_date, end_date, description
+      const payload = {
+        name:        form.name,
+        description: form.description,
+        discount:    Number(form.discount),
+        start_date:  form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
+        end_date:    form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
+      };
       if (editing) await campaignApi.update(editing, payload);
       else await campaignApi.create(payload);
       setToast({ message: t.successSaved, type: "success" });
@@ -1397,15 +1464,21 @@ const Campaigns = ({ t, lang }) => {
         <Table
           loading={loading}
           columns={[
-            { key: "name", label: t.name, render: r => <span className="font-semibold text-gray-800">{typeof r.name === "object" ? r.name[lang] : r.name}</span> },
-            { key: "discount", label: t.discount, render: r => <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold">{r.discount}% OFF</span> },
-            { key: "startDate", label: "Start", render: r => <span className="text-gray-500 text-xs">{r.startDate}</span> },
-            { key: "endDate", label: "End", render: r => <span className="text-gray-500 text-xs">{r.endDate}</span> },
-            { key: "active", label: t.status, render: r => (
-              <button onClick={() => onToggle(r)} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${r.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-                {r.active ? t.active : t.inactive}
-              </button>
-            )},
+            { key: "title", label: t.name, render: r => <span className="font-semibold text-gray-800">{r.title || (typeof r.name === "object" ? r.name[lang] : r.name)}</span> },
+            { key: "discountPercent", label: t.discount, render: r => {
+              const pct = r.discountPercent ?? r.discount;
+              return pct ? <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold">{pct}% OFF</span> : <span className="text-gray-400 text-xs">—</span>;
+            }},
+            { key: "startDate", label: "Start", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.startDate)}</span> },
+            { key: "endDate",   label: "End",   render: r => <span className="text-gray-500 text-xs">{toDateStr(r.endDate)}</span> },
+            { key: "isActive", label: t.status, render: r => {
+              const active = r.isActive !== undefined ? r.isActive : r.active;
+              return (
+                <button onClick={() => onToggle(r)} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                  {active ? t.active : t.inactive}
+                </button>
+              );
+            }},
           ]}
           data={camps}
           onEdit={openEdit}
@@ -1417,15 +1490,13 @@ const Campaigns = ({ t, lang }) => {
           <LangTabs lang={formLang} onChange={setFormLang} />
           <Input label={`${t.name} (${formLang.toUpperCase()})`} value={form.name[formLang]}
             onChange={v => setForm(f => ({ ...f, name: { ...f.name, [formLang]: v } }))} required error={errors.name} />
+          <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
+            onChange={v => setForm(f => ({ ...f, description: { ...f.description, [formLang]: v } }))} />
           <Input label={`${t.discount} %`} value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" error={errors.discount} />
           <div className="grid grid-cols-2 gap-4">
             <Input label="Start Date" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
-            <Input label="End Date" value={form.endDate} onChange={v => setForm(f => ({ ...f, endDate: v }))} type="date" error={errors.endDate} />
+            <Input label="End Date"   value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="accent-emerald-600" />
-            <span className="text-sm font-medium text-gray-700">{t.active}</span>
-          </label>
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
             <Btn onClick={onSave} disabled={saving}>
@@ -1445,10 +1516,26 @@ const DiscountCodes = ({ t }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  const emptyForm = { code: "", type: "percent", value: "", limit: "", expiration: "", active: true };
+  // type: "percent" | "fixed"  (mapped from backend enum: 1=Percent, 2=Fixed)
+  const emptyForm = { code: "", type: "percent", value: "", limit: "", expiration: "" };
   const [form, setForm] = useState(emptyForm);
 
   const { data: codes, loading, reload } = useAdminData(() => discountCodeApi.getAll());
+
+  // Backend returns Type as enum (0 or 1, or 1=Percent/2=Fixed). Normalize to "percent"/"fixed" string.
+  const typeToStr = (t) => {
+    if (t === "percent" || t === "fixed") return t;
+    if (t === 1 || t === "Percent" || t === 0) return "percent";
+    if (t === 2 || t === "Fixed") return "fixed";
+    return "percent";
+  };
+
+  // Convert ISO datetime to YYYY-MM-DD
+  const toDateStr = (val) => {
+    if (!val) return "";
+    if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
+    return val;
+  };
 
   const validate = () => {
     const e = {};
@@ -1461,11 +1548,17 @@ const DiscountCodes = ({ t }) => {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (c) => { setEditing(c.id); setForm({ code: c.code, type: c.type, value: c.value, limit: c.limit, expiration: c.expiration, active: c.active }); setErrors({}); setModal(true); };
-
-  const onToggle = async (c) => {
-    try { await discountCodeApi.toggle(c.id); reload(); }
-    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  const openEdit = (c) => {
+    setEditing(c.id);
+    setForm({
+      code:       c.code || "",
+      type:       typeToStr(c.type),
+      value:      c.value ?? c.discountValue ?? "",
+      limit:      c.maxUses ?? c.limit ?? "",
+      expiration: toDateStr(c.expiresAt || c.expiration),
+    });
+    setErrors({});
+    setModal(true);
   };
 
   const onDelete = async (c) => {
@@ -1499,16 +1592,24 @@ const DiscountCodes = ({ t }) => {
         <Table
           loading={loading}
           columns={[
-            { key: "code", label: t.code, render: r => <code className="bg-gray-100 px-2.5 py-1 rounded-lg text-sm font-bold text-gray-800">{r.code}</code> },
-            { key: "type", label: t.type, render: r => <span className="text-xs text-gray-600">{r.type === "percent" ? t.percent : t.fixed}</span> },
-            { key: "value", label: t.value, render: r => <span className="font-bold text-emerald-700">{r.value}{r.type === "percent" ? "%" : "$"}</span> },
-            { key: "usageCount", label: t.usageCount, render: r => <span className="text-gray-600">{r.usageCount || 0} / {r.limit || "∞"}</span> },
-            { key: "expiration", label: "Expires", render: r => <span className="text-gray-500 text-xs">{r.expiration}</span> },
-            { key: "active", label: t.status, render: r => (
-              <button onClick={() => onToggle(r)} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${r.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-                {r.active ? t.active : t.inactive}
-              </button>
-            )},
+            { key: "code",  label: t.code,  render: r => <code className="bg-gray-100 px-2.5 py-1 rounded-lg text-sm font-bold text-gray-800">{r.code}</code> },
+            { key: "type",  label: t.type,  render: r => <span className="text-xs text-gray-600">{typeToStr(r.type) === "percent" ? t.percent : t.fixed}</span> },
+            { key: "value", label: t.value, render: r => {
+              const isPercent = typeToStr(r.type) === "percent";
+              const val = r.value ?? r.discountValue;
+              return <span className="font-bold text-emerald-700">{val}{isPercent ? "%" : "$"}</span>;
+            }},
+            { key: "usageCount", label: t.usageCount, render: r => <span className="text-gray-600">{r.usedCount ?? r.usageCount ?? 0} / {r.maxUses ?? r.limit ?? "∞"}</span> },
+            { key: "expiresAt", label: "Expires", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.expiresAt || r.expiration)}</span> },
+            { key: "status", label: t.status, render: r => {
+              // Backend returns Status enum: 1=Active, 2=Expired, 3=Passive
+              const isActive = r.status === 1 || r.status === "Active" || r.active === true;
+              return (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                  {isActive ? t.active : t.inactive}
+                </span>
+              );
+            }},
           ]}
           data={codes}
           onEdit={openEdit}
@@ -1526,10 +1627,6 @@ const DiscountCodes = ({ t }) => {
             <Input label={t.limit} value={form.limit} onChange={v => setForm(f => ({ ...f, limit: v }))} type="number" />
           </div>
           <Input label="Expiration Date" value={form.expiration} onChange={v => setForm(f => ({ ...f, expiration: v }))} type="date" error={errors.expiration} />
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="accent-emerald-600" />
-            <span className="text-sm font-medium text-gray-700">{t.active}</span>
-          </label>
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
             <Btn onClick={onSave} disabled={saving}>
