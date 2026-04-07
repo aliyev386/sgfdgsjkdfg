@@ -519,5 +519,40 @@
       "about": "About",
       "contact": "Contact"
     }
+  },
+  "custom_design": {
+    "tag": "Custom Design",
+    "title": "Let Us Create",
+    "title_em": "Your Perfect Furniture",
+    "desc": "We craft furniture exactly to your style, material and dimensions. Together we design the concept, agree on pricing and deliver directly to your home.",
+    "style1": "Modern",
+    "style2": "Classic",
+    "style3": "Minimalist",
+    "style4": "Luxury",
+    "btn_main": "Book a Consultation",
+    "btn_call": "Call Us",
+    "process_label": "How we work",
+    "step1_title": "Meeting & Concept",
+    "step1_desc": "We listen to your vision and sketch out the perfect design together",
+    "step2_title": "Materials & Pricing",
+    "step2_desc": "We select materials and present a full quote — no hidden costs",
+    "step3_title": "Production & Delivery",
+    "step3_desc": "Custom crafted and installed right in your home",
+    "promise": "2-year quality guarantee on every piece"
+  },
+  "restoration": {
+    "badge": "New Service",
+    "before_label": "Before",
+    "after_label": "Restored",
+    "eyebrow": "Furniture Restoration",
+    "title": "Give Us Your Old Furniture",
+    "title_em": "We'll Bring It Back to Life",
+    "desc": "We professionally restore worn, scratched or faded furniture. Instead of buying new, give your beloved pieces a second life.",
+    "feat1": "Upholstery & fabric renewal",
+    "feat2": "Color & lacquer restoration",
+    "feat3": "Frame reinforcement & repair",
+    "feat4": "Full restoration service",
+    "btn": "Request Restoration",
+    "note": "Free assessment — without leaving your home"
   }
 }

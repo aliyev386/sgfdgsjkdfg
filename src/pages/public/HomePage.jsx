@@ -158,17 +158,12 @@ export default function HomePage() {
           onNavigate={navigate}
         />
       )}
-
-      <div className="rv">
-        <WhyUsSection t={t} />
-      </div>
-
       <div className="rv">
         <CTABanner t={t} />
       </div>
-
-      <NewsletterSection t={t} />
-
+      <div className="rv">
+        <WhyUsSection t={t} />
+      </div>
       <Footer />
       <ScrollTop />
     </main>

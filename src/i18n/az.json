@@ -519,5 +519,40 @@
       "about": "Haqqımızda",
       "contact": "Əlaqə"
     }
+  },
+  "custom_design": {
+    "tag": "Xüsusi Dizayn",
+    "title": "Sizin üçün",
+    "title_em": "Fərdi Mebel Yaradaq",
+    "desc": "İstədiyiniz stil, material və ölçüdə mebel hazırlayırıq. Sizinlə birlikdə konsept hazırlayır, qiyməti müəyyənləşdirir və evinizə çatdırırıq.",
+    "style1": "Müasir",
+    "style2": "Klassik",
+    "style3": "Minimalist",
+    "style4": "Lüks",
+    "btn_main": "Konsultasiya sifariş et",
+    "btn_call": "Zəng edin",
+    "process_label": "Necə işləyirik",
+    "step1_title": "Görüş & Konsept",
+    "step1_desc": "Sizinlə görüşüb arzularınızı dinləyirik, eskiz hazırlayırıq",
+    "step2_title": "Material & Qiymət",
+    "step2_desc": "Material seçirik, tam qiymət təqdim edirik — heç bir gizli xərc yoxdur",
+    "step3_title": "İstehsal & Çatdırılma",
+    "step3_desc": "Fərdi olaraq istehsal edir, evinizə quraşdırırıq",
+    "promise": "Hər mebel üçün 2 il keyfiyyət zəmanəti"
+  },
+  "restoration": {
+    "badge": "Yeni Xidmət",
+    "before_label": "Köhnə vəziyyət",
+    "after_label": "Yenilənmiş",
+    "eyebrow": "Mebel Bərpası",
+    "title": "Köhnə Mebelini",
+    "title_em": "Bizə Ver, Yeniləyək",
+    "desc": "Köhnəlmiş, cızılmış və ya rəngi solmuş mebelinizi professional şəkildə bərpa edirik. Yeni almaq əvəzinə, sevdiyiniz mebelinizə ikinci həyat veririk.",
+    "feat1": "Döşəmə və örtük yeniləmə",
+    "feat2": "Rəng və lak bərpası",
+    "feat3": "Çərçivə möhkəmləndirilməsi",
+    "feat4": "Tam restavrasiya xidməti",
+    "btn": "Bərpa üçün müraciət et",
+    "note": "Pulsuz qiymətləndirmə — evinizdən çıxmadan"
   }
 }
