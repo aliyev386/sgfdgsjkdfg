@@ -1641,8 +1641,8 @@ const Campaigns = ({ t, lang }) => {
         name:           form.name,
         description:    form.description,
         discount:       Number(form.discount),       // buildCampaignPayload maps this to discountPercent
-        start_date:     form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
-        end_date:       form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
+        startDate:      form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
+        endDate:        form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
         display_order:  0,
       };
       if (editing) await campaignApi.update(editing, payload);

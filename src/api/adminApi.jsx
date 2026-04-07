@@ -358,17 +358,15 @@ export const campaignApi = {
 };
 
 function buildCampaignPayload(form) {
+  const rawStart = form.startDate || form.start_date;
+  const rawEnd   = form.endDate   || form.end_date;
   return {
-    imageUrl: form.image || form.imageUrl || null,
-    buttonLink: form.button_link || null,
+    imageUrl:        form.image || form.imageUrl || null,
+    buttonLink:      form.button_link || null,
     discountPercent: form.discount ? Number(form.discount) : null,
-    start_date: form.startDate || form.start_date 
-                 ? new Date(form.startDate || form.start_date).toISOString() 
-                 : new Date().toISOString(),
-    end_date: form.endDate || form.end_date 
-               ? new Date(form.endDate || form.end_date).toISOString() 
-               : new Date().toISOString(),
-    displayOrder: form.display_order || 0,
+    startDate:       rawStart ? new Date(rawStart).toISOString() : new Date().toISOString(),
+    endDate:         rawEnd   ? new Date(rawEnd).toISOString()   : new Date().toISOString(),
+    displayOrder:    form.display_order || 0,
     translations: ["az","en","ru"].map(lang => ({
       lang,
       title:       form.name?.[lang]        || form.name?.az        || "",
