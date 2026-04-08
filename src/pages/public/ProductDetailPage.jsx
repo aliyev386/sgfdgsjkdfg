@@ -174,6 +174,7 @@ export default function ProductDetailPage() {
   const lang              = useSelector(selectLang);
   const wishlist          = useSelector(s => s.wishlist.items);
   const cartItems         = useSelector(s => s.cart.items);
+  const isAuthenticated   = useSelector(s => s.auth.isAuthenticated);
 
   const [product,    setProduct]    = useState(null);
   const [similar,    setSimilar]    = useState([]);
@@ -290,8 +291,9 @@ export default function ProductDetailPage() {
 
   const handleSave = useCallback(() => {
     if (!product) return;
+    if (!isAuthenticated) { navigate("/login"); return; }
     dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.images[0] }));
-  }, [product, dispatch]);
+  }, [product, isAuthenticated, navigate, dispatch]);
 
   const handleLoadMore = () => {
     const nextPage = reviewsPage + 1;

@@ -24,6 +24,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
   const navigate  = useNavigate();
   const wishlist  = useSelector(s => s.wishlist.items);
   const cartItems = useSelector(s => s.cart.items);
+  const isAuthenticated = useSelector(s => s.auth.isAuthenticated);
   const inCart = (id) => cartItems.some(i => i.productId === id);
   const [activeTab, setActiveTab] = useState("all");
   const [addingId,  setAddingId]  = useState(null);
@@ -63,11 +64,12 @@ export default function FeaturedProductsSection({ products = [], categories = []
   }, [addingId, dispatch]);
 
   const handleWishlist = useCallback((product) => {
+    if (!isAuthenticated) { navigate("/login"); return; }
     dispatch(toggleWishlist({
       id: product.id, name: product.name, price: product.price,
       image: product.images?.[0]?.imageUrl || product.image,
     }));
-  }, [dispatch]);
+  }, [isAuthenticated, navigate, dispatch]);
 
   const isWishlisted = (id) => wishlist.some(w => w.id === id);
 

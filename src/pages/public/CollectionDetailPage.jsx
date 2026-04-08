@@ -129,6 +129,7 @@ export default function CollectionDetailPage() {
   const lang           = useSelector(selectLang);
   const wishlist       = useSelector(s => s.wishlist.items);
   const cartItems      = useSelector(s => s.cart.items);
+  const isAuthenticated = useSelector(s => s.auth.isAuthenticated);
   const inCart         = (id) => cartItems.some(i => i.productId === id);
 
   const [coll,        setColl]       = useState(null);
@@ -224,6 +225,7 @@ export default function CollectionDetailPage() {
 
   const handleSaveCollection = useCallback(() => {
     if (!coll) return;
+    if (!isAuthenticated) { navigate("/login"); return; }
     dispatch(toggleWishlist({
       id:    `coll_${coll.id}`,
       name:  coll.name,
@@ -231,11 +233,12 @@ export default function CollectionDetailPage() {
       image: coll.gallery[0] || null,
       type:  "collection",
     }));
-  }, [coll, dispatch]);
+  }, [coll, isAuthenticated, navigate, dispatch]);
 
   const handleWish = useCallback((product) => {
+    if (!isAuthenticated) { navigate("/login"); return; }
     dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image }));
-  }, [dispatch]);
+  }, [isAuthenticated, navigate, dispatch]);
 
   useEffect(() => {
     if (!lbOpen || !coll?.gallery?.length) return;

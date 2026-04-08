@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang, setLang as setReduxLang } from "../../store/slices/langSlice";
@@ -1069,26 +1068,43 @@ const Categories = ({ t, lang }) => {
 const Collections = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formLang, setFormLang] = useState("en");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
   const [availableProducts, setAvailableProducts] = useState([]);
-  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, price: "", product_ids: [] };
+  const [availableCategories, setAvailableCategories] = useState([]);
+
+  const emptyForm = {
+    name: { az: "", en: "", ru: "" },
+    description: { az: "", en: "", ru: "" },
+    price: "",
+    discount_price: "",
+    display_order: 0,
+    collection_category_id: "",
+    product_ids: [],
+    image: null,
+  };
   const [form, setForm] = useState(emptyForm);
 
   const { data: colls, loading, reload } = useAdminData(() => collectionApi.getAll());
 
   useEffect(() => {
-    productApi.getAll({ limit: 100 }).then(res => {
-      setAvailableProducts(Array.isArray(res) ? res : res.data || []);
+    productApi.getAll({ limit: 200 }).then(res => {
+      const arr = Array.isArray(res) ? res : (res?.data ?? res?.items ?? []);
+      setAvailableProducts(arr);
+    }).catch(() => {});
+
+    collectionApi.getCategories().then(res => {
+      setAvailableCategories(Array.isArray(res) ? res : []);
     }).catch(() => {});
   }, []);
 
   const validate = () => {
     const e = {};
-    if (validateLangField(form.name)) e.name = t.required;
-    if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice;
+    if (!form.name.az?.trim() && !form.name.en?.trim() && !form.name.ru?.trim()) e.name = t.required;
+    if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice || "Qiymət lazımdır";
+    if (!form.collection_category_id) e.collection_category_id = "Kateqoriya seçin";
+    if (!form.product_ids || form.product_ids.length === 0) e.product_ids = "Ən az 1 məhsul seçin";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -1099,7 +1115,7 @@ const Collections = ({ t, lang }) => {
       const langs = { az: "", en: "", ru: "" };
       if (c.translations && Array.isArray(c.translations)) {
         c.translations.forEach(tr => {
-          if (tr.lang && langs.hasOwnProperty(tr.lang)) {
+          if (tr.lang && Object.prototype.hasOwnProperty.call(langs, tr.lang)) {
             langs[tr.lang] = tr[field] || "";
           }
         });
@@ -1112,14 +1128,14 @@ const Collections = ({ t, lang }) => {
     };
     setEditing(c.id);
     setForm({
-      name:                  getLangField("name"),
-      description:           getLangField("description"),
-      price:                 c.totalPrice ?? c.price ?? "",
-      discount_price:        c.discountPrice ?? "",
-      display_order:         c.displayOrder ?? 0,
+      name:                   getLangField("name"),
+      description:            getLangField("description"),
+      price:                  c.totalPrice ?? c.price ?? "",
+      discount_price:         c.discountPrice ?? "",
+      display_order:          c.displayOrder ?? 0,
       collection_category_id: c.collectionCategoryId ?? "",
-      product_ids:           c.product_ids || c.products?.map(p => p.id ?? p) || [],
-      image:                 c.imagesUrl || c.imageUrl || c.image || null,
+      product_ids:            c.products?.map(p => p.id ?? p) || [],
+      image:                  c.imagesUrl || c.imageUrl || c.image || null,
     });
     setErrors({});
     setModal(true);
@@ -1135,9 +1151,8 @@ const Collections = ({ t, lang }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = { ...form, price: Number(form.price) };
-      if (editing) await collectionApi.update(editing, payload);
-      else await collectionApi.create(payload);
+      if (editing) await collectionApi.update(editing, form);
+      else await collectionApi.create(form);
       setToast({ message: t.successSaved, type: "success" });
       setModal(false); reload();
     } catch (err) {
@@ -1148,6 +1163,20 @@ const Collections = ({ t, lang }) => {
   const toggleProduct = (pid) => setForm(f => ({
     ...f, product_ids: f.product_ids.includes(pid) ? f.product_ids.filter(x => x !== pid) : [...f.product_ids, pid]
   }));
+
+  const getCategoryName = (c) => {
+    if (!c.translations) return c.name || "";
+    const tr = c.translations.find(x => x.lang === lang) || c.translations[0];
+    return tr?.name || c.name || "";
+  };
+
+  const getProductName = (p) => {
+    if (p.translations) {
+      const tr = p.translations.find(x => x.lang === lang) || p.translations[0];
+      return tr?.name || p.name || "";
+    }
+    return typeof p.name === "object" ? (p.name[lang] || p.name.az || p.name.en || "") : (p.name || "");
+  };
 
   return (
     <div className="space-y-5">
@@ -1160,10 +1189,13 @@ const Collections = ({ t, lang }) => {
         <Table
           loading={loading}
           columns={[
-            { key: "name", label: t.name, render: r => <span className="font-semibold text-gray-800">{typeof r.name === "object" ? r.name[lang] : r.name}</span> },
-            { key: "description", label: t.description, render: r => <span className="text-gray-500 text-xs">{typeof r.description === "object" ? r.description[lang] : r.description}</span> },
-            { key: "price", label: t.price, render: r => <span className="font-bold text-emerald-700">${Number(r.price).toLocaleString()}</span> },
-            { key: "products", label: t.products, render: r => <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">{r.product_ids?.length || r.products?.length || 0} items</span> },
+            { key: "name", label: t.name, render: r => {
+              const tr = r.translations?.find(x => x.lang === lang) || r.translations?.[0];
+              const name = tr?.name || (typeof r.name === "object" ? r.name[lang] : r.name) || "";
+              return <span className="font-semibold text-gray-800">{name}</span>;
+            }},
+            { key: "price", label: t.price, render: r => <span className="font-bold text-emerald-700">₼{Number(r.totalPrice ?? r.price ?? 0).toLocaleString()}</span> },
+            { key: "products", label: t.products, render: r => <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">{r.products?.length || 0} məhsul</span> },
           ]}
           data={colls}
           onEdit={openEdit}
@@ -1172,14 +1204,16 @@ const Collections = ({ t, lang }) => {
       </Card>
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCollection}>
         <div className="space-y-4">
+          {/* Ad — 3 dil */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} * <span className="text-red-500 text-xs normal-case">(az/en/ru — ən az biri doldurulmalı)</span></label>
             <div className="grid grid-cols-3 gap-3">
-              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="AZ" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} error={errors.name} />
               <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
               <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
             </div>
           </div>
+          {/* Açıqlama — 3 dil */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.description}</label>
             <div className="grid grid-cols-3 gap-3">
@@ -1188,15 +1222,40 @@ const Collections = ({ t, lang }) => {
               <Textarea label="RU" value={form.description.ru || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, ru: v } }))} rows={2} />
             </div>
           </div>
-          <Input label={t.price + " *"} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
+          {/* Kateqoriya * */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.selectProducts}</label>
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Kateqoriya *</label>
+            <select
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 ${errors.collection_category_id ? "border-red-400" : "border-gray-300"}`}
+              value={form.collection_category_id}
+              onChange={e => setForm(f => ({ ...f, collection_category_id: e.target.value }))}
+            >
+              <option value="">— Kateqoriya seçin —</option>
+              {availableCategories.map(c => (
+                <option key={c.id} value={c.id}>{getCategoryName(c)}</option>
+              ))}
+            </select>
+            {errors.collection_category_id && <p className="text-red-500 text-xs mt-1">{errors.collection_category_id}</p>}
+          </div>
+          {/* Qiymət */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input label={`${t.price} *`} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
+            <Input label="Endirimli qiymət" value={form.discount_price} onChange={v => setForm(f => ({ ...f, discount_price: v }))} type="number" />
+          </div>
+          <Input label="Göstərilmə sırası" value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" />
+          {/* Məhsul seçimi */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
+              {t.selectProducts} * <span className="text-emerald-600 font-normal">({form.product_ids.length} seçilib)</span>
+            </label>
+            {errors.product_ids && <p className="text-red-500 text-xs mb-1">{errors.product_ids}</p>}
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+              {availableProducts.length === 0 && <p className="text-gray-400 text-xs col-span-2 text-center py-4">Məhsullar yüklənir...</p>}
               {availableProducts.map(p => (
                 <label key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${form.product_ids?.includes(p.id) ? "border-emerald-500 bg-emerald-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <input type="checkbox" checked={form.product_ids?.includes(p.id)} onChange={() => toggleProduct(p.id)} className="accent-emerald-600" />
-                  <span className="text-xs font-medium text-gray-700 truncate">{typeof p.name === "object" ? p.name[lang] : p.name}</span>
-                  <span className="ml-auto text-xs text-emerald-700 font-semibold flex-shrink-0">${p.price}</span>
+                  <span className="text-xs font-medium text-gray-700 truncate">{getProductName(p)}</span>
+                  <span className="ml-auto text-xs text-emerald-700 font-semibold flex-shrink-0">₼{p.price ?? p.totalPrice ?? ""}</span>
                 </label>
               ))}
             </div>

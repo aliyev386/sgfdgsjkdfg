@@ -1,678 +1,2066 @@
-import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
-import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectLang } from "../../store/slices/langSlice";
-import { setCart } from "../../store/slices/cartSlice";
-import cartApi from "../../api/cartApi";
-import { toggleWishlist } from "../../store/slices/wishlistStore";
-import categoryApi from "../../api/categoryApi";
-import productApi from "../../api/productApi";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
-import "../../assets/pagesCss/FurnitureCategory.css";
+import { selectLang, setLang as setReduxLang } from "../../store/slices/langSlice";
+import { selectIsAuth, logoutAction } from "../../store/slices/authSlice";
+import {
+  dashboardApi,
+  productApi,
+  categoryApi,
+  collectionApi,
+  collectionCategoryApi,
+  orderApi,
+  heroApi,
+  campaignApi,
+  discountCodeApi,
+} from "../../api/adminApi";
 
-const PAGE_SIZE = 12;
-const PRICE_MAX = 15000;
-
-
-const ACCENT_COLORS = ["#7A9E7E","#C9A84C","#A0856C","#C1654B","#5C8DB8","#9B8AC4","#5A7A9E","#E8A87C","#D4714A"];
-const BANNER_IMGS   = [
-  "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=85",
-  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1400&q=85",
-  "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1400&q=85",
-  "https://images.unsplash.com/photo-1592078615290-033ee584e267?w=1400&q=85",
-  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=85",
-  "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1400&q=85",
-  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85",
-  "https://images.unsplash.com/photo-1616137422495-1e9e46e2aa1e?w=1400&q=85",
-];
-
-const BADGE_COLORS = {
-  best_seller: "#c0604a",
-  new_in:      "#6d9b70",
-  sale:        "#c9a84c",
-  new:         "#6d9b70",
-  hot:         "#c0604a",
-  featured:    "#5a82b0",
+const translations = {
+  az: {
+    dashboard: "İdarə Paneli", products: "Məhsullar", categories: "Kateqoriyalar",
+    collections: "Kolleksiyalar", collectionCategories: "Kolleksiya Kateqoriyaları",
+    orders: "Sifarişlər", heroSections: "Hero Bölmələri", campaigns: "Kampaniyalar",
+    discountCodes: "Endirim Kodları", totalOrders: "Ümumi Sifarişlər",
+    todayOrders: "Bu günün Sifarişləri", totalRevenue: "Ümumi Gəlir",
+    topProducts: "Ən Yaxşı Məhsullar", search: "Axtar...", addNew: "Yeni Əlavə Et",
+    edit: "Düzəlt", delete: "Sil", save: "Saxla", cancel: "İmtina",
+    name: "Ad", price: "Qiymət", stock: "Stok", category: "Kateqoriya",
+    actions: "Əməliyyatlar", status: "Status", date: "Tarix", user: "İstifadəçi",
+    description: "Təsvir", image: "Şəkil", title: "Başlıq", subtitle: "Alt Başlıq",
+    active: "Aktiv", inactive: "Qeyri-aktiv", activate: "Aktivləşdir",
+    deactivate: "Deaktivləşdir", pending: "Gözləyir", confirmed: "Təsdiqləndi",
+    shipped: "Göndərildi", delivered: "Çatdırıldı", code: "Kod",
+    type: "Növ", value: "Dəyər", usageCount: "İstifadə Sayı", discount: "Endirim",
+    dateRange: "Tarix Aralığı", limit: "Limit", percent: "Faiz", fixed: "Sabit",
+    selectProducts: "Məhsul Seçin", colors: "Rənglər", images: "Şəkillər",
+    loading: "Yüklənir...", error: "Xəta baş verdi", noData: "Məlumat yoxdur",
+    logout: "Çıxış", settings: "Parametrlər", support: "Dəstək",
+    adminPanel: "Admin Panel", welcomeAdmin: "Xoş Gəldiniz", totalProducts: "Ümumi Məhsullar",
+    outOfStock: "Stokda Yoxdur", revenue: "Gəlir", customers: "Müştərilər",
+    addProduct: "Məhsul Əlavə Et", editProduct: "Məhsulu Düzəlt",
+    addCategory: "Kateqoriya Əlavə Et", addCollection: "Kolleksiya Əlavə Et",
+    previous: "Əvvəlki", next: "Növbəti", page: "Səhifə", of: "/",
+    showing: "Göstərilir", to: "-", entries: "qeyd",
+    orderDetail: "Sifariş Təfərrüatı", address: "Ünvan",
+    updateStatus: "Statusu Yenilə", saving: "Saxlanılır...",
+    deleting: "Silinir...", successSaved: "Uğurla saxlanıldı!", successDeleted: "Uğurla silindi!",
+    confirmDelete: "Silmək istədiyinizə əminsiniz?", required: "Mütləq doldurulmalıdır",
+    invalidPrice: "Qiymət 0-dan böyük olmalıdır", invalidStock: "Stok 0 və ya daha çox olmalıdır",
+    invalidDiscount: "Endirim 1-100 arası olmalıdır", dateError: "Başlanğıc tarixi son tarixdən əvvəl olmalıdır",
+    uploadImage: "Şəkil yükləyin", clickToUpload: "Şəkil əlavə etmək üçün basın",
+  },
+  en: {
+    dashboard: "Dashboard", products: "Products", categories: "Categories",
+    collections: "Collections", collectionCategories: "Collection Categories",
+    orders: "Orders", heroSections: "Hero Sections", campaigns: "Campaigns",
+    discountCodes: "Discount Codes", totalOrders: "Total Orders",
+    todayOrders: "Today's Orders", totalRevenue: "Total Revenue",
+    topProducts: "Top Products", search: "Search...", addNew: "Add New",
+    edit: "Edit", delete: "Delete", save: "Save", cancel: "Cancel",
+    name: "Name", price: "Price", stock: "Stock", category: "Category",
+    actions: "Actions", status: "Status", date: "Date", user: "User",
+    description: "Description", image: "Image", title: "Title", subtitle: "Subtitle",
+    active: "Active", inactive: "Inactive", activate: "Activate",
+    deactivate: "Deactivate", pending: "Pending", confirmed: "Confirmed",
+    shipped: "Shipped", delivered: "Delivered", code: "Code",
+    type: "Type", value: "Value", usageCount: "Usage Count", discount: "Discount",
+    dateRange: "Date Range", limit: "Limit", percent: "Percent", fixed: "Fixed",
+    selectProducts: "Select Products", colors: "Colors", images: "Images",
+    loading: "Loading...", error: "An error occurred", noData: "No data available",
+    logout: "Logout", settings: "Settings", support: "Support",
+    adminPanel: "Admin Panel", welcomeAdmin: "Welcome Back", totalProducts: "Total Products",
+    outOfStock: "Out of Stock", revenue: "Revenue", customers: "Customers",
+    addProduct: "Add Product", editProduct: "Edit Product",
+    addCategory: "Add Category", addCollection: "Add Collection",
+    previous: "Previous", next: "Next", page: "Page", of: "of",
+    showing: "Showing", to: "to", entries: "entries",
+    orderDetail: "Order Detail", address: "Address",
+    updateStatus: "Update Status", saving: "Saving...",
+    deleting: "Deleting...", successSaved: "Saved successfully!", successDeleted: "Deleted successfully!",
+    confirmDelete: "Are you sure you want to delete?", required: "This field is required",
+    invalidPrice: "Price must be greater than 0", invalidStock: "Stock must be 0 or more",
+    invalidDiscount: "Discount must be between 1 and 100", dateError: "Start date must be before end date",
+    uploadImage: "Upload Image", clickToUpload: "Click to upload image",
+  },
+  ru: {
+    dashboard: "Панель управления", products: "Товары", categories: "Категории",
+    collections: "Коллекции", collectionCategories: "Категории коллекций",
+    orders: "Заказы", heroSections: "Главные баннеры", campaigns: "Кампании",
+    discountCodes: "Промокоды", totalOrders: "Всего заказов",
+    todayOrders: "Заказы сегодня", totalRevenue: "Общий доход",
+    topProducts: "Топ товаров", search: "Поиск...", addNew: "Добавить",
+    edit: "Редактировать", delete: "Удалить", save: "Сохранить", cancel: "Отмена",
+    name: "Название", price: "Цена", stock: "Остаток", category: "Категория",
+    actions: "Действия", status: "Статус", date: "Дата", user: "Пользователь",
+    description: "Описание", image: "Изображение", title: "Заголовок", subtitle: "Подзаголовок",
+    active: "Активен", inactive: "Неактивен", activate: "Активировать",
+    deactivate: "Деактивировать", pending: "Ожидает", confirmed: "Подтверждён",
+    shipped: "Отправлен", delivered: "Доставлен", code: "Код",
+    type: "Тип", value: "Значение", usageCount: "Использований", discount: "Скидка",
+    dateRange: "Диапазон дат", limit: "Лимит", percent: "Процент", fixed: "Фиксированная",
+    selectProducts: "Выбрать товары", colors: "Цвета", images: "Изображения",
+    loading: "Загрузка...", error: "Произошла ошибка", noData: "Нет данных",
+    logout: "Выход", settings: "Настройки", support: "Поддержка",
+    adminPanel: "Панель Админа", welcomeAdmin: "Добро пожаловать", totalProducts: "Всего товаров",
+    outOfStock: "Нет в наличии", revenue: "Выручка", customers: "Клиенты",
+    addProduct: "Добавить товар", editProduct: "Редактировать товар",
+    addCategory: "Добавить категорию", addCollection: "Добавить коллекцию",
+    previous: "Назад", next: "Вперёд", page: "Стр.", of: "из",
+    showing: "Показано", to: "—", entries: "записей",
+    orderDetail: "Детали заказа", address: "Адрес",
+    updateStatus: "Обновить статус", saving: "Сохранение...",
+    deleting: "Удаление...", successSaved: "Успешно сохранено!", successDeleted: "Успешно удалено!",
+    confirmDelete: "Вы уверены, что хотите удалить?", required: "Обязательное поле",
+    invalidPrice: "Цена должна быть больше 0", invalidStock: "Остаток должен быть 0 или больше",
+    invalidDiscount: "Скидка должна быть от 1 до 100", dateError: "Дата начала должна быть раньше даты окончания",
+    uploadImage: "Загрузить фото", clickToUpload: "Нажмите для загрузки",
+  },
 };
 
-const SORT_OPTIONS = [
-  { value: "featured",   labelKey: "fcp.sort_featured"   },
-  { value: "price_asc",  labelKey: "fcp.sort_price_asc"  },
-  { value: "price_desc", labelKey: "fcp.sort_price_desc" },
-  { value: "newest",     labelKey: "fcp.sort_newest"      },
-];
+const Icon = ({ path, size = 20, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d={path} />
+  </svg>
+);
+const Icons = {
+  Dashboard: () => <Icon path="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
+  Package: () => <Icon path="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />,
+  Tag: () => <Icon path="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z M7 7h.01" />,
+  Grid: () => <Icon path="M3 3h7v7H3z M14 3h7v7h-7z M14 14h7v7h-7z M3 14h7v7H3z" />,
+  ShoppingBag: () => <Icon path="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M16 10a4 4 0 0 1-8 0" />,
+  Image: () => <Icon path="M21 19H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />,
+  Percent: () => <Icon path="M19 5L5 19 M6.5 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z M17.5 19a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" />,
+  Ticket: () => <Icon path="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 0 0-2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a2 2 0 0 0 0-4V7a2 2 0 0 0-2-2H5z" />,
+  Search: () => <Icon path="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />,
+  Bell: () => <Icon path="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0" />,
+  ChevronDown: () => <Icon path="M6 9l6 6 6-6" />,
+  ChevronRight: () => <Icon path="M9 18l6-6-6-6" />,
+  ChevronLeft: () => <Icon path="M15 18l-6-6 6-6" />,
+  Plus: () => <Icon path="M12 5v14M5 12h14" />,
+  Edit: () => <Icon path="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />,
+  Trash: () => <Icon path="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />,
+  Eye: () => <Icon path="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />,
+  X: () => <Icon path="M18 6L6 18M6 6l12 12" />,
+  Check: () => <Icon path="M20 6L9 17l-5-5" />,
+  TrendingUp: () => <Icon path="M23 6l-9.5 9.5-5-5L1 18 M17 6h6v6" />,
+  Users: () => <Icon path="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />,
+  DollarSign: () => <Icon path="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
+  ShoppingCart: () => <Icon path="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M16 10a4 4 0 0 1-8 0" />,
+  LogOut: () => <Icon path="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" />,
+  Layers: () => <Icon path="M12 2l9 4.5L12 11 3 6.5z M3 12l9 4.5L21 12 M3 17l9 4.5L21 17" />,
+  Filter: () => <Icon path="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />,
+  Upload: () => <Icon path="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />,
+  AlertCircle: () => <Icon path="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 8v4 M12 16h.01" />,
+  RefreshCw: () => <Icon path="M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0 1 14.85-3.36L23 10 M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />,
+};
 
-const fmt = n => `$${Number(n).toLocaleString()}`;
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-
-// ─── PRODUCT CARD ──────────────────────────────────────────────────────────────
-const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToCart, wishlist, dispatch, t }) {
-  const navigate  = useNavigate();
-  const wished    = wishlist?.some(w => w.id === product.id);
-  const badgeKey  = product.badge?.toLowerCase().replace(/\s+/, "_");
-  const badgeBg   = BADGE_COLORS[badgeKey] || "#6d9b70";
-
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
   return (
-    <article
-      className="fcp-card"
-      style={{ animationDelay: `${(idx % PAGE_SIZE) * 40}ms` }}
-      onClick={() => navigate(`/details/${product.id}`)}
-    >
-      <div className="fcp-card-img-wrap">
-        <img
-          className="fcp-card-img"
-          src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"}
-          alt={product.name}
-          loading="lazy"
-        />
-        {badgeKey && (
-          <span className="fcp-card-badge" style={{ background: badgeBg }}>
-            {product.badge}
-          </span>
-        )}
-        <div className="fcp-card-actions">
-          <button
-            className="fcp-card-view"
-            onClick={e => { e.stopPropagation(); navigate(`/details/${product.id}`); }}
-          >
-            {t("fcp.view_details")}
-          </button>
-          <button
-            className="fcp-card-wish"
-            onClick={e => {
-              e.stopPropagation();
-              dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image }));
-            }}
-          >
-            {wished ? <span style={{ color: "#e53e3e" }}>♥</span> : "♡"}
-          </button>
-        </div>
-      </div>
-
-      <div className="fcp-card-body">
-        <h3 className="fcp-card-name">{product.name}</h3>
-        {product.categoryName && <p className="fcp-card-cat">{product.categoryName}</p>}
-        <div className="fcp-card-foot">
-          <div className="fcp-card-prices">
-            <span className="fcp-card-price">{fmt(product.price)}</span>
-            {product.oldPrice && <span className="fcp-card-old">{fmt(product.oldPrice)}</span>}
-          </div>
-          <button
-            className={`fcp-card-add${addingId === product.id ? " adding" : ""}`}
-            onClick={e => { e.stopPropagation(); onAddToCart(product); }}
-          >
-            {addingId === product.id ? "✓" : "+"}
-          </button>
-        </div>
-      </div>
-    </article>
+    <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all
+      ${type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"}`}>
+      {type === "success" ? <Icons.Check /> : <Icons.AlertCircle />}
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-2 opacity-70 hover:opacity-100"><Icons.X /></button>
+    </div>
   );
-});
+};
 
-// ─── ACCORDION SECTION ─────────────────────────────────────────────────────────
-function Section({ label, open, onToggle, children }) {
+// ─── UI Components ────────────────────────────────────────────────────────────
+const Badge = ({ status, label }) => {
+  const colors = {
+    delivered: "bg-emerald-100 text-emerald-700",
+    shipped: "bg-blue-100 text-blue-700",
+    confirmed: "bg-amber-100 text-amber-700",
+    pending: "bg-gray-100 text-gray-600",
+  };
   return (
-    <div className="fcp-section">
-      <button className="fcp-section-btn" onClick={onToggle}>
-        <span>{label}</span>
-        <span className={`fcp-section-arrow${open ? " open" : ""}`}>›</span>
-      </button>
-      <div className={`fcp-section-body${open ? " open" : ""}`}>
-        <div className="fcp-section-content">{children}</div>
+    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[status] || "bg-gray-100 text-gray-600"}`}>
+      {label || status}
+    </span>
+  );
+};
+
+const Btn = ({ children, onClick, variant = "primary", size = "md", className = "", disabled = false, type = "button" }) => {
+  const variants = {
+    primary: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm",
+    secondary: "bg-gray-100 hover:bg-gray-200 text-gray-700",
+    danger: "bg-red-50 hover:bg-red-100 text-red-600",
+    success: "bg-blue-50 hover:bg-blue-100 text-blue-700",
+    ghost: "hover:bg-gray-100 text-gray-600",
+  };
+  const sizes = { sm: "px-2.5 py-1.5 text-xs gap-1", md: "px-4 py-2 text-sm gap-2" };
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}
+      className={`inline-flex items-center font-semibold rounded-lg transition-all ${variants[variant]} ${sizes[size]} ${disabled ? "opacity-60 cursor-not-allowed" : ""} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+const Input = ({ label, value, onChange, type = "text", placeholder = "", className = "", required = false, error = "" }) => (
+  <div className={className}>
+    {label && (
+      <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+        {label}{required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+    )}
+    <input
+      type={type}
+      value={value ?? ""}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all
+        ${error ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
+const Select = ({ label, value, onChange, options, className = "" }) => (
+  <div className={className}>
+    {label && <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{label}</label>}
+    <select value={value} onChange={e => onChange(e.target.value)}
+      className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400">
+      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+  </div>
+);
+
+const Textarea = ({ label, value, onChange, rows = 3, placeholder = "", className = "" }) => (
+  <div className={className}>
+    {label && <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{label}</label>}
+    <textarea value={value ?? ""} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder}
+      className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none" />
+  </div>
+);
+
+const Modal = ({ open, onClose, title, children, width = "max-w-2xl" }) => {
+  useEffect(() => {
+    const handler = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${width} max-h-[90vh] flex flex-col`}
+        style={{ animation: "modalIn 0.2s ease" }}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-800 text-base">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"><Icons.X /></button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-6 py-5">{children}</div>
       </div>
     </div>
   );
-}
+};
 
-// ─── DUAL PRICE SLIDER ──────────────────────────────────────────────────────────
-function PriceSlider({ min, max, pMin = 0, pMax = PRICE_MAX, onChange }) {
-  const pct   = v => ((v - pMin) / (pMax - pMin)) * 100;
-  const lPct  = pct(min);
-  const rPct  = pct(max);
+const Table = ({ columns, data, onEdit, onDelete, onView, extraActions, loading }) => (
+  <div className="overflow-x-auto">
+    {loading ? (
+      <div className="flex items-center justify-center py-16 text-gray-400">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Yüklənir...</span>
+        </div>
+      </div>
+    ) : data.length === 0 ? (
+      <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+        <Icons.Package />
+        <p className="text-sm mt-2">Məlumat yoxdur</p>
+      </div>
+    ) : (
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-100">
+            {columns.map(c => (
+              <th key={c.key} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{c.label}</th>
+            ))}
+            {(onEdit || onDelete || onView || extraActions) && (
+              <th className="text-right px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Actions</th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={row.id || i} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors">
+              {columns.map(c => (
+                <td key={c.key} className="px-4 py-3">{c.render ? c.render(row) : row[c.key]}</td>
+              ))}
+              {(onEdit || onDelete || onView || extraActions) && (
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-1.5">
+                    {extraActions && extraActions(row)}
+                    {onView && <Btn size="sm" variant="ghost" onClick={() => onView(row)}><Icons.Eye /></Btn>}
+                    {onEdit && <Btn size="sm" variant="secondary" onClick={() => onEdit(row)}><Icons.Edit /></Btn>}
+                    {onDelete && <Btn size="sm" variant="danger" onClick={() => onDelete(row)}><Icons.Trash /></Btn>}
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+);
 
-  const [localMin, setLocalMin] = useState(min);
-  const [localMax, setLocalMax] = useState(max);
+const Pagination = ({ total, page, perPage, onChange }) => {
+  const totalPages = Math.ceil(total / perPage);
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm text-gray-500">
+      <span>Showing {Math.min((page - 1) * perPage + 1, total)}–{Math.min(page * perPage, total)} of {total}</span>
+      <div className="flex gap-1">
+        <Btn size="sm" variant="secondary" onClick={() => onChange(page - 1)} disabled={page === 1}><Icons.ChevronLeft /></Btn>
+        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+          const p = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
+          return (
+            <button key={p} onClick={() => onChange(p)}
+              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${p === page ? "bg-emerald-600 text-white" : "hover:bg-gray-100 text-gray-600"}`}>
+              {p}
+            </button>
+          );
+        })}
+        <Btn size="sm" variant="secondary" onClick={() => onChange(page + 1)} disabled={page === totalPages}><Icons.ChevronRight /></Btn>
+      </div>
+    </div>
+  );
+};
 
-  useEffect(() => { setLocalMin(min); }, [min]);
-  useEffect(() => { setLocalMax(max); }, [max]);
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm ${className}`}>{children}</div>
+);
 
-  const commit = () => onChange(localMin, localMax);
+const StatCard = ({ icon, label, value, trend, color }) => (
+  <Card className="p-5">
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+        <p className="text-2xl font-bold text-gray-800">{value}</p>
+        {trend !== undefined && (
+          <p className={`text-xs font-semibold mt-1 ${trend >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+            {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}% bu ay
+          </p>
+        )}
+      </div>
+      <div className={`p-3 rounded-xl ${color}`}>{icon}</div>
+    </div>
+  </Card>
+);
+
+const LangTabs = ({ lang, onChange }) => (
+  <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit mb-2">
+    {["az", "en", "ru"].map(l => (
+      <button key={l} type="button" onClick={() => onChange(l)}
+        className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${lang === l ? "bg-white shadow text-emerald-700" : "text-gray-500 hover:text-gray-700"}`}>
+        {l.toUpperCase()}
+      </button>
+    ))}
+  </div>
+);
+
+// Single Image Upload Component
+const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadError("");
+    if (!uploadFn) { onChange(URL.createObjectURL(file)); return; }
+    setUploading(true);
+    try {
+      const res = await uploadFn(file);
+      const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
+      if (url) {
+        onChange(url);
+      } else {
+        setUploadError("Şəkil URL-i alınamadı");
+      }
+    } catch (err) {
+      setUploadError(err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <div>
+      {label && <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{label}</label>}
+      <label className="block cursor-pointer">
+        <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+        {value ? (
+          <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-emerald-300">
+            <img src={value} alt="preview" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white text-xs font-semibold">
+              {t.clickToUpload}
+            </div>
+          </div>
+        ) : (
+          <div className={`border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-emerald-300 transition-colors
+            ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}>
+            <div className="flex justify-center mb-2 text-gray-400">{uploading ? <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /> : <Icons.Upload />}</div>
+            <p className="text-xs text-gray-400">{uploading ? "Yüklənir..." : t.clickToUpload}</p>
+          </div>
+        )}
+      </label>
+      {uploadError && <p className="text-xs text-red-500 mt-1">⚠ {uploadError}</p>}
+    </div>
+  );
+};
+
+// Multi Image Upload Component (for products)
+const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        if (uploadFn) {
+          const res = await uploadFn(file);
+          // Backend: { success, data: { url, fileName, sizeBytes } }
+          // adminApi returns: { url: ... } already extracted
+          const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
+          if (url) {
+            uploaded.push(url);
+          } else {
+            setUploadError("Şəkil URL-i alınamadı. Backend cavabını yoxlayın.");
+          }
+        } else {
+          uploaded.push(URL.createObjectURL(file));
+        }
+      }
+      if (uploaded.length > 0) onChange([...images, ...uploaded]);
+    } catch (err) {
+      const msg = err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi";
+      setUploadError(msg);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const removeImage = (idx) => onChange(images.filter((_, i) => i !== idx));
+
+  return (
+    <div>
+      {label && <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{label}</label>}
+      <div className="flex flex-wrap gap-2 mb-2">
+        {images.map((url, idx) => (
+          <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-emerald-300 group">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            {idx === 0 && (
+              <span className="absolute top-0.5 left-0.5 bg-emerald-600 text-white text-[9px] px-1 rounded font-bold">Ana</span>
+            )}
+            <button
+              type="button"
+              onClick={() => removeImage(idx)}
+              className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold"
+            >×</button>
+          </div>
+        ))}
+        <label className={`w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 transition-colors ${uploading ? "opacity-60 cursor-not-allowed" : ""}`}>
+          <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} disabled={uploading} />
+          {uploading ? (
+            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <Icons.Upload />
+              <span className="text-[9px] text-gray-400 mt-1 text-center px-1">Şəkil əlavə et</span>
+            </>
+          )}
+        </label>
+      </div>
+      {uploadError && <p className="text-xs text-red-500 mb-1">⚠ {uploadError}</p>}
+      {images.length === 0 && (
+        <p className="text-xs text-amber-600">⚠ Ən azı 1 şəkil əlavə edin</p>
+      )}
+    </div>
+  );
+};
+
+// ─── useAdminData hook ────────────────────────────────────────────────────────
+const useAdminData = (fetchFn, deps = []) => {
+  const [data,    setData]    = useState([]);
+  const [total,   setTotal]   = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  const load = useCallback(async (params = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchFn(params);
+      // Normalize: backend returns { data: [...], total } or plain array
+      if (Array.isArray(res)) {
+        setData(res); setTotal(res.length);
+      } else {
+        const arr = res?.data || res?.items || res?.results || [];
+        setData(Array.isArray(arr) ? arr : []);
+        setTotal(res?.total ?? res?.pagination?.totalCount ?? (Array.isArray(arr) ? arr.length : 0));
+      }
+    } catch (err) {
+      // Show backend validation errors if present
+      const msg = err?.validationErrors
+        ? Object.values(err.validationErrors).flat().join("; ")
+        : err?.userMessage || "Xəta baş verdi";
+      setError(msg);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, deps);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { data, setData, total, setTotal, loading, error, reload: load };
+};
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const validateRequired = (val) => !val || (typeof val === "string" && val.trim() === "");
+const validateLangField = (obj) => !obj?.az?.trim();  // sadece AZ zorunlu, EN/RU AZ-dan fallback
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+const Dashboard = ({ t, lang }) => {
+  const [stats, setStats] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [s, tp, mr] = await Promise.all([
+          dashboardApi.getStats(),
+          dashboardApi.getTopProducts(5),
+          dashboardApi.getMonthlyRevenue(),
+        ]);
+        setStats(s);
+        setTopProducts(Array.isArray(tp) ? tp : tp.data || []);
+        setMonthlyData(Array.isArray(mr) ? mr : mr.data || []);
+        // Also load recent orders
+        const orders = await orderApi.getAll({ page: 1, limit: 5 });
+        setRecentOrders(Array.isArray(orders) ? orders.slice(0, 5) : (orders.data || []).slice(0, 5));
+      } catch {
+        // show empty state
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const maxRevenue = Math.max(...monthlyData.map(d => d.revenue || 0), 1);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm">{t.loading}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">{t.dashboard}</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{t.welcomeAdmin}, Admin 👋</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={<Icons.ShoppingCart />} label={t.totalOrders} value={stats?.totalOrders ?? "—"} trend={stats?.ordersTrend} color="bg-blue-50 text-blue-600" />
+        <StatCard icon={<Icons.ShoppingBag />} label={t.todayOrders} value={stats?.todayOrders ?? "—"} trend={stats?.todayTrend} color="bg-emerald-50 text-emerald-600" />
+        <StatCard icon={<Icons.DollarSign />} label={t.totalRevenue} value={stats?.totalRevenue ? `$${(stats.totalRevenue / 1000).toFixed(1)}k` : "—"} trend={stats?.revenueTrend} color="bg-amber-50 text-amber-600" />
+        <StatCard icon={<Icons.Package />} label={t.totalProducts} value={stats?.totalProducts ?? "—"} trend={stats?.productsTrend} color="bg-purple-50 text-purple-600" />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-4">
+        {monthlyData.length > 0 && (
+          <Card className="p-5">
+            <h2 className="text-sm font-bold text-gray-700 mb-4">Revenue Overview (Last 6 months)</h2>
+            <div className="flex items-end gap-2 h-36">
+              {monthlyData.map((d, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full bg-emerald-500 rounded-t-md transition-all hover:bg-emerald-600"
+                    style={{ height: `${((d.revenue || 0) / maxRevenue) * 100}%`, minHeight: "4px" }} />
+                  <span className="text-xs text-gray-400">{d.month}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {topProducts.length > 0 && (
+          <Card className="p-5">
+            <h2 className="text-sm font-bold text-gray-700 mb-4">{t.topProducts}</h2>
+            <div className="space-y-3">
+              {topProducts.map((p, i) => (
+                <div key={p.id} className="flex items-center gap-3">
+                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-700 truncate">{typeof p.name === "object" ? p.name[lang] : p.name}</p>
+                    <div className="h-1.5 bg-gray-100 rounded-full mt-1">
+                      <div className="h-1.5 bg-emerald-500 rounded-full" style={{ width: `${Math.min((p.price / (topProducts[0]?.price || 1)) * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-gray-700">${p.price}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {recentOrders.length > 0 && (
+        <Card>
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="text-sm font-bold text-gray-700">Recent Orders</h2>
+          </div>
+          <Table
+            columns={[
+              { key: "id", label: "Order ID", render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
+              { key: "user", label: t.user, render: r => typeof r.user === "object" ? `${r.user.name || r.user.firstName || ""} ${r.user.surname || r.user.lastName || ""}`.trim() : r.user },
+              { key: "total", label: t.totalRevenue, render: r => <span className="font-semibold text-gray-800">${r.total?.toLocaleString()}</span> },
+              { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
+              { key: "date", label: t.date, render: r => <span className="text-gray-500 text-xs">{r.date || r.createdAt?.split("T")[0]}</span> },
+            ]}
+            data={recentOrders}
+          />
+        </Card>
+      )}
+    </div>
+  );
+};
+
+// ─── Products ─────────────────────────────────────────────────────────────────
+const Products = ({ t, lang }) => {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formLang, setFormLang] = useState("en");
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const PER_PAGE = 8;
+
+  const emptyForm = { 
+    name: { az: "", en: "", ru: "" }, 
+    description: { az: "", en: "", ru: "" }, 
+    price: "", 
+    stock: "", 
+    category_id: "", 
+    material: "", 
+    label: "", 
+    width: "", 
+    height: "", 
+    depth: "", 
+    weight: "", 
+    colors: [], 
+    images: [] 
+  };  const [form, setForm] = useState(emptyForm);
+
+  const { data: products, total, loading, reload } = useAdminData(
+    (params) => productApi.getAll(params),
+    []
+  );
+
+  useEffect(() => {
+    categoryApi.getAll().then(res => {
+      const arr = Array.isArray(res) ? res : res.data || [];
+      setCategories(arr);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    reload({ page, limit: PER_PAGE, search });
+  }, [page, search]);
+
+  const validate = () => {
+    const e = {};
+    if (!form.name?.az?.trim()) e.name_az = t.required;
+    if (!form.name?.en?.trim()) e.name_en = t.required;
+    if (!form.name?.ru?.trim()) e.name_ru = t.required;
+    if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice;
+    if (form.stock === "" || Number(form.stock) < 0) e.stock = t.invalidStock;
+    if (!form.category_id) e.category_id = t.required;
+    if (!form.images || form.images.length === 0) e.images = "Ən azı 1 şəkil əlavə edin";
+    if (!form.colors || form.colors.length === 0) e.colors = "Ən azı 1 rəng əlavə edin";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (p) => {
+    setEditing(p.id);
+
+    // Backend artıq translations:[{lang,name,description}] array qaytarır
+    const getLangField = (field) => {
+      const langs = { az: "", en: "", ru: "" };
+      if (p.translations && Array.isArray(p.translations)) {
+        p.translations.forEach(t => {
+          if (t.lang && langs.hasOwnProperty(t.lang)) {
+            langs[t.lang] = t[field] || "";
+          }
+        });
+      } else if (p[field]) {
+        // Fallback: köhnə format — string və ya {az,en,ru} object
+        const val = p[field];
+        if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+        return { az: val, en: val, ru: val };
+      }
+      return langs;
+    };
+
+    // Backend returns images as array of {imageUrl, isPrimary} objects
+    const imgUrls = (p.images || []).map(img =>
+      typeof img === "string" ? img : img?.imageUrl || img?.url || ""
+    ).filter(Boolean);
+    const clrs = (p.colors || []).map(c => ({
+      name: c.name || "",
+      hex:  c.hexCode || c.hex || "#000000",
+    }));
+    setForm({
+      name:        getLangField("name"),
+      description: getLangField("description"),
+      price:       p.price ?? "",
+      stock:       p.stock ?? "",
+      category_id: p.furnitureCategoryId || p.category_id || p.category?.id || "",
+      material:    p.material || "",
+      label:       p.label || "",
+      width:       p.width ?? "",
+      height:      p.height ?? "",
+      depth:       p.depth ?? "",
+      weight:      p.weight ?? "",
+      colors:      clrs,
+      images:      imgUrls,
+    });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onDelete = async (p) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try {
+      await productApi.remove(p.id);
+      setToast({ message: t.successDeleted, type: "success" });
+      reload({ page, limit: PER_PAGE, search });
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        price: Number(form.price),
+        stock: Number(form.stock),
+        category_id: Number(form.category_id) || undefined,
+      };
+      if (editing) await productApi.update(editing, payload);
+      else await productApi.create(payload);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false);
+      reload({ page, limit: PER_PAGE, search });
+    } catch (err) {
+      // Backend validator xətalarını field-lərə map et
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(prev => ({ ...prev, ...mapped }));
+      }
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const setLangField = (field, l, val) => setForm(f => ({ ...f, [field]: { ...f[field], [l]: val } }));
+  const setField = (field, val) => setForm(f => ({ ...f, [field]: val }));
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.products}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addProduct}</Btn>
+      </div>
+
+      <Card>
+        <div className="flex items-center gap-3 p-4 border-b border-gray-100">
+          <div className="relative flex-1 max-w-sm">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icons.Search /></div>
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder={t.search}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all" />
+          </div>
+          <span className="text-xs text-gray-500">{total} items</span>
+        </div>
+        <Table
+          loading={loading}
+          columns={[
+            { key: "name", label: t.name, render: r => (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 overflow-hidden flex-shrink-0">
+                  {(() => {
+                    const img = r.images?.[0];
+                    const src = typeof img === "string" ? img : img?.imageUrl || img?.url;
+                    return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <Icons.Package />;
+                  })()}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">{typeof r.name === "object" ? r.name[lang] : r.name}</p>
+                  <p className="text-xs text-gray-400">{r.categoryName || (typeof r.category === "object" ? r.category?.name?.[lang] : r.category) || ""}</p>
+                </div>
+              </div>
+            )},
+            { key: "price", label: t.price, render: r => <span className="font-bold text-emerald-700">${Number(r.price).toLocaleString()}</span> },
+            { key: "stock", label: t.stock, render: r => (
+              <span className={`font-semibold ${r.stock === 0 ? "text-red-500" : r.stock < 10 ? "text-amber-500" : "text-gray-700"}`}>
+                {r.stock === 0 ? t.outOfStock : r.stock}
+              </span>
+            )},
+            { key: "colors", label: t.colors, render: r => (
+              <div className="flex gap-1">{(r.colors || []).map((c, i) => (
+                <div key={i} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ background: c.hexCode || c.hex }} title={c.name} />
+              ))}</div>
+            )},
+          ]}
+          data={products}
+          onEdit={openEdit}
+          onDelete={onDelete}
+        />
+        <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
+      </Card>
+
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.editProduct : t.addProduct} width="max-w-3xl">
+        <div className="space-y-4">
+          {/* Name fields - all 3 langs required by backend */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə məcburidir)</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az} onChange={v => setLangField("name", "az", v)} error={errors.name_az} />
+              <Input label="EN *" value={form.name.en} onChange={v => setLangField("name", "en", v)} error={errors.name_en} />
+              <Input label="RU *" value={form.name.ru} onChange={v => setLangField("name", "ru", v)} error={errors.name_ru} />
+            </div>
+          </div>
+
+          {/* Description - tabbed */}
+          <div>
+            <LangTabs lang={formLang} onChange={setFormLang} />
+            <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
+              onChange={v => setLangField("description", formLang, v)} />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Input label={t.price + " *"} value={form.price} onChange={v => setField("price", v)} type="number" error={errors.price} />
+            <Input label={t.stock + " *"} value={form.stock} onChange={v => setField("stock", v)} type="number" error={errors.stock} />
+            <div>
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{t.category} *</label>
+              <select value={form.category_id} onChange={e => setField("category_id", e.target.value)}
+                className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${errors.category_id ? "border-red-400 bg-red-50" : "border-gray-200"}`}>
+                <option value="">— Seçin —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{typeof c.name === "object" ? c.name[lang] : c.name}</option>
+                ))}
+              </select>
+              {errors.category_id && <p className="text-xs text-red-500 mt-1">{errors.category_id}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Material" value={form.material || ""} onChange={v => setField("material", v)} placeholder="Wood, Fabric..." />
+            <Input label="Label" value={form.label || ""} onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
+          </div>
+
+          {/* Dimensions */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ölçülər (cm / kg)</label>
+            <div className="grid grid-cols-4 gap-3">
+              <Input label="En (cm)" value={form.width || ""} onChange={v => setField("width", v)} type="number" placeholder="0" />
+              <Input label="Hündürlük" value={form.height || ""} onChange={v => setField("height", v)} type="number" placeholder="0" />
+              <Input label="Dərinlik" value={form.depth || ""} onChange={v => setField("depth", v)} type="number" placeholder="0" />
+              <Input label="Çəki (kg)" value={form.weight || ""} onChange={v => setField("weight", v)} type="number" placeholder="0" />
+            </div>
+          </div>
+
+          {/* Colors */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.colors} *</label>
+            <div className="flex flex-wrap gap-2">
+              {form.colors.map((c, i) => (
+                <div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+                  <div className="w-4 h-4 rounded-full border border-gray-300" style={{ background: c.hex || c.hexCode }} />
+                  <span>{c.name}</span>
+                  <button type="button" onClick={() => setField("colors", form.colors.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500"><Icons.X /></button>
+                </div>
+              ))}
+              <Btn size="sm" variant="secondary" onClick={() => {
+                const hex = prompt("Hex rəng kodu (məs: #FF0000)");
+                const name = prompt("Rəng adı (məs: Qırmızı)");
+                if (hex && name) setField("colors", [...form.colors, { hex: hex.startsWith("#") ? hex : "#" + hex, name }]);
+              }} type="button"><Icons.Plus />Rəng əlavə et</Btn>
+            </div>
+            {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
+          </div>
+
+          {/* Multi Image Upload */}
+          <MultiImageUpload
+            label={`${t.images} * (ilk şəkil əsas şəkil olacaq)`}
+            images={form.images || []}
+            onChange={urls => setField("images", urls)}
+            uploadFn={productApi.uploadImage}
+            t={t}
+          />
+          {errors.images && <p className="text-xs text-red-500">{errors.images}</p>}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Categories ───────────────────────────────────────────────────────────────
+const Categories = ({ t, lang }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formLang, setFormLang] = useState("en");
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const emptyForm = { name: { az: "", en: "", ru: "" }, image: null };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: cats, loading, reload } = useAdminData(() => categoryApi.getAll());
+
+  const validate = () => {
+    const e = {};
+    if (validateLangField(form.name)) e.name = t.required;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    const normName = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({ name: normName(c.name), image: c.imageUrl || c.image || null });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onDelete = async (c) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try {
+      await categoryApi.remove(c.id);
+      setToast({ message: t.successDeleted, type: "success" });
+      reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      if (editing) await categoryApi.update(editing, form);
+      else await categoryApi.create(form);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false);
+      reload();
+    } catch (err) {
+      // Backend validator xətalarını field-lərə map et
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(prev => ({ ...prev, ...mapped }));
+      }
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.categories}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addCategory}</Btn>
+      </div>
+      {loading ? (
+        <div className="flex justify-center py-16 text-gray-400"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {cats.map(c => (
+            <Card key={c.id} className="p-4 hover:shadow-md transition-shadow group">
+              <div className="w-full h-24 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
+                {(c.imageUrl || c.image) ? <img src={c.imageUrl || c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-emerald-400"><Icons.Grid /></div>}
+              </div>
+              <h3 className="font-semibold text-gray-800 text-sm">{typeof c.name === "object" ? c.name[lang] : c.name}</h3>
+              <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Btn size="sm" variant="secondary" onClick={() => openEdit(c)}><Icons.Edit /></Btn>
+                <Btn size="sm" variant="danger" onClick={() => onDelete(c)}><Icons.Trash /></Btn>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCategory}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə)</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
+          <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
+            uploadFn={categoryApi.uploadImage} t={t} />
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Collections ──────────────────────────────────────────────────────────────
+const Collections = ({ t, lang }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
+
+  const emptyForm = {
+    name: { az: "", en: "", ru: "" },
+    description: { az: "", en: "", ru: "" },
+    price: "",
+    discount_price: "",
+    display_order: 0,
+    collection_category_id: "",
+    product_ids: [],
+    image: null,
+  };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: colls, loading, reload } = useAdminData(() => collectionApi.getAll());
+
+  useEffect(() => {
+    productApi.getAll({ limit: 200 }).then(res => {
+      const arr = Array.isArray(res) ? res : (res?.data ?? res?.items ?? []);
+      setAvailableProducts(arr);
+    }).catch(() => {});
+
+    collectionApi.getCategories().then(res => {
+      setAvailableCategories(Array.isArray(res) ? res : []);
+    }).catch(() => {});
+  }, []);
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.az?.trim() && !form.name.en?.trim() && !form.name.ru?.trim()) e.name = t.required;
+    if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice || "Qiymət lazımdır";
+    if (!form.collection_category_id) e.collection_category_id = "Kateqoriya seçin";
+    if (!form.product_ids || form.product_ids.length === 0) e.product_ids = "Ən az 1 məhsul seçin";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    const getLangField = (field) => {
+      const langs = { az: "", en: "", ru: "" };
+      if (c.translations && Array.isArray(c.translations)) {
+        c.translations.forEach(tr => {
+          if (tr.lang && Object.prototype.hasOwnProperty.call(langs, tr.lang)) {
+            langs[tr.lang] = tr[field] || "";
+          }
+        });
+        return langs;
+      }
+      const val = c[field];
+      if (!val) return langs;
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({
+      name:                   getLangField("name"),
+      description:            getLangField("description"),
+      price:                  c.totalPrice ?? c.price ?? "",
+      discount_price:         c.discountPrice ?? "",
+      display_order:          c.displayOrder ?? 0,
+      collection_category_id: c.collectionCategoryId ?? "",
+      product_ids:            c.products?.map(p => p.id ?? p) || [],
+      image:                  c.imagesUrl || c.imageUrl || c.image || null,
+    });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onDelete = async (c) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try { await collectionApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      if (editing) await collectionApi.update(editing, form);
+      else await collectionApi.create(form);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false); reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setSaving(false); }
+  };
+
+  const toggleProduct = (pid) => setForm(f => ({
+    ...f, product_ids: f.product_ids.includes(pid) ? f.product_ids.filter(x => x !== pid) : [...f.product_ids, pid]
+  }));
+
+  const getCategoryName = (c) => {
+    if (!c.translations) return c.name || "";
+    const tr = c.translations.find(x => x.lang === lang) || c.translations[0];
+    return tr?.name || c.name || "";
+  };
+
+  const getProductName = (p) => {
+    if (p.translations) {
+      const tr = p.translations.find(x => x.lang === lang) || p.translations[0];
+      return tr?.name || p.name || "";
+    }
+    return typeof p.name === "object" ? (p.name[lang] || p.name.az || p.name.en || "") : (p.name || "");
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.collections}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addCollection}</Btn>
+      </div>
+      <Card>
+        <Table
+          loading={loading}
+          columns={[
+            { key: "name", label: t.name, render: r => {
+              const tr = r.translations?.find(x => x.lang === lang) || r.translations?.[0];
+              const name = tr?.name || (typeof r.name === "object" ? r.name[lang] : r.name) || "";
+              return <span className="font-semibold text-gray-800">{name}</span>;
+            }},
+            { key: "price", label: t.price, render: r => <span className="font-bold text-emerald-700">₼{Number(r.totalPrice ?? r.price ?? 0).toLocaleString()}</span> },
+            { key: "products", label: t.products, render: r => <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">{r.products?.length || 0} məhsul</span> },
+          ]}
+          data={colls}
+          onEdit={openEdit}
+          onDelete={onDelete}
+        />
+      </Card>
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCollection}>
+        <div className="space-y-4">
+          {/* Ad — 3 dil */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} * <span className="text-red-500 text-xs normal-case">(az/en/ru — ən az biri doldurulmalı)</span></label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
+          {/* Açıqlama — 3 dil */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.description}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Textarea label="AZ" value={form.description.az || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, az: v } }))} rows={2} />
+              <Textarea label="EN" value={form.description.en || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, en: v } }))} rows={2} />
+              <Textarea label="RU" value={form.description.ru || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, ru: v } }))} rows={2} />
+            </div>
+          </div>
+          {/* Kateqoriya * */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Kateqoriya *</label>
+            <select
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 ${errors.collection_category_id ? "border-red-400" : "border-gray-300"}`}
+              value={form.collection_category_id}
+              onChange={e => setForm(f => ({ ...f, collection_category_id: e.target.value }))}
+            >
+              <option value="">— Kateqoriya seçin —</option>
+              {availableCategories.map(c => (
+                <option key={c.id} value={c.id}>{getCategoryName(c)}</option>
+              ))}
+            </select>
+            {errors.collection_category_id && <p className="text-red-500 text-xs mt-1">{errors.collection_category_id}</p>}
+          </div>
+          {/* Qiymət */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input label={`${t.price} *`} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
+            <Input label="Endirimli qiymət" value={form.discount_price} onChange={v => setForm(f => ({ ...f, discount_price: v }))} type="number" />
+          </div>
+          <Input label="Göstərilmə sırası" value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" />
+          {/* Məhsul seçimi */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
+              {t.selectProducts} * <span className="text-emerald-600 font-normal">({form.product_ids.length} seçilib)</span>
+            </label>
+            {errors.product_ids && <p className="text-red-500 text-xs mb-1">{errors.product_ids}</p>}
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+              {availableProducts.length === 0 && <p className="text-gray-400 text-xs col-span-2 text-center py-4">Məhsullar yüklənir...</p>}
+              {availableProducts.map(p => (
+                <label key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${form.product_ids?.includes(p.id) ? "border-emerald-500 bg-emerald-50" : "border-gray-200 hover:border-gray-300"}`}>
+                  <input type="checkbox" checked={form.product_ids?.includes(p.id)} onChange={() => toggleProduct(p.id)} className="accent-emerald-600" />
+                  <span className="text-xs font-medium text-gray-700 truncate">{getProductName(p)}</span>
+                  <span className="ml-auto text-xs text-emerald-700 font-semibold flex-shrink-0">₼{p.price ?? p.totalPrice ?? ""}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Collection Categories ────────────────────────────────────────────────────
+const CollectionCategories = ({ t, lang }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formLang, setFormLang] = useState("en");
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const emptyForm = { name: { az: "", en: "", ru: "" }, image: null };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: cats, loading, reload } = useAdminData(() => collectionCategoryApi.getAll());
+
+  const validate = () => {
+    const e = {};
+    if (validateLangField(form.name)) e.name = t.required;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    const normName = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({ name: normName(c.name), image: c.imageUrl || c.image || null });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onDelete = async (c) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try { await collectionCategoryApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      if (editing) await collectionCategoryApi.update(editing, form);
+      else await collectionCategoryApi.create(form);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false); reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.collectionCategories}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
+      </div>
+      {loading ? (
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {cats.map(c => (
+            <Card key={c.id} className="p-4 hover:shadow-md transition-shadow group">
+              <div className="w-full h-20 bg-gradient-to-br from-blue-50 to-purple-100 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
+                {(c.imageUrl || c.image) ? <img src={c.imageUrl || c.image} alt="" className="w-full h-full object-cover" /> : <div className="text-purple-400"><Icons.Layers /></div>}
+              </div>
+              <h3 className="font-semibold text-gray-800">{typeof c.name === "object" ? c.name[lang] : c.name}</h3>
+              <div className="flex gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Btn size="sm" variant="secondary" onClick={() => openEdit(c)}><Icons.Edit /></Btn>
+                <Btn size="sm" variant="danger" onClick={() => onDelete(c)}><Icons.Trash /></Btn>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
+          <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
+            uploadFn={collectionCategoryApi.uploadImage} t={t} />
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+const Orders = ({ t, lang }) => {
+  const [page, setPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDate, setFilterDate] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [advancing, setAdvancing] = useState(null);
+  const [toast, setToast] = useState(null);
+  const PER_PAGE = 8;
+  const STATUS_FLOW = ["pending", "confirmed", "shipped", "delivered"];
+
+  const { data: orders, total, loading, reload } = useAdminData(
+    (params) => orderApi.getAll(params), []
+  );
+
+  useEffect(() => {
+    reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus, date: filterDate || undefined });
+  }, [page, filterStatus, filterDate]);
+
+  const advanceStatus = async (order) => {
+    const idx = STATUS_FLOW.indexOf(order.status);
+    if (idx >= STATUS_FLOW.length - 1) return;
+    const next = STATUS_FLOW[idx + 1];
+    setAdvancing(order.id);
+    try {
+      await orderApi.updateStatus(order.id, next);
+      setToast({ message: t.successSaved, type: "success" });
+      if (detail?.id === order.id) setDetail(d => ({ ...d, status: next }));
+      reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setAdvancing(null); }
+  };
+
+  const getUserName = (r) => {
+    if (typeof r.user === "object") return `${r.user?.firstName || ""} ${r.user?.lastName || ""}`.trim() || r.user?.email || "—";
+    return r.user || "—";
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.orders}</h1>
+        <span className="text-sm text-gray-500">{total} total</span>
+      </div>
+
+      <Card className="p-4 flex flex-wrap items-center gap-3">
+        <Select value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1); }}
+          options={[{ value: "all", label: "All Statuses" }, ...STATUS_FLOW.map(s => ({ value: s, label: t[s] }))]} />
+        <Input type="date" value={filterDate} onChange={v => { setFilterDate(v); setPage(1); }} className="w-44" />
+        {(filterStatus !== "all" || filterDate) && (
+          <Btn variant="ghost" size="sm" onClick={() => { setFilterStatus("all"); setFilterDate(""); }}>
+            <Icons.X /> Clear
+          </Btn>
+        )}
+      </Card>
+
+      <Card>
+        <Table
+          loading={loading}
+          columns={[
+            { key: "id", label: "Order ID", render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
+            { key: "user", label: t.user, render: r => (
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold">{getUserName(r)[0] || "?"}</div>
+                <span className="font-medium text-gray-800 text-sm">{getUserName(r)}</span>
+              </div>
+            )},
+            { key: "total", label: "Total", render: r => <span className="font-bold text-gray-800">${Number(r.total).toLocaleString()}</span> },
+            { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
+            { key: "date", label: t.date, render: r => <span className="text-gray-500 text-xs">{r.date || r.createdAt?.split("T")[0]}</span> },
+          ]}
+          data={orders}
+          onView={async (row) => {
+            try { const full = await orderApi.getById(row.id); setDetail(full); }
+            catch { setDetail(row); }
+          }}
+          extraActions={(row) => (
+            row.status !== "delivered" && (
+              <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
+                {advancing === row.id ? <div className="w-3 h-3 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" /> : <Icons.ChevronRight />}
+                Advance
+              </Btn>
+            )
+          )}
+        />
+        <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
+      </Card>
+
+      <Modal open={!!detail} onClose={() => setDetail(null)} title={`${t.orderDetail} #${detail?.id}`}>
+        {detail && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">{t.user}</p>
+                <p className="font-semibold text-gray-800">{getUserName(detail)}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-500 mb-1">{t.status}</p>
+                <Badge status={detail.status} label={t[detail.status]} />
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 col-span-2">
+                <p className="text-xs text-gray-500 mb-1">{t.address}</p>
+                <p className="font-medium text-gray-800 text-sm">{typeof detail.address === "object" ? `${detail.address?.street || ""}, ${detail.address?.city || ""}` : detail.address}</p>
+              </div>
+            </div>
+            {detail.products && (
+              <div>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">{t.products}</p>
+                <div className="space-y-2">
+                  {detail.products.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg p-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Icons.Package /></div>
+                        <span className="font-medium text-gray-800">{typeof p.name === "object" ? p.name[lang] : p.name}</span>
+                        <span className="text-gray-400 text-xs">×{p.qty || p.quantity}</span>
+                      </div>
+                      <span className="font-bold text-emerald-700">${Number(p.price).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between bg-emerald-50 rounded-xl p-4">
+              <span className="font-semibold text-gray-700">Total</span>
+              <span className="text-xl font-bold text-emerald-700">${Number(detail.total).toLocaleString()}</span>
+            </div>
+            {detail.status !== "delivered" && (
+              <div className="flex justify-end">
+                <Btn onClick={() => advanceStatus(detail)} disabled={advancing === detail.id}>
+                  {advancing === detail.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Icons.ChevronRight />}
+                  {t.updateStatus}: {t[STATUS_FLOW[STATUS_FLOW.indexOf(detail.status) + 1]]}
+                </Btn>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Hero Sections ────────────────────────────────────────────────────────────
+const HeroSections = ({ t, lang }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formLang, setFormLang] = useState("en");
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const emptyForm = { title: { az: "", en: "", ru: "" }, subtitle: { az: "", en: "", ru: "" }, image: null, active: true };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: heros, loading, reload } = useAdminData(() => heroApi.getAll());
+
+  const validate = () => {
+    const e = {};
+    if (!form.title?.az?.trim()) e.title = t.required;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (h) => {
+    // Backend returns title/subtitle as plain string (current lang). Normalize to multilang object.
+    const normalizeLang = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(h.id);
+    setForm({
+      title:    normalizeLang(h.title),
+      subtitle: normalizeLang(h.subtitle),
+      image:    h.imageUrl || h.image || null,
+      active:   h.isActive !== undefined ? h.isActive : (h.active !== undefined ? h.active : true),
+    });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onToggle = async (h) => {
+    try { await heroApi.toggle(h.id); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onDelete = async (h) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try { await heroApi.remove(h.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      if (editing) await heroApi.update(editing, form);
+      else await heroApi.create(form);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false); reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.heroSections}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
+      </div>
+      {loading ? (
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+      ) : (
+        <div className="grid lg:grid-cols-2 gap-4">
+{heros?.map(h => {
+  const isActive = h.isActive !== undefined ? h.isActive : h.active;
+
+  // 🔹 Təhlükəsiz title/subtitle oxuma
+  const title = h.title?.[lang] ?? (typeof h.title === "string" ? h.title : "");
+  const subtitle = h.subtitle?.[lang] ?? (typeof h.subtitle === "string" ? h.subtitle : "");
+
+  return (
+    <Card key={h.id} className={`overflow-hidden group transition-all ${isActive ? "ring-2 ring-emerald-400" : ""}`}>
+      <div className="h-36 bg-gradient-to-br from-slate-800 to-slate-600 relative flex items-center justify-center overflow-hidden">
+        {(h.imageUrl || h.image) && <img src={h.imageUrl || h.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />}
+        <div className="text-center text-white relative z-10">
+          <p className="text-xl font-bold">{title}</p>
+          <p className="text-sm text-slate-300">{subtitle}</p>
+        </div>
+        {isActive && <div className="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Active</div>}
+      </div>
+      <div className="p-4 flex items-center justify-between">
+        <button onClick={() => onToggle(h)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isActive ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"}`}>
+          {isActive ? t.deactivate : t.activate}
+        </button>
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Btn size="sm" variant="secondary" onClick={() => openEdit(h)}><Icons.Edit /></Btn>
+          <Btn size="sm" variant="danger" onClick={() => onDelete(h)}><Icons.Trash /></Btn>
+        </div>
+      </div>
+    </Card>
+  );
+})}     </div>
+      )}
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.title} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.title.az || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, az: v } }))} required error={errors.title} />
+              <Input label="EN" value={form.title.en || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, en: v } }))} />
+              <Input label="RU" value={form.title.ru || ""} onChange={v => setForm(f => ({ ...f, title: { ...f.title, ru: v } }))} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.subtitle}</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ" value={form.subtitle.az || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, az: v } }))} />
+              <Input label="EN" value={form.subtitle.en || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, en: v } }))} />
+              <Input label="RU" value={form.subtitle.ru || ""} onChange={v => setForm(f => ({ ...f, subtitle: { ...f.subtitle, ru: v } }))} />
+            </div>
+          </div>
+          <ImageUpload label={t.image} value={form.image} onChange={url => setForm(f => ({ ...f, image: url }))}
+            uploadFn={heroApi.uploadImage} t={t} />
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="accent-emerald-600" />
+            <span className="text-sm font-medium text-gray-700">{t.active}</span>
+          </label>
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Campaigns ────────────────────────────────────────────────────────────────
+const Campaigns = ({ t, lang }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [formLang, setFormLang] = useState("en");
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  // Form uses: name (multilang obj), discount (number string), startDate (YYYY-MM-DD), endDate (YYYY-MM-DD), active (bool)
+  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, discount: "", startDate: "", endDate: "", active: true };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());
+
+  // Helper: convert ISO datetime string to YYYY-MM-DD for <input type="date">
+  const toDateStr = (val) => {
+    if (!val) return "";
+    if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
+    return val;
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.name?.az?.trim()) e.name = t.required;
+    if (!form.discount || Number(form.discount) < 1 || Number(form.discount) > 100) e.discount = t.invalidDiscount;
+    if (!form.startDate) e.startDate = t.required;
+    if (!form.endDate) e.endDate = t.required;
+    if (form.startDate && form.endDate && form.startDate > form.endDate) e.endDate = t.dateError;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    // Backend returns title as string (not multilang object)
+    const normalizeLang = (val) => {
+      if (!val) return { az: "", en: "", ru: "" };
+      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+      return { az: val, en: val, ru: val };
+    };
+    setEditing(c.id);
+    setForm({
+      name:        normalizeLang(c.title || c.name),
+      description: normalizeLang(c.description),
+      discount:    c.discountPercent ?? c.discount ?? "",
+      startDate:   toDateStr(c.startDate),
+      endDate:     toDateStr(c.endDate),
+      active:      c.isActive !== undefined ? c.isActive : (c.active !== undefined ? c.active : true),
+    });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onToggle = async (c) => {
+    try { await campaignApi.toggle(c.id); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onDelete = async (c) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try { await campaignApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name:           form.name,
+        description:    form.description,
+        discount:       Number(form.discount),       // buildCampaignPayload maps this to discountPercent
+        startDate:      form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
+        endDate:        form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
+        display_order:  0,
+      };
+      if (editing) await campaignApi.update(editing, payload);
+      else await campaignApi.create(payload);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false); reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.campaigns}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
+      </div>
+      <Card>
+        <Table
+          loading={loading}
+          columns={[
+            { key: "title", label: t.name, render: r => <span className="font-semibold text-gray-800">{r.title || (typeof r.name === "object" ? r.name[lang] : r.name)}</span> },
+            { key: "discountPercent", label: t.discount, render: r => {
+              const pct = r.discountPercent ?? r.discount;
+              return pct ? <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold">{pct}% OFF</span> : <span className="text-gray-400 text-xs">—</span>;
+            }},
+            { key: "startDate", label: "Start", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.startDate)}</span> },
+            { key: "endDate",   label: "End",   render: r => <span className="text-gray-500 text-xs">{toDateStr(r.endDate)}</span> },
+            { key: "isActive", label: t.status, render: r => {
+              const active = r.isActive !== undefined ? r.isActive : r.active;
+              return (
+                <button onClick={() => onToggle(r)} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+                  {active ? t.active : t.inactive}
+                </button>
+              );
+            }},
+          ]}
+          data={camps}
+          onEdit={openEdit}
+          onDelete={onDelete}
+        />
+      </Card>
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
+              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
+              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            </div>
+          </div>
+          <Input label={`${t.discount} %`} value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" error={errors.discount} />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Başlanğıc tarixi" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
+            <Input label="Bitmə tarixi"     value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
+          </div>
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Discount Codes ───────────────────────────────────────────────────────────
+const DiscountCodes = ({ t }) => {
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  // type: "percent" | "fixed"  (mapped from backend enum: 1=Percent, 2=Fixed)
+  const emptyForm = { code: "", type: "percent", value: "", limit: "", expiration: "" };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: codes, loading, reload } = useAdminData(() => discountCodeApi.getAll());
+
+  // Backend returns Type as enum (0 or 1, or 1=Percent/2=Fixed). Normalize to "percent"/"fixed" string.
+  const typeToStr = (t) => {
+    if (t === "percent" || t === "fixed") return t;
+    if (t === 1 || t === "Percent" || t === 0) return "percent";
+    if (t === 2 || t === "Fixed") return "fixed";
+    return "percent";
+  };
+
+  // Convert ISO datetime to YYYY-MM-DD
+  const toDateStr = (val) => {
+    if (!val) return "";
+    if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
+    return val;
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.code.trim()) e.code = t.required;
+    if (!form.value || Number(form.value) <= 0) e.value = t.required;
+    if (!form.expiration) e.expiration = t.required;
+    if (form.type === "percent" && (Number(form.value) < 1 || Number(form.value) > 100)) e.value = t.invalidDiscount;
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openEdit = (c) => {
+    setEditing(c.id);
+    setForm({
+      code:       c.code || "",
+      type:       typeToStr(c.type),
+      value:      c.value ?? c.discountValue ?? "",
+      limit:      c.maxUses ?? c.limit ?? "",
+      expiration: toDateStr(c.expiresAt || c.expiration),
+    });
+    setErrors({});
+    setModal(true);
+  };
+
+  const onDelete = async (c) => {
+    if (!window.confirm(t.confirmDelete)) return;
+    try { await discountCodeApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
+  };
+
+  const onSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const payload = { ...form, value: Number(form.value), limit: Number(form.limit) || 0 };
+      if (editing) await discountCodeApi.update(editing, payload);
+      else await discountCodeApi.create(payload);
+      setToast({ message: t.successSaved, type: "success" });
+      setModal(false); reload();
+    } catch (err) {
+      setToast({ message: err?.userMessage || t.error, type: "error" });
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-5">
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">{t.discountCodes}</h1>
+        <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
+      </div>
+      <Card>
+        <Table
+          loading={loading}
+          columns={[
+            { key: "code",  label: t.code,  render: r => <code className="bg-gray-100 px-2.5 py-1 rounded-lg text-sm font-bold text-gray-800">{r.code}</code> },
+            { key: "type",  label: t.type,  render: r => <span className="text-xs text-gray-600">{typeToStr(r.type) === "percent" ? t.percent : t.fixed}</span> },
+            { key: "value", label: t.value, render: r => {
+              const isPercent = typeToStr(r.type) === "percent";
+              const val = r.value ?? r.discountValue;
+              return <span className="font-bold text-emerald-700">{val}{isPercent ? "%" : "$"}</span>;
+            }},
+            { key: "usageCount", label: t.usageCount, render: r => <span className="text-gray-600">{r.usedCount ?? r.usageCount ?? 0} / {r.maxUses ?? r.limit ?? "∞"}</span> },
+            { key: "expiresAt", label: "Expires", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.expiresAt || r.expiration)}</span> },
+            { key: "status", label: t.status, render: r => {
+              // Backend returns Status enum: 1=Active, 2=Expired, 3=Passive
+              const isActive = r.status === 1 || r.status === "Active" || r.active === true;
+              return (
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                  {isActive ? t.active : t.inactive}
+                </span>
+              );
+            }},
+          ]}
+          data={codes}
+          onEdit={openEdit}
+          onDelete={onDelete}
+        />
+      </Card>
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
+        <div className="space-y-4">
+          <Input label={t.code} value={form.code} onChange={v => setForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="SAVE20" required error={errors.code} />
+          <Select label={t.type} value={form.type} onChange={v => setForm(f => ({ ...f, type: v }))}
+            options={[{ value: "percent", label: t.percent }, { value: "fixed", label: t.fixed }]} />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label={`${t.value} (${form.type === "percent" ? "%" : "$"})`} value={form.value}
+              onChange={v => setForm(f => ({ ...f, value: v }))} type="number" error={errors.value} />
+            <Input label={t.limit} value={form.limit} onChange={v => setForm(f => ({ ...f, limit: v }))} type="number" />
+          </div>
+          <Input label="Expiration Date" value={form.expiration} onChange={v => setForm(f => ({ ...f, expiration: v }))} type="date" error={errors.expiration} />
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
+            <Btn onClick={onSave} disabled={saving}>
+              {saving ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t.saving}</> : <><Icons.Check />{t.save}</>}
+            </Btn>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Sidebar & Header ─────────────────────────────────────────────────────────
+const NAV = [
+  { key: "dashboard", icon: <Icons.Dashboard />, label: "dashboard" },
+  { key: "products", icon: <Icons.Package />, label: "products" },
+  { key: "categories", icon: <Icons.Tag />, label: "categories" },
+  { key: "collections", icon: <Icons.Layers />, label: "collections" },
+  { key: "collection-categories", icon: <Icons.Grid />, label: "collectionCategories" },
+  { key: "orders", icon: <Icons.ShoppingBag />, label: "orders" },
+  { key: "hero-sections", icon: <Icons.Image />, label: "heroSections" },
+  { key: "campaigns", icon: <Icons.TrendingUp />, label: "campaigns" },
+  { key: "discount-codes", icon: <Icons.Ticket />, label: "discountCodes" },
+];
+
+const Sidebar = ({ page, setPage, t, collapsed, setCollapsed, onLogout }) => (
+  <aside className={`h-screen bg-[#1a3a2a] flex flex-col transition-all duration-300 ${collapsed ? "w-16" : "w-60"} flex-shrink-0`}>
+    <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
+      <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+        <Icons.Layers />
+      </div>
+      {!collapsed && <span className="font-bold text-white text-base tracking-wide">Amore mebel admin</span>}
+      <button onClick={() => setCollapsed(!collapsed)} className="ml-auto text-white/40 hover:text-white transition-colors">
+        {collapsed ? <Icons.ChevronRight /> : <Icons.ChevronLeft />}
+      </button>
+    </div>
+    <nav className="flex-1 py-4 px-2 space-y-0.5 overflow-y-auto">
+      {NAV.map(item => {
+        const active = page === item.key;
+        return (
+          <button key={item.key} onClick={() => setPage(item.key)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 group text-left
+              ${active ? "bg-white text-[#1a3a2a] shadow-sm" : "text-white/60 hover:bg-white/10 hover:text-white"}`}>
+            <div className={`flex-shrink-0 ${active ? "text-emerald-700" : "text-white/50 group-hover:text-white"}`}>{item.icon}</div>
+            {!collapsed && <span className={`text-sm font-medium truncate ${active ? "text-[#1a3a2a] font-semibold" : ""}`}>{t[item.label]}</span>}
+            {!collapsed && active && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />}
+          </button>
+        );
+      })}
+    </nav>
+    <div className="p-3 border-t border-white/10">
+      <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all">
+        <Icons.LogOut />
+        {!collapsed && <span className="text-sm font-medium">{t.logout}</span>}
+      </button>
+    </div>
+  </aside>
+);
+
+const Header = ({ t, lang, setLang, page }) => {
+  const pageLabel = NAV.find(n => n.key === page)?.label || "dashboard";
+  return (
+    <header className="h-14 bg-white border-b border-gray-100 flex items-center px-5 gap-4 flex-shrink-0">
+      <div className="flex-1">
+        <h2 className="text-sm font-bold text-gray-700">{t[pageLabel]}</h2>
+      </div>
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+        {["az", "en", "ru"].map(l => (
+          <button key={l} onClick={() => setLang(l)}
+            className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${lang === l ? "bg-white shadow text-emerald-700" : "text-gray-500 hover:text-gray-700"}`}>
+            {l.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <div className="relative">
+        <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
+          <Icons.Bell />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+        </button>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white text-xs font-bold">A</div>
+        <div className="hidden md:block">
+          <p className="text-xs font-semibold text-gray-800">Admin</p>
+          <p className="text-xs text-gray-400">admin@furni.az</p>
+        </div>
+        <Icons.ChevronDown />
+      </div>
+    </header>
+  );
+};
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+export default function AdminPanel() {
+  const [page,      setPage]      = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(false);
+  const dispatch   = useDispatch();
+  const isAuth     = useSelector(selectIsAuth);
+  const reduxLang  = useSelector(selectLang);
+  // Admin panel also uses internal translations for its UI labels
+  const lang = reduxLang || "az";
+  const t    = translations[lang] || translations["az"];
+
+  const handleLangChange = (l) => { dispatch(setReduxLang(l)); };
+  const handleLogout     = () => { dispatch(logoutAction()); window.location.href = "/login"; };
+
+  const renderPage = () => {
+    const props = { t, lang };
+    switch (page) {
+      case "dashboard": return <Dashboard {...props} />;
+      case "products": return <Products {...props} />;
+      case "categories": return <Categories {...props} />;
+      case "collections": return <Collections {...props} />;
+      case "collection-categories": return <CollectionCategories {...props} />;
+      case "orders": return <Orders {...props} />;
+      case "hero-sections": return <HeroSections {...props} />;
+      case "campaigns": return <Campaigns {...props} />;
+      case "discount-codes": return <DiscountCodes {...props} />;
+      default: return <Dashboard {...props} />;
+    }
+  };
 
   return (
     <>
-      <div className="fcp-price-vals">
-        <span>{fmt(localMin)}</span>
-        <span>{fmt(localMax)}</span>
-      </div>
-      <div className="fcp-track">
-        <div className="fcp-track-bg" />
-        <div className="fcp-track-fill" style={{ left: `${lPct}%`, right: `${100 - rPct}%` }} />
-        <input
-          type="range" className="fcp-range fcp-range-min"
-          min={pMin} max={pMax} step={50} value={localMin}
-          onChange={e => setLocalMin(clamp(+e.target.value, pMin, localMax - 50))}
-          onMouseUp={commit} onTouchEnd={commit}
-        />
-        <input
-          type="range" className="fcp-range fcp-range-max"
-          min={pMin} max={pMax} step={50} value={localMax}
-          onChange={e => setLocalMax(clamp(+e.target.value, localMin + 50, pMax))}
-          onMouseUp={commit} onTouchEnd={commit}
-        />
-      </div>
-      <div className="fcp-price-inputs">
-        <input
-          className="fcp-price-input" type="number"
-          value={localMin} min={pMin} max={localMax - 50}
-          onChange={e => setLocalMin(clamp(+e.target.value, pMin, localMax - 50))}
-          onBlur={commit}
-        />
-        <span className="fcp-price-dash">—</span>
-        <input
-          className="fcp-price-input" type="number"
-          value={localMax} min={localMin + 50} max={pMax}
-          onChange={e => setLocalMax(clamp(+e.target.value, localMin + 50, pMax))}
-          onBlur={commit}
-        />
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(-12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1fae5; border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6ee7b7; }
+        .border-3 { border-width: 3px; }
+      `}</style>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <Sidebar page={page} setPage={setPage} t={t} collapsed={collapsed} setCollapsed={setCollapsed} onLogout={handleLogout} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header t={t} lang={lang} setLang={handleLangChange} page={page} />
+          <main className="flex-1 overflow-y-auto p-5">
+            {renderPage()}
+          </main>
+        </div>
       </div>
     </>
-  );
-}
-
-// ─── FILTER SIDEBAR INNER ──────────────────────────────────────────────────────
-function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, onFilterChange, onPriceChange, onReset, hasActive, t, currentSort, onSortChange }) {
-  const [open, setOpen] = useState({ category: true, price: true, sort: true });
-  const tog = k => setOpen(p => ({ ...p, [k]: !p[k] }));
-
-  const priceMin = filters.priceMin !== "" ? Number(filters.priceMin) : 0;
-  const priceMax = filters.priceMax !== "" ? Number(filters.priceMax) : PRICE_MAX;
-
-  return (
-    <div className="fcp-sidebar-inner">
-      <div className="fcp-sidebar-header">
-        <span className="fcp-sidebar-title">{t("fcp.filter_title")}</span>
-        {hasActive && (
-          <button className="fcp-sidebar-clear" onClick={onReset}>
-            {t("fcp.clear_all")}
-          </button>
-        )}
-      </div>
-
-      {/* CATEGORY */}
-      <Section label={t("fcp.categories")} open={open.category} onToggle={() => tog("category")}>
-        <div className="fcp-cat-list">
-          {categories.map(cat => (
-            <button
-              key={cat.id ?? "all"}
-              className={`fcp-cat-btn${selectedCatId === cat.id ? " active" : ""}`}
-              onClick={() => onCategoryChange(cat.id)}
-            >
-              <span className="fcp-cat-dot" style={{ background: cat.accent }} />
-              <span className="fcp-cat-name">{cat.name}</span>
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      {/* PRICE */}
-      <Section label={t("fcp.price_range")} open={open.price} onToggle={() => tog("price")}>
-        <PriceSlider
-          min={priceMin}
-          max={priceMax}
-          pMin={0}
-          pMax={PRICE_MAX}
-          onChange={onPriceChange}
-        />
-      </Section>
-
-      {/* SORT */}
-      <Section label={t("fcp.sort_label")} open={open.sort} onToggle={() => tog("sort")}>
-        <div className="fcp-sort-group">
-          {SORT_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`fcp-sort-opt${currentSort === opt.value ? " active" : ""}`}
-              onClick={() => onSortChange(opt.value)}
-            >
-              <span className="fcp-sort-radio" />
-              <span>{t(opt.labelKey)}</span>
-            </button>
-          ))}
-        </div>
-      </Section>
-    </div>
-  );
-}
-
-// ─── PAGINATION ────────────────────────────────────────────────────────────────
-function Pagination({ current, total, onChange }) {
-  if (total <= 1) return null;
-  const range = [];
-  const delta = 2;
-  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) range.push(i);
-  return (
-    <div className="fcp-pagination">
-      <button className="fcp-pg-btn" disabled={current === 1} onClick={() => onChange(current - 1)}>‹</button>
-      {range[0] > 1 && <>
-        <button className="fcp-pg-num" onClick={() => onChange(1)}>1</button>
-        {range[0] > 2 && <span style={{ color: "#aaa", padding: "0 4px" }}>…</span>}
-      </>}
-      {range.map(p => (
-        <button key={p} className={`fcp-pg-num${p === current ? " active" : ""}`} onClick={() => onChange(p)}>{p}</button>
-      ))}
-      {range[range.length - 1] < total && <>
-        {range[range.length - 1] < total - 1 && <span style={{ color: "#aaa", padding: "0 4px" }}>…</span>}
-        <button className="fcp-pg-num" onClick={() => onChange(total)}>{total}</button>
-      </>}
-      <button className="fcp-pg-btn" disabled={current === total} onClick={() => onChange(current + 1)}>›</button>
-    </div>
-  );
-}
-
-// ─── MAIN PAGE ─────────────────────────────────────────────────────────────────
-export default function FurnitureCategoryPage() {
-  const { id: routeId }                 = useParams();
-  const { t }                           = useTranslation();
-  const navigate                        = useNavigate();
-  const dispatch                        = useDispatch();
-  const wishlist                        = useSelector(s => s.wishlist.items);
-  const lang                            = useSelector(selectLang);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // ── state ──────────────────────────────────────────────────────────────────
-  const [apiCats,     setApiCats]     = useState([]);
-  const [selectedId,  setSelectedId]  = useState(routeId ? Number(routeId) : null);
-  const [products,    setProducts]    = useState([]);
-  const [pagination,  setPagination]  = useState({ total: 0, totalPages: 1 });
-  const [loading,     setLoading]     = useState(true);
-  const [addingId,    setAddingId]    = useState(null);
-  const [toast,       setToast]       = useState(null);
-  const [mobileOpen,  setMobileOpen]  = useState(false);
-  const [gridCols,    setGridCols]    = useState(3);
-  const [bannerReady, setBannerReady] = useState(false);
-
-  const [filters, setFilters] = useState({
-    priceMin: searchParams.get("priceMin") || "",
-    priceMax: searchParams.get("priceMax") || "",
-  });
-
-  const currentPage = Number(searchParams.get("page") || 1);
-  const currentSort = searchParams.get("sort") || "featured";
-
-  const gridRef    = useRef(null);
-  const toastTimer = useRef(null);
-
-  // ── load categories ────────────────────────────────────────────────────────
-  useEffect(() => {
-    categoryApi.getAll().then(res => {
-      const arr = Array.isArray(res) ? res : [];
-      setApiCats(arr.map((c, i) => ({
-        id:     c.id,
-        name:   c.name || `Category ${c.id}`,
-        image:  c.imageUrl || BANNER_IMGS[i % BANNER_IMGS.length],
-        accent: ACCENT_COLORS[i % ACCENT_COLORS.length],
-      })));
-    }).catch(() => {});
-  }, [lang]);
-
-  const allCategories = useMemo(() => [
-    { id: null, name: t("fcp.cat_all"), image: BANNER_IMGS[0], accent: "#6d9b70" },
-    ...apiCats,
-  ], [apiCats, t]);
-
-  const activeCat = useMemo(
-    () => allCategories.find(c => c.id === selectedId) ?? allCategories[0],
-    [selectedId, allCategories]
-  );
-
-  // ── banner entrance ────────────────────────────────────────────────────────
-  useEffect(() => {
-    setBannerReady(false);
-    const tid = setTimeout(() => setBannerReady(true), 60);
-    return () => clearTimeout(tid);
-  }, [selectedId]);
-
-  // ── fetch products ─────────────────────────────────────────────────────────
-  const fetchProducts = useCallback(() => {
-    setLoading(true);
-
-    const pMin = searchParams.get("priceMin");
-    const pMax = searchParams.get("priceMax");
-
-    // Build request depending on active filters
-    let request;
-
-    if (pMin || pMax) {
-      // Use price-range endpoint when price filter is set
-      const min = pMin ? Number(pMin) : 0;
-      const max = pMax ? Number(pMax) : PRICE_MAX;
-      request = productApi.getByPriceRange(min, max, { page: currentPage, pageSize: PAGE_SIZE });
-    } else if (selectedId) {
-      // Category endpoint
-      request = productApi.getByCategory(selectedId, { page: currentPage, pageSize: PAGE_SIZE });
-    } else {
-      // All products
-      request = productApi.getAll({ page: currentPage, pageSize: PAGE_SIZE });
-    }
-
-    Promise.resolve(request)
-      .then(res => {
-        const items = res?.data ?? (Array.isArray(res) ? res : []);
-        const pag   = res?.pagination ?? {};
-
-        const mapped = items.map(p => ({
-          id:           p.id,
-          name:         p.name,
-          categoryName: p.categoryName || null,
-          price:        p.discountPrice ?? p.price,
-          oldPrice:     p.discountPrice ? p.price : null,
-          badge:        p.label || null,
-          image:        p.images?.[0]?.imageUrl || null,
-        }));
-
-        // Client-side sort (backend doesn't expose sort param in these endpoints)
-        const sorted = [...mapped].sort((a, b) => {
-          if (currentSort === "price_asc")  return a.price - b.price;
-          if (currentSort === "price_desc") return b.price - a.price;
-          return 0;
-        });
-
-        setProducts(sorted);
-        setPagination({
-          total:      pag.totalCount ?? sorted.length,
-totalPages: (pag?.totalPages ?? Math.ceil((pag?.totalCount ?? sorted.length) / PAGE_SIZE)) || 1        });
-      })
-      .catch(() => { setProducts([]); setPagination({ total: 0, totalPages: 1 }); })
-      .finally(() => setLoading(false));
-  }, [currentPage, currentSort, selectedId, searchParams]);
-
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
-  useEffect(() => { window.scrollTo({ top: 0 }); }, []);
-
-  // ── filter / sort handlers ─────────────────────────────────────────────────
-  const updateParams = useCallback((updates) => {
-    const p = new URLSearchParams(searchParams);
-    p.set("page", 1);
-    Object.entries(updates).forEach(([k, v]) => {
-      if (v !== null && v !== "" && v !== undefined) p.set(k, v);
-      else p.delete(k);
-    });
-    setSearchParams(p, { replace: true });
-  }, [searchParams, setSearchParams]);
-
-  const handlePriceChange = useCallback((min, max) => {
-    const updates = {};
-    if (min > 0)       updates.priceMin = min;
-    else               updates.priceMin = null;
-    if (max < PRICE_MAX) updates.priceMax = max;
-    else                 updates.priceMax = null;
-    setFilters({ priceMin: min > 0 ? min : "", priceMax: max < PRICE_MAX ? max : "" });
-    updateParams(updates);
-  }, [updateParams]);
-
-  const handleSortChange = useCallback((val) => {
-    updateParams({ sort: val });
-  }, [updateParams]);
-
-  const handleCategoryChange = useCallback((catId) => {
-    setSelectedId(catId);
-    setFilters({ priceMin: "", priceMax: "" });
-    // Reset all params, keep sort
-    const p = new URLSearchParams();
-    if (currentSort !== "featured") p.set("sort", currentSort);
-    setSearchParams(p);
-    if (catId) navigate(`/category/${catId}`, { replace: true });
-    else       navigate("/category", { replace: true });
-    setMobileOpen(false);
-  }, [navigate, currentSort, setSearchParams]);
-
-  const handleReset = useCallback(() => {
-    setFilters({ priceMin: "", priceMax: "" });
-    const p = new URLSearchParams();
-    if (currentSort !== "featured") p.set("sort", currentSort);
-    setSearchParams(p);
-    setMobileOpen(false);
-  }, [currentSort, setSearchParams]);
-
-  const handlePageChange = useCallback(pg => {
-    updateParams({ page: pg });
-    requestAnimationFrame(() =>
-      gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-    );
-  }, [updateParams]);
-
-  // ── active chips ───────────────────────────────────────────────────────────
-  const activeChips = useMemo(() => {
-    const chips = [];
-    const pMin = searchParams.get("priceMin");
-    const pMax = searchParams.get("priceMax");
-    if (pMin || pMax)
-      chips.push({
-        id: "price",
-        label: `${fmt(pMin || 0)} – ${pMax ? fmt(pMax) : fmt(PRICE_MAX)}`,
-        onRemove: () => handlePriceChange(0, PRICE_MAX),
-      });
-    return chips;
-  }, [searchParams, handlePriceChange]);
-
-  const hasActive = activeChips.length > 0;
-
-  // ── add to cart ────────────────────────────────────────────────────────────
-  const handleAddToCart = useCallback(async product => {
-    if (addingId === product.id) return;
-    setAddingId(product.id);
-    try {
-      const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
-      if (cart) dispatch(setCart(cart));
-      clearTimeout(toastTimer.current);
-      setToast(product.name);
-      toastTimer.current = setTimeout(() => setToast(null), 2800);
-    } catch {}
-    setTimeout(() => setAddingId(null), 1400);
-  }, [addingId, dispatch]);
-
-  // ── sidebar node ───────────────────────────────────────────────────────────
-  const SidebarNode = (
-    <SidebarContent
-      categories={allCategories}
-      selectedCatId={selectedId}
-      onCategoryChange={handleCategoryChange}
-      filters={filters}
-      onFilterChange={() => {}}
-      onPriceChange={handlePriceChange}
-      onReset={handleReset}
-      hasActive={hasActive}
-      t={t}
-      currentSort={currentSort}
-      onSortChange={handleSortChange}
-    />
-  );
-
-  // ── render ─────────────────────────────────────────────────────────────────
-  return (
-    <div className="fcp-page">
-      <Navbar />
-
-      {/* ── BANNER ── */}
-      <div
-        className={`fcp-banner${bannerReady ? " ready" : ""}`}
-        style={{ "--accent": activeCat.accent }}
-      >
-        <div className="fcp-banner-bg" style={{ backgroundImage: `url(${activeCat.image})` }} />
-        <div className="fcp-banner-overlay" />
-        <div className="fcp-banner-content">
-          <nav className="fcp-breadcrumb">
-            <Link to="/">{t("fcp.home")}</Link>
-            <span className="fcp-bc-sep">/</span>
-            <span className="fcp-bc-cur">{activeCat.name}</span>
-          </nav>
-
-          <div className="fcp-banner-inner">
-            <div>
-              <p className="fcp-banner-eyebrow">{t("fcp.collection")}</p>
-              <h1 className="fcp-banner-title">{activeCat.name}</h1>
-              <p className="fcp-banner-sub">{t("fcp.banner_sub")}</p>
-            </div>
-            <div className="fcp-banner-stat">
-              <span className="fcp-stat-n">{pagination.total}</span>
-              <span className="fcp-stat-l">{t("fcp.products")}</span>
-            </div>
-          </div>
-
-          <div className="fcp-banner-cats">
-            {allCategories.map(cat => (
-              <button
-                key={cat.id ?? "all"}
-                className={`fcp-banner-cat${selectedId === cat.id ? " active" : ""}`}
-                style={selectedId === cat.id ? { "--ac": cat.accent } : {}}
-                onClick={() => handleCategoryChange(cat.id)}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── LAYOUT ── */}
-      <div className="fcp-layout">
-        {/* Sidebar desktop */}
-        <aside className="fcp-sidebar">
-          {SidebarNode}
-        </aside>
-
-        {/* Main */}
-        <main className="fcp-main" ref={gridRef} style={{ scrollMarginTop: 88 }}>
-
-          {/* Active filter chips */}
-          {activeChips.length > 0 && (
-            <div className="fcp-chips-bar">
-              {activeChips.map(chip => (
-                <div key={chip.id} className="fcp-chip">
-                  <span>{chip.label}</span>
-                  <button className="fcp-chip-x" onClick={chip.onRemove} title="Remove">×</button>
-                </div>
-              ))}
-              <button className="fcp-chip-clear" onClick={handleReset}>
-                {t("fcp.clear_all")}
-              </button>
-            </div>
-          )}
-
-          {/* Toolbar */}
-          <div className="fcp-toolbar">
-            <div className="fcp-toolbar-left">
-              <button className="fcp-mob-filter-btn" onClick={() => setMobileOpen(true)}>
-                <span className="fcp-filter-icon">⊞</span>
-                {t("fcp.filter_title")}
-                {hasActive ? ` (${activeChips.length})` : ""}
-              </button>
-              <p className="fcp-result-count">
-                <strong>{pagination.total}</strong> {t("fcp.products")}
-              </p>
-            </div>
-            <div className="fcp-toolbar-right">
-              <div className="fcp-view-btns">
-                <button
-                  className={`fcp-view-btn${gridCols === 3 ? " active" : ""}`}
-                  onClick={() => setGridCols(3)}
-                  title="3 columns"
-                >⊞</button>
-                <button
-                  className={`fcp-view-btn${gridCols === 4 ? " active" : ""}`}
-                  onClick={() => setGridCols(4)}
-                  title="4 columns"
-                >⊟</button>
-              </div>
-            </div>
-          </div>
-
-          {/* Skeleton */}
-          {loading && (
-            <div className="fcp-sk-grid">
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div key={i} className="fcp-sk-card">
-                  <div className="fcp-sk-img" />
-                  <div className="fcp-sk-body">
-                    <div className="fcp-sk-line" />
-                    <div className="fcp-sk-line short" />
-                    <div className="fcp-sk-line xs" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!loading && products.length === 0 && (
-            <div className="fcp-empty">
-              <span className="fcp-empty-icon">🛋</span>
-              <h3 className="fcp-empty-title">{t("category_page.no_products")}</h3>
-              <p className="fcp-empty-sub">{t("category_page.no_products_hint")}</p>
-              {hasActive && (
-                <button className="fcp-empty-reset" onClick={handleReset}>
-                  {t("category_page.reset_filters")}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Product grid */}
-          {!loading && products.length > 0 && (
-            <div className={`fcp-grid cols-${gridCols}`}>
-              {products.map((p, i) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  idx={i}
-                  addingId={addingId}
-                  onAddToCart={handleAddToCart}
-                  wishlist={wishlist}
-                  dispatch={dispatch}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {!loading && products.length > 0 && (
-            <Pagination
-              current={currentPage}
-              total={pagination.totalPages}
-              onChange={handlePageChange}
-            />
-          )}
-        </main>
-      </div>
-
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <>
-          <div className="fcp-overlay" onClick={() => setMobileOpen(false)} />
-          <div className="fcp-drawer">
-            <div className="fcp-drawer-header">
-              <span className="fcp-drawer-title">{t("fcp.filter_title")}</span>
-              <button className="fcp-drawer-close" onClick={() => setMobileOpen(false)}>✕</button>
-            </div>
-            <div className="fcp-drawer-body">{SidebarNode}</div>
-          </div>
-        </>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div className="fcp-toast">
-          <span className="fcp-toast-check">✓</span>
-          <span>
-            <strong>{toast}</strong> {t("fcp.added_to_cart")}
-          </span>
-        </div>
-      )}
-
-      <Footer />
-    </div>
   );
 }
