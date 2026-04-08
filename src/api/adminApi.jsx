@@ -1,16 +1,4 @@
-// src/api/adminApi.js
-// ─────────────────────────────────────────────────────────────
-// Admin Panel üçün bütün API çağırışları.
-//
-// Hər section üçün ayrı endpoint qrupu:
-//   Products, Categories, Collections, CollectionCategories,
-//   Orders, HeroSections, Campaigns, DiscountCodes, Dashboard
-//
-// Bütün endpointlər Authorization: Bearer <token> tələb edir.
-// axiosInstance bunu avtomatik əlavə edir.
-//
-// Backend URL: VITE_API_BASE_URL (default: http://localhost:5174/api)
-// ─────────────────────────────────────────────────────────────
+
 
 import axiosInstance from "./axiosInstance";
 

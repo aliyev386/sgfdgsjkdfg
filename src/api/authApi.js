@@ -22,8 +22,8 @@ export const isAuthenticated = () => !!getToken();
 export const login = async ({ email, password }) => {
   const { data } = await axiosInstance.post("/auth/login", { email, password });
   const tokenData = data?.data ?? data;
-  // Refresh tokeni saxla
   saveTokens(tokenData.accessToken, tokenData.refreshToken);
+  window.dispatchEvent(new CustomEvent("auth:login_success"));
   return tokenData;
 };
 
@@ -38,8 +38,8 @@ export const register = async ({ name, surname, email, password, phone }) => {
     phone: phone || undefined,
   });
   const tokenData = data?.data ?? data;
-  // Refresh tokeni saxla
   saveTokens(tokenData.accessToken, tokenData.refreshToken);
+  window.dispatchEvent(new CustomEvent("auth:login_success"));
   return tokenData;
 };
 
@@ -48,6 +48,7 @@ export const googleAuth = async (credential) => {
   const { data } = await axiosInstance.post("/auth/google", { idToken: credential });
   const tokenData = data?.data ?? data;
   saveTokens(tokenData.accessToken, tokenData.refreshToken);
+  window.dispatchEvent(new CustomEvent("auth:login_success"));
   return tokenData;
 };
 

@@ -9,7 +9,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { clearCart } from "../../store/slices/cartSlice";
-import axiosInstance from "../../api/axiosInstance";
+import orderApi from "../../api/orderApi";
 import Navbar from "../../components/common/Navbar";
 import CreditCalculator from "../../components/credit/CreditCalculator";
 
@@ -730,8 +730,8 @@ export default function CheckoutPage() {
         })),
       };
 
-      const { data } = await axiosInstance.post("/orders", payload);
-      const id = data?.data?.id ?? data?.id;
+      const data = await orderApi.create(payload);
+      const id = data?.id ?? data?.data?.id;
       setOrderId(id);
       dispatch(clearCart());
       setDone(true);

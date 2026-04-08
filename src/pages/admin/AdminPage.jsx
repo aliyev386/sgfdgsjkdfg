@@ -711,11 +711,25 @@ const Products = ({ t, lang }) => {
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (p) => {
     setEditing(p.id);
-    const normalizeLang = (val) => {
-      if (!val) return { az: "", en: "", ru: "" };
-      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
-      return { az: val, en: val, ru: val };
+
+    // Backend artıq translations:[{lang,name,description}] array qaytarır
+    const getLangField = (field) => {
+      const langs = { az: "", en: "", ru: "" };
+      if (p.translations && Array.isArray(p.translations)) {
+        p.translations.forEach(t => {
+          if (t.lang && langs.hasOwnProperty(t.lang)) {
+            langs[t.lang] = t[field] || "";
+          }
+        });
+      } else if (p[field]) {
+        // Fallback: köhnə format — string və ya {az,en,ru} object
+        const val = p[field];
+        if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+        return { az: val, en: val, ru: val };
+      }
+      return langs;
     };
+
     // Backend returns images as array of {imageUrl, isPrimary} objects
     const imgUrls = (p.images || []).map(img =>
       typeof img === "string" ? img : img?.imageUrl || img?.url || ""
@@ -725,8 +739,8 @@ const Products = ({ t, lang }) => {
       hex:  c.hexCode || c.hex || "#000000",
     }));
     setForm({
-      name:        normalizeLang(p.name),
-      description: normalizeLang(p.description),
+      name:        getLangField("name"),
+      description: getLangField("description"),
       price:       p.price ?? "",
       stock:       p.stock ?? "",
       category_id: p.furnitureCategoryId || p.category_id || p.category?.id || "",
@@ -1081,17 +1095,31 @@ const Collections = ({ t, lang }) => {
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (c) => {
-    const normName = (val) => {
-      if (!val) return { az: "", en: "", ru: "" };
+    const getLangField = (field) => {
+      const langs = { az: "", en: "", ru: "" };
+      if (c.translations && Array.isArray(c.translations)) {
+        c.translations.forEach(tr => {
+          if (tr.lang && langs.hasOwnProperty(tr.lang)) {
+            langs[tr.lang] = tr[field] || "";
+          }
+        });
+        return langs;
+      }
+      const val = c[field];
+      if (!val) return langs;
       if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
       return { az: val, en: val, ru: val };
     };
     setEditing(c.id);
     setForm({
-      name:        normName(c.name),
-      description: normName(c.description),
-      price:       c.totalPrice ?? c.price ?? "",
-      product_ids: c.product_ids || c.products?.map(p => p.id ?? p) || [],
+      name:                  getLangField("name"),
+      description:           getLangField("description"),
+      price:                 c.totalPrice ?? c.price ?? "",
+      discount_price:        c.discountPrice ?? "",
+      display_order:         c.displayOrder ?? 0,
+      collection_category_id: c.collectionCategoryId ?? "",
+      product_ids:           c.product_ids || c.products?.map(p => p.id ?? p) || [],
+      image:                 c.imagesUrl || c.imageUrl || c.image || null,
     });
     setErrors({});
     setModal(true);
