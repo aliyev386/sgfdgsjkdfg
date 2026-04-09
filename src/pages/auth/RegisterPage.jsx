@@ -285,21 +285,37 @@ export default function RegisterPage() {
  
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
+
+    const initGoogle = () => {
+      window.google?.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
+      const btnEl = document.getElementById("google-register-btn");
+      if (btnEl) {
+        window.google?.accounts.id.renderButton(btnEl, {
+          theme: "outline",
+          size: "large",
+          width: btnEl.offsetWidth || 360,
+          text: "signup_with",
+        });
+      }
+    };
+
+    if (window.google?.accounts) {
+      initGoogle();
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
-    script.async = true; script.defer = true;
-    script.onload = () => {
-      window.google?.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
-    };
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
     document.head.appendChild(script);
     return () => { if (document.head.contains(script)) document.head.removeChild(script); };
   }, [handleGoogleResponse]);
- 
-  const triggerGoogleLogin = () => {
-    if (!GOOGLE_CLIENT_ID) { setAlert({ type: "error", msg: "Google Client ID konfiqurasiya edilməyib" }); return; }
-    window.google?.accounts.id.prompt();
-  };
- 
+
   return (
     <div className="auth-root register">
       <div className="auth-lang-switcher top-corner">
@@ -428,11 +444,7 @@ export default function RegisterPage() {
               {loading ? (<><div className="auth-spinner" />{t.registering}</>) : t.registerBtn + " →"}
             </button>
             <div className="auth-divider"><span>{t.or}</span></div>
-            <button type="button" className="auth-btn-google" onClick={triggerGoogleLogin} disabled={googleLoading} style={{ marginBottom: "8px" }}>
-              {googleLoading
-                ? (<><div className="auth-spinner" style={{ borderTopColor: "#374151", borderColor: "#e5e7eb" }} />{t.googleBtn}</>)
-                : (<><GoogleIcon />{t.googleBtn}</>)}
-            </button>
+            <div id="google-register-btn" style={{ width: "100%", minHeight: "44px", display: "flex", justifyContent: "center", marginBottom: "8px" }}></div>
             <div className="auth-form-header">
               <p className="auth-form-subtitle">{t.subtitle} <Link to="/login">{t.loginLink}</Link></p>
             </div>
