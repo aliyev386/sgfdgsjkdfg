@@ -198,6 +198,7 @@ export default function CollectionDetailPage() {
 
   const handleAdd = useCallback(async (product) => {
     if (addingId === product.id || !product.in_stock) return;
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingId(product.id);
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
@@ -207,7 +208,7 @@ export default function CollectionDetailPage() {
       toastTimer.current = setTimeout(() => setToast(null), 2900);
     } catch {}
     setTimeout(() => setAddingId(null), 1400);
-  }, [addingId, dispatch]);
+  }, [addingId, isAuthenticated, openAuthModal, dispatch]);
 
   const handleAddAll = useCallback(async () => {
     if (addingAll || !coll) return;

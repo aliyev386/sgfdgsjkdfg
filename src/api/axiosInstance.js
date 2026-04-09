@@ -66,7 +66,7 @@ axiosInstance.interceptors.response.use(
       if (!refreshToken) {
         clearTokens();
         window.dispatchEvent(new CustomEvent("auth:logout"));
-        window.location.href = "/login";
+        window.dispatchEvent(new CustomEvent("auth:require_login"));
         return Promise.reject(formatError(error));
       }
 
@@ -113,7 +113,7 @@ axiosInstance.interceptors.response.use(
         processQueue(refreshError, null);
         clearTokens();
         window.dispatchEvent(new CustomEvent("auth:logout"));
-        window.location.href = "/login";
+        window.dispatchEvent(new CustomEvent("auth:require_login"));
         return Promise.reject(formatError(refreshError));
       } finally {
         isRefreshing = false;

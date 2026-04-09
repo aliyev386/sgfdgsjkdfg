@@ -917,9 +917,17 @@ const Products = ({ t, lang }) => {
                 </div>
               ))}
               <Btn size="sm" variant="secondary" onClick={() => {
-                const hex = prompt("Hex rəng kodu (məs: #FF0000)");
+                let hex = prompt("Hex rəng kodu (məs: #FF0000 və ya FF0000)");
                 const name = prompt("Rəng adı (məs: Qırmızı)");
-                if (hex && name) setField("colors", [...form.colors, { hex: hex.startsWith("#") ? hex : "#" + hex, name }]);
+                if (hex && name) {
+                  hex = hex.trim();
+                  if (!hex.startsWith("#")) hex = "#" + hex;
+                  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                    alert("Yanlış hex format! Nümunə: #FF0000");
+                    return;
+                  }
+                  setField("colors", [...form.colors, { hex, name }]);
+                }
               }} type="button"><Icons.Plus />Rəng əlavə et</Btn>
             </div>
             {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
@@ -1094,8 +1102,9 @@ const Collections = ({ t, lang }) => {
       setAvailableProducts(arr);
     }).catch(() => {});
 
-    collectionApi.getCategories().then(res => {
-      setAvailableCategories(Array.isArray(res) ? res : []);
+    collectionCategoryApi.getAll().then(res => {
+      const arr = Array.isArray(res) ? res : (res?.data ?? []);
+      setAvailableCategories(arr);
     }).catch(() => {});
   }, []);
 

@@ -54,6 +54,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
 
   const handleAddToCart = useCallback(async (product) => {
     if (addingId === product.id) return;
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingId(product.id);
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
@@ -61,9 +62,9 @@ export default function FeaturedProductsSection({ products = [], categories = []
       clearTimeout(timerRef.current);
       setToast(product.name);
       timerRef.current = setTimeout(() => setToast(null), 2800);
-    } catch { /* not logged in / network */ }
+    } catch { /* network */ }
     setTimeout(() => setAddingId(null), 1400);
-  }, [addingId, dispatch]);
+  }, [addingId, isAuthenticated, openAuthModal, dispatch]);
 
   const handleWishlist = useCallback((product) => {
     if (!isAuthenticated) { openAuthModal("login"); return; }

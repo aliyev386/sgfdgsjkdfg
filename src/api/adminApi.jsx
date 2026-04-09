@@ -84,10 +84,15 @@ function buildProductPayload(form, id) {
     sortOrder: i,
   }));
 
-  const colors = (form.colors || []).map(c => ({
-    name:    c.name,
-    hexCode: c.hex || c.hexCode,
-  }));
+  const colors = (form.colors || []).map(c => {
+    let hex = c.hex || c.hexCode || "#000000";
+    if (!hex.startsWith("#")) hex = "#" + hex;
+    // Ensure 6-char hex: #RGB → #RRGGBB
+    if (hex.length === 4) {
+      hex = "#" + hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+    }
+    return { name: c.name || "", hexCode: hex };
+  });
 
   return {
     ...(id ? { id: Number(id) } : {}),
