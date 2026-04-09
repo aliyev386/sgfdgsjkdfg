@@ -168,7 +168,6 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// ─── UI Components ────────────────────────────────────────────────────────────
 const Badge = ({ status, label }) => {
   const colors = {
     delivered: "bg-emerald-100 text-emerald-700",
@@ -364,7 +363,6 @@ const LangTabs = ({ lang, onChange }) => (
   </div>
 );
 
-// Single Image Upload Component
 const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -416,7 +414,6 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
   );
 };
 
-// Multi Image Upload Component (for products)
 const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -431,8 +428,6 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
       for (const file of files) {
         if (uploadFn) {
           const res = await uploadFn(file);
-          // Backend: { success, data: { url, fileName, sizeBytes } }
-          // adminApi returns: { url: ... } already extracted
           const url = res?.url || res?.data?.url || (typeof res === "string" ? res : null);
           if (url) {
             uploaded.push(url);
@@ -492,7 +487,6 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
   );
 };
 
-// ─── useAdminData hook ────────────────────────────────────────────────────────
 const useAdminData = (fetchFn, deps = []) => {
   const [data,    setData]    = useState([]);
   const [total,   setTotal]   = useState(0);
@@ -504,7 +498,6 @@ const useAdminData = (fetchFn, deps = []) => {
     setError(null);
     try {
       const res = await fetchFn(params);
-      // Normalize: backend returns { data: [...], total } or plain array
       if (Array.isArray(res)) {
         setData(res); setTotal(res.length);
       } else {
@@ -513,7 +506,6 @@ const useAdminData = (fetchFn, deps = []) => {
         setTotal(res?.total ?? res?.pagination?.totalCount ?? (Array.isArray(arr) ? arr.length : 0));
       }
     } catch (err) {
-      // Show backend validation errors if present
       const msg = err?.validationErrors
         ? Object.values(err.validationErrors).flat().join("; ")
         : err?.userMessage || "Xəta baş verdi";
@@ -529,11 +521,9 @@ const useAdminData = (fetchFn, deps = []) => {
   return { data, setData, total, setTotal, loading, error, reload: load };
 };
 
-// ─── Validation helpers ───────────────────────────────────────────────────────
 const validateRequired = (val) => !val || (typeof val === "string" && val.trim() === "");
-const validateLangField = (obj) => !obj?.az?.trim();  // sadece AZ zorunlu, EN/RU AZ-dan fallback
+const validateLangField = (obj) => !obj?.az?.trim();
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard = ({ t, lang }) => {
   const [stats, setStats] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
@@ -553,11 +543,9 @@ const Dashboard = ({ t, lang }) => {
         setStats(s);
         setTopProducts(Array.isArray(tp) ? tp : tp.data || []);
         setMonthlyData(Array.isArray(mr) ? mr : mr.data || []);
-        // Also load recent orders
         const orders = await orderApi.getAll({ page: 1, limit: 5 });
         setRecentOrders(Array.isArray(orders) ? orders.slice(0, 5) : (orders.data || []).slice(0, 5));
       } catch {
-        // show empty state
       } finally {
         setLoading(false);
       }
@@ -648,7 +636,6 @@ const Dashboard = ({ t, lang }) => {
   );
 };
 
-// ─── Products ─────────────────────────────────────────────────────────────────
 const Products = ({ t, lang }) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -711,7 +698,6 @@ const Products = ({ t, lang }) => {
   const openEdit = (p) => {
     setEditing(p.id);
 
-    // Backend artıq translations:[{lang,name,description}] array qaytarır
     const getLangField = (field) => {
       const langs = { az: "", en: "", ru: "" };
       if (p.translations && Array.isArray(p.translations)) {
@@ -721,7 +707,6 @@ const Products = ({ t, lang }) => {
           }
         });
       } else if (p[field]) {
-        // Fallback: köhnə format — string və ya {az,en,ru} object
         const val = p[field];
         if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
         return { az: val, en: val, ru: val };
@@ -729,7 +714,6 @@ const Products = ({ t, lang }) => {
       return langs;
     };
 
-    // Backend returns images as array of {imageUrl, isPrimary} objects
     const imgUrls = (p.images || []).map(img =>
       typeof img === "string" ? img : img?.imageUrl || img?.url || ""
     ).filter(Boolean);
@@ -783,7 +767,6 @@ const Products = ({ t, lang }) => {
       setModal(false);
       reload({ page, limit: PER_PAGE, search });
     } catch (err) {
-      // Backend validator xətalarını field-lərə map et
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
@@ -856,7 +839,6 @@ const Products = ({ t, lang }) => {
 
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.editProduct : t.addProduct} width="max-w-3xl">
         <div className="space-y-4">
-          {/* Name fields - all 3 langs required by backend */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə məcburidir)</label>
             <div className="grid grid-cols-3 gap-3">
@@ -866,7 +848,6 @@ const Products = ({ t, lang }) => {
             </div>
           </div>
 
-          {/* Description - tabbed */}
           <div>
             <LangTabs lang={formLang} onChange={setFormLang} />
             <Textarea label={`${t.description} (${formLang.toUpperCase()})`} value={form.description[formLang]}
@@ -894,7 +875,6 @@ const Products = ({ t, lang }) => {
             <Input label="Label" value={form.label || ""} onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
           </div>
 
-          {/* Dimensions */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ölçülər (cm / kg)</label>
             <div className="grid grid-cols-4 gap-3">
@@ -905,7 +885,6 @@ const Products = ({ t, lang }) => {
             </div>
           </div>
 
-          {/* Colors */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.colors} *</label>
             <div className="flex flex-wrap gap-2">
@@ -933,7 +912,6 @@ const Products = ({ t, lang }) => {
             {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
           </div>
 
-          {/* Multi Image Upload */}
           <MultiImageUpload
             label={`${t.images} * (ilk şəkil əsas şəkil olacaq)`}
             images={form.images || []}
@@ -955,7 +933,6 @@ const Products = ({ t, lang }) => {
   );
 };
 
-// ─── Categories ───────────────────────────────────────────────────────────────
 const Categories = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1009,7 +986,6 @@ const Categories = ({ t, lang }) => {
       setModal(false);
       reload();
     } catch (err) {
-      // Backend validator xətalarını field-lərə map et
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
@@ -1072,7 +1048,6 @@ const Categories = ({ t, lang }) => {
   );
 };
 
-// ─── Collections ──────────────────────────────────────────────────────────────
 const Collections = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1213,7 +1188,6 @@ const Collections = ({ t, lang }) => {
       </Card>
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addCollection}>
         <div className="space-y-4">
-          {/* Ad — 3 dil */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} * <span className="text-red-500 text-xs normal-case">(az/en/ru — ən az biri doldurulmalı)</span></label>
             <div className="grid grid-cols-3 gap-3">
@@ -1222,7 +1196,6 @@ const Collections = ({ t, lang }) => {
               <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
             </div>
           </div>
-          {/* Açıqlama — 3 dil */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.description}</label>
             <div className="grid grid-cols-3 gap-3">
@@ -1231,7 +1204,6 @@ const Collections = ({ t, lang }) => {
               <Textarea label="RU" value={form.description.ru || ""} onChange={v => setForm(f => ({ ...f, description: { ...f.description, ru: v } }))} rows={2} />
             </div>
           </div>
-          {/* Kateqoriya * */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">Kateqoriya *</label>
             <select
@@ -1246,13 +1218,11 @@ const Collections = ({ t, lang }) => {
             </select>
             {errors.collection_category_id && <p className="text-red-500 text-xs mt-1">{errors.collection_category_id}</p>}
           </div>
-          {/* Qiymət */}
           <div className="grid grid-cols-2 gap-3">
             <Input label={`${t.price} *`} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
             <Input label="Endirimli qiymət" value={form.discount_price} onChange={v => setForm(f => ({ ...f, discount_price: v }))} type="number" />
           </div>
           <Input label="Göstərilmə sırası" value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" />
-          {/* Məhsul seçimi */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
               {t.selectProducts} * <span className="text-emerald-600 font-normal">({form.product_ids.length} seçilib)</span>
@@ -1280,8 +1250,6 @@ const Collections = ({ t, lang }) => {
     </div>
   );
 };
-
-// ─── Collection Categories ────────────────────────────────────────────────────
 const CollectionCategories = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1382,7 +1350,6 @@ const CollectionCategories = ({ t, lang }) => {
   );
 };
 
-// ─── Orders ───────────────────────────────────────────────────────────────────
 const Orders = ({ t, lang }) => {
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -1525,7 +1492,6 @@ const Orders = ({ t, lang }) => {
   );
 };
 
-// ─── Hero Sections ────────────────────────────────────────────────────────────
 const HeroSections = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1547,7 +1513,6 @@ const HeroSections = ({ t, lang }) => {
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (h) => {
-    // Backend returns title/subtitle as plain string (current lang). Normalize to multilang object.
     const normalizeLang = (val) => {
       if (!val) return { az: "", en: "", ru: "" };
       if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
@@ -1601,8 +1566,6 @@ const HeroSections = ({ t, lang }) => {
         <div className="grid lg:grid-cols-2 gap-4">
 {heros?.map(h => {
   const isActive = h.isActive !== undefined ? h.isActive : h.active;
-
-  // 🔹 Təhlükəsiz title/subtitle oxuma
   const title = h.title?.[lang] ?? (typeof h.title === "string" ? h.title : "");
   const subtitle = h.subtitle?.[lang] ?? (typeof h.subtitle === "string" ? h.subtitle : "");
 
@@ -1665,7 +1628,6 @@ const HeroSections = ({ t, lang }) => {
   );
 };
 
-// ─── Campaigns ────────────────────────────────────────────────────────────────
 const Campaigns = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1673,13 +1635,9 @@ const Campaigns = ({ t, lang }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  // Form uses: name (multilang obj), discount (number string), startDate (YYYY-MM-DD), endDate (YYYY-MM-DD), active (bool)
   const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, discount: "", startDate: "", endDate: "", active: true };
   const [form, setForm] = useState(emptyForm);
-
-  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());
-
-  // Helper: convert ISO datetime string to YYYY-MM-DD for <input type="date">
+  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());  
   const toDateStr = (val) => {
     if (!val) return "";
     if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
@@ -1699,7 +1657,6 @@ const Campaigns = ({ t, lang }) => {
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (c) => {
-    // Backend returns title as string (not multilang object)
     const normalizeLang = (val) => {
       if (!val) return { az: "", en: "", ru: "" };
       if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
@@ -1736,8 +1693,7 @@ const Campaigns = ({ t, lang }) => {
       const payload = {
         name:           form.name,
         description:    form.description,
-        discount:       Number(form.discount),       // buildCampaignPayload maps this to discountPercent
-        startDate:      form.startDate ? new Date(form.startDate).toISOString() : new Date().toISOString(),
+        discount:       Number(form.discount),
         endDate:        form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
         display_order:  0,
       };
@@ -1809,20 +1765,15 @@ const Campaigns = ({ t, lang }) => {
   );
 };
 
-// ─── Discount Codes ───────────────────────────────────────────────────────────
 const DiscountCodes = ({ t }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  // type: "percent" | "fixed"  (mapped from backend enum: 1=Percent, 2=Fixed)
   const emptyForm = { code: "", type: "percent", value: "", limit: "", expiration: "" };
   const [form, setForm] = useState(emptyForm);
-
   const { data: codes, loading, reload } = useAdminData(() => discountCodeApi.getAll());
-
-  // Backend returns Type as enum (0 or 1, or 1=Percent/2=Fixed). Normalize to "percent"/"fixed" string.
   const typeToStr = (t) => {
     if (t === "percent" || t === "fixed") return t;
     if (t === 1 || t === "Percent" || t === 0) return "percent";
@@ -1830,7 +1781,6 @@ const DiscountCodes = ({ t }) => {
     return "percent";
   };
 
-  // Convert ISO datetime to YYYY-MM-DD
   const toDateStr = (val) => {
     if (!val) return "";
     if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
@@ -1902,7 +1852,6 @@ const DiscountCodes = ({ t }) => {
             { key: "usageCount", label: t.usageCount, render: r => <span className="text-gray-600">{r.usedCount ?? r.usageCount ?? 0} / {r.maxUses ?? r.limit ?? "∞"}</span> },
             { key: "expiresAt", label: "Expires", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.expiresAt || r.expiration)}</span> },
             { key: "status", label: t.status, render: r => {
-              // Backend returns Status enum: 1=Active, 2=Expired, 3=Passive
               const isActive = r.status === 1 || r.status === "Active" || r.active === true;
               return (
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
@@ -1939,7 +1888,6 @@ const DiscountCodes = ({ t }) => {
   );
 };
 
-// ─── Sidebar & Header ─────────────────────────────────────────────────────────
 const NAV = [
   { key: "dashboard", icon: <Icons.Dashboard />, label: "dashboard" },
   { key: "products", icon: <Icons.Package />, label: "products" },
@@ -2019,20 +1967,16 @@ const Header = ({ t, lang, setLang, page }) => {
   );
 };
 
-// ─── App ──────────────────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const [page,      setPage]      = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const dispatch   = useDispatch();
   const isAuth     = useSelector(selectIsAuth);
   const reduxLang  = useSelector(selectLang);
-  // Admin panel also uses internal translations for its UI labels
   const lang = reduxLang || "az";
   const t    = translations[lang] || translations["az"];
-
   const handleLangChange = (l) => { dispatch(setReduxLang(l)); };
   const handleLogout     = () => { dispatch(logoutAction()); window.location.href = "/login"; };
-
   const renderPage = () => {
     const props = { t, lang };
     switch (page) {

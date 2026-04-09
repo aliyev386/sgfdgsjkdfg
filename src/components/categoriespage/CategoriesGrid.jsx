@@ -105,7 +105,6 @@ export default function CategoriesGrid({ t, visibleCategories, INITIAL_VISIBLE, 
         </div>
       )}
 
-      {/* QALAN KARTLAR — adi 4 sütunlu grid */}
       {rest.length > 0 && (
         <div className="cl-rest-grid">
           {rest.map((cat, i) => (

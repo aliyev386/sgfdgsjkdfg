@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
 
-/* ─── KEYFRAMES ────────────────────────────────────────────── */
 @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
 @keyframes shimmer  { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
@@ -9,14 +8,12 @@
 @keyframes scaleIn  { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
 @keyframes popBtn   { 0%,100%{transform:scale(1)} 45%{transform:scale(.84)} }
 
-/* ─── BASE ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4cfc8; border-radius: 4px; }
 ::selection { background: #c8ddc9; color: #111; }
 
-/* ─── PAGE ──────────────────────────────────────────────────── */
 .fcp-page {
   font-family: 'Inter', sans-serif;
   background: #f5f4f2;
@@ -24,9 +21,6 @@
   min-height: 100vh;
 }
 
-/* ════════════════════════════════════════════
-   HERO BANNER
-════════════════════════════════════════════ */
 .fcp-banner {
   position: relative;
   margin-top: 72px;
@@ -62,7 +56,6 @@
   margin: 0 auto;
 }
 
-/* breadcrumb */
 .fcp-breadcrumb {
   position: absolute;
   top: 28px;
@@ -83,7 +76,6 @@
 .fcp-bc-sep { color: rgba(255,255,255,.2); font-size: 10px; }
 .fcp-bc-cur { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: rgba(255,255,255,.65); }
 
-/* banner text */
 .fcp-banner-inner {
   display: flex;
   align-items: flex-end;
@@ -145,7 +137,6 @@
   color: rgba(255,255,255,.3);
 }
 
-/* category pills */
 .fcp-banner-cats {
   display: flex;
   gap: 8px;
@@ -183,9 +174,6 @@
   box-shadow: 0 4px 16px rgba(0,0,0,.25);
 }
 
-/* ════════════════════════════════════════════
-   LAYOUT
-════════════════════════════════════════════ */
 .fcp-layout {
   display: flex;
   align-items: flex-start;
@@ -195,9 +183,6 @@
   padding: 0 24px 100px;
 }
 
-/* ════════════════════════════════════════════
-   SIDEBAR
-════════════════════════════════════════════ */
 .fcp-sidebar {
   width: 268px;
   flex-shrink: 0;
@@ -245,7 +230,6 @@
 }
 .fcp-sidebar-clear:hover { opacity: .6; }
 
-/* accordion section */
 .fcp-section { border-bottom: 1px solid #f0ece6; }
 .fcp-section:last-child { border-bottom: none; }
 .fcp-section-btn {
@@ -283,7 +267,6 @@
 .fcp-section-body.open { max-height: 600px; }
 .fcp-section-content { padding: 0 20px 18px; }
 
-/* category list */
 .fcp-cat-list { display: flex; flex-direction: column; gap: 1px; }
 .fcp-cat-btn {
   display: flex;
@@ -319,7 +302,6 @@
 }
 .fcp-cat-btn.active .fcp-cat-cnt { background: #d0e5d1; color: #4a7a4d; }
 
-/* price range */
 .fcp-price-vals {
   display: flex;
   justify-content: space-between;
@@ -412,7 +394,6 @@
 }
 .fcp-price-dash { text-align: center; color: #bbb; font-size: 14px; }
 
-/* in-stock toggle */
 .fcp-toggle-row {
   display: flex;
   align-items: center;
@@ -446,7 +427,6 @@
 }
 .fcp-toggle input:checked ~ .fcp-toggle-thumb { transform: translateX(18px); }
 
-/* sort in sidebar */
 .fcp-sort-group { display: flex; flex-direction: column; gap: 2px; }
 .fcp-sort-opt {
   display: flex;
@@ -482,16 +462,12 @@
   box-shadow: inset 0 0 0 3px #fff;
 }
 
-/* ════════════════════════════════════════════
-   MAIN CONTENT
-════════════════════════════════════════════ */
 .fcp-main {
   flex: 1;
   min-width: 0;
   padding: 28px 0 80px 28px;
 }
 
-/* active filter chips */
 .fcp-chips-bar {
   display: flex;
   flex-wrap: wrap;
@@ -544,7 +520,6 @@
 }
 .fcp-chip-clear:hover { background: #c0604a; color: #fff; border-color: #c0604a; }
 
-/* toolbar */
 .fcp-toolbar {
   display: flex;
   align-items: center;
@@ -596,9 +571,6 @@
 .fcp-view-btn:hover { color: #111; background: #f5f2ed; }
 .fcp-view-btn.active { background: #111; color: #fff; }
 
-/* ════════════════════════════════════════════
-   PRODUCT GRID
-════════════════════════════════════════════ */
 .fcp-grid {
   display: grid;
   gap: 16px;
@@ -606,7 +578,6 @@
 .fcp-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .fcp-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
-/* ─── PRODUCT CARD ─────────────────────────── */
 .fcp-card {
   background: #fff;
   border-radius: 14px;
@@ -743,7 +714,6 @@
   animation: popBtn .32s ease;
 }
 
-/* ─── SKELETON ─────────────────────────────── */
 .fcp-sk-grid {
   display: grid;
   gap: 16px;
@@ -773,7 +743,6 @@
 .fcp-sk-line.short { width: 55%; }
 .fcp-sk-line.xs { width: 35%; height: 10px; }
 
-/* ─── EMPTY STATE ──────────────────────────── */
 .fcp-empty {
   padding: 80px 0;
   text-align: center;
@@ -805,7 +774,6 @@
 }
 .fcp-empty-reset:hover { background: #6d9b70; transform: translateY(-2px); }
 
-/* ─── PAGINATION ───────────────────────────── */
 .fcp-pagination {
   display: flex;
   align-items: center;
@@ -830,9 +798,6 @@
 .fcp-pg-btn:disabled { opacity: .3; cursor: not-allowed; }
 .fcp-pg-num.active { background: #111; border-color: #111; color: #fff; font-weight: 700; }
 
-/* ────────────────────────────────────────────
-   MOBILE DRAWER
-──────────────────────────────────────────── */
 .fcp-overlay {
   position: fixed;
   inset: 0;
@@ -877,9 +842,7 @@
 .fcp-drawer-close:hover { background: #111; color: #fff; border-color: #111; }
 .fcp-drawer-body { padding: 16px; }
 
-/* ────────────────────────────────────────────
-   TOAST
-──────────────────────────────────────────── */
+
 .fcp-toast {
   position: fixed;
   bottom: 28px; right: 28px;
@@ -897,9 +860,6 @@
 }
 .fcp-toast-check { color: #6d9b70; font-size: 16px; }
 
-/* ════════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════════ */
 @media (max-width: 1280px) {
   .fcp-grid.cols-4 { grid-template-columns: repeat(3, 1fr); }
   .fcp-sidebar { width: 240px; }

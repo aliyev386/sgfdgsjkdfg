@@ -1,4 +1,3 @@
-// src/components/home/CollectionCategorySection.jsx
 import { Link } from "react-router-dom";
 
 export function CollectionCategorySection({ categories = [], t, onNavigate }) {

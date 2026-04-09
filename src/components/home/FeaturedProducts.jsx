@@ -1,4 +1,3 @@
-// src/components/home/FeaturedProducts.jsx
 import { useState, useMemo, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,7 +33,6 @@ export default function FeaturedProductsSection({ products = [], categories = []
   const [visCount,  setVisCount]  = useState(ITEMS_PER_PAGE);
   const timerRef = useRef(null);
 
-  // Dynamic tabs from API categories (max 4)
   const tabs = useMemo(() => [
     { key: "all", label: t("featured_products.tabs.all"), catId: null },
     ...categories.slice(0, 4).map(c => ({ key: String(c.id), label: c.name, catId: c.id })),
@@ -62,7 +60,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
       clearTimeout(timerRef.current);
       setToast(product.name);
       timerRef.current = setTimeout(() => setToast(null), 2800);
-    } catch { /* network */ }
+    } catch { }
     setTimeout(() => setAddingId(null), 1400);
   }, [addingId, isAuthenticated, openAuthModal, dispatch]);
 
@@ -138,7 +136,6 @@ export default function FeaturedProductsSection({ products = [], categories = []
         })}
       </div>
 
-      {/* Daha çox göstər */}
       {hasMore && (
         <div style={{ textAlign: "center", marginTop: 36 }}>
           <button className="hp-va" onClick={() => setVisCount(v => v + ITEMS_PER_PAGE)}

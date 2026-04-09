@@ -1,4 +1,3 @@
-// src/hooks/useAuthModal.js
 import { createContext, useContext, useState, useCallback, createElement } from "react";
 
 const AuthModalContext = createContext(null);

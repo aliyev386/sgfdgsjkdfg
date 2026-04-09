@@ -1,11 +1,3 @@
-// src/pages/public/CartPage.jsx
-// ─────────────────────────────────────────────────────────────
-// Səbət səhifəsi
-// - cartApi ilə tam inteqrasiya (get / updateItem / removeItem / clear)
-// - 3 dil dəstəyi (AZ / EN / RU) — i18next
-// - Proyektin dizayn sisteminə uyğun (Cormorant + DM Sans, sage green)
-// ─────────────────────────────────────────────────────────────
-
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,7 +6,6 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/CartPage.css";
 
-// ─── Toast ────────────────────────────────────────────────────
 function Toast({ message, type = "info", onClose }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3200);
@@ -29,7 +20,6 @@ function Toast({ message, type = "info", onClose }) {
   );
 }
 
-// ─── CartItem ─────────────────────────────────────────────────
 function CartItem({ item, onUpdate, onRemove, updating, t }) {
   const { product, quantity, id: itemId } = item;
   const price  = product?.price  ?? 0;
@@ -40,7 +30,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
 
   return (
     <div className={`cp-item${updating ? " updating" : ""}`}>
-      {/* Image */}
       <div className="cp-item-img-wrap">
         <Link to={`/details/${product?.id ?? slug}`}>
           {image
@@ -65,7 +54,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
         </Link>
       </div>
 
-      {/* Body */}
       <div className="cp-item-body">
         <div className="cp-item-top">
           <div className="cp-item-info">
@@ -79,7 +67,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
               ₼{price.toFixed(2)} / {t("cart.price_each")}
             </p>
           </div>
-          {/* Remove */}
           <button
             className="cp-item-remove"
             onClick={() => onRemove(itemId)}
@@ -96,7 +83,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
         </div>
 
         <div className="cp-item-bottom">
-          {/* Quantity */}
           <div className="cp-qty" aria-label={t("cart.quantity")}>
             <button
               className="cp-qty-btn"
@@ -117,7 +103,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
             </button>
           </div>
 
-          {/* Line subtotal */}
           <span className="cp-item-subtotal">₼{subtotal}</span>
         </div>
       </div>
@@ -125,7 +110,6 @@ function CartItem({ item, onUpdate, onRemove, updating, t }) {
   );
 }
 
-// ─── CartSummary ──────────────────────────────────────────────
 function CartSummary({ items, onCheckout, t }) {
   const subtotal = items.reduce(
     (sum, item) => sum + (item.product?.price ?? 0) * item.quantity,
@@ -171,18 +155,16 @@ function CartSummary({ items, onCheckout, t }) {
   );
 }
 
-// ─── Main CartPage ────────────────────────────────────────────
 export default function CartPage() {
   const { t }     = useTranslation();
   const navigate  = useNavigate();
 
-  const [cart,       setCart]       = useState(null);   // { items: [], ... }
+  const [cart,       setCart]       = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
-  const [updating,   setUpdating]   = useState(new Set()); // itemIds being updated
+  const [updating,   setUpdating]   = useState(new Set());
   const [toast,      setToast]      = useState(null);
 
-  // ── Fetch cart ───────────────────────────────────────────
   const fetchCart = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -198,12 +180,10 @@ export default function CartPage() {
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
 
-  // ── Show toast ───────────────────────────────────────────
   const showToast = (msg, type = "info") => {
     setToast({ msg, type });
   };
 
-  // ── Update quantity ──────────────────────────────────────
   const handleUpdate = async (itemId, newQty) => {
     if (newQty < 1) return;
     setUpdating(prev => new Set(prev).add(itemId));
@@ -222,7 +202,6 @@ export default function CartPage() {
     }
   };
 
-  // ── Remove item ──────────────────────────────────────────
   const handleRemove = async (itemId) => {
     setUpdating(prev => new Set(prev).add(itemId));
     try {
@@ -237,7 +216,6 @@ export default function CartPage() {
     }
   };
 
-  // ── Clear cart ───────────────────────────────────────────
   const handleClear = async () => {
     if (!window.confirm(t("cart.clear_cart") + "?")) return;
     try {
@@ -248,21 +226,16 @@ export default function CartPage() {
     }
   };
 
-  // ── Checkout ─────────────────────────────────────────────
   const handleCheckout = () => {
     navigate("/checkout");
   };
 
-  // ── Item count ───────────────────────────────────────────
   const items      = cart?.items ?? [];
   const totalItems = items.reduce((s, it) => s + (it.quantity ?? 1), 0);
-
-  // ─────────────────────────────────────────────────────────
   return (
     <>
     <Navbar />
     <div className="cp">
-      {/* ── Page Header ── */}
       <div className="cp-header">
         <div className="cp-header-inner">
           <p className="cp-eyebrow">{t("nav.cart")}</p>
@@ -278,7 +251,6 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* ── Loading ── */}
       {loading && (
         <div className="cp-loading">
           <div className="cp-spinner" />
@@ -286,7 +258,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* ── Error ── */}
       {!loading && error && (
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 60px" }}>
           <div className="cp-error">
@@ -299,7 +270,6 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* ── Empty State ── */}
       {!loading && !error && items.length === 0 && (
         <div className="cp-empty">
           <div className="cp-empty-icon">
@@ -319,13 +289,10 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* ── Cart Body ── */}
       {!loading && !error && items.length > 0 && (
         <div className="cp-body">
 
-          {/* Left: Items */}
           <div>
-            {/* Column labels (desktop) */}
             <div className="cp-section-label">
               <span>{t("nav.shop")}</span>
               <span>{t("cart.quantity")}</span>
@@ -333,7 +300,6 @@ export default function CartPage() {
               <span />
             </div>
 
-            {/* Items */}
             <div className="cp-items">
               {items.map((item, idx) => (
                 <CartItem
@@ -347,7 +313,6 @@ export default function CartPage() {
               ))}
             </div>
 
-            {/* Actions */}
             <div className="cp-cart-actions">
               <button className="cp-clear-btn" onClick={handleClear}>
                 <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
@@ -362,7 +327,6 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* Right: Summary */}
           <CartSummary
             items={items}
             onCheckout={handleCheckout}
@@ -370,8 +334,6 @@ export default function CartPage() {
           />
         </div>
       )}
-
-      {/* ── Toast ── */}
       {toast && (
         <Toast
           message={toast.msg}

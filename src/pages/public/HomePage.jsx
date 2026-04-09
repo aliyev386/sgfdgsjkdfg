@@ -1,4 +1,3 @@
-// src/pages/public/HomePage.jsx
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +22,6 @@ import collectionApi from "../../api/collectionApi";
 
 import "../../assets/pagesCss/HomeMain.css";
 
-// ── Hero slides — HeroSectionDto[] ────────────────────────────
 function useHeroSlides(lang) {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +35,6 @@ function useHeroSlides(lang) {
   return { data, loading };
 }
 
-// ── Featured products — ProductDto[] ──────────────────────────
 function useFeaturedProducts(lang) {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +49,6 @@ function useFeaturedProducts(lang) {
   return { data, loading, refetch };
 }
 
-// ── Furniture categories — FurnitureCategoryDto[] ─────────────
 function useProductCategories(lang) {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +62,6 @@ function useProductCategories(lang) {
   return { data, loading };
 }
 
-// ── Collection categories — CollectionCategoryDto[] ───────────
 function useRoomCategories(lang) {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +102,6 @@ export default function HomePage() {
 
   useScrollReveal([prodsLoading, prodCatsLoad, roomCatsLoading]);
 
-  // HeroSectionDto-nu slider formatına çevir
   const slides_mapped = slides.map(s => ({
     id:         s.id,
     image:      s.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1800&q=85",
@@ -116,7 +110,6 @@ export default function HomePage() {
     badge:      s.badgeText,
   }));
 
-  // FurnitureCategoryDto-nu ShopByCategory formatına çevir
   const prodCats_mapped = prodCats.map((c, i) => ({
     id:    c.id,
     slug:  String(c.id),
@@ -127,7 +120,6 @@ export default function HomePage() {
     icon:  "sofa",
   }));
 
-  // CollectionCategoryDto-nu room kategoriya formatına çevir
   const roomCats_mapped = roomCats.map(c => ({
     id:   c.id,
     slug: String(c.id),

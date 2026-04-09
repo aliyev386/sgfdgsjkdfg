@@ -1,5 +1,3 @@
-/* src/assets/pagesCss/CategoryPage.css
-   Rooms.css-in tam eyni dizayn sistemi — cp- prefiksi ilə */
 
    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap');
 
@@ -15,7 +13,6 @@
    ::selection { background: #b5cdb8; color: #1a1a1a; }
    img { display: block; }
    
-   /* ── PAGE ── */
    .cp-page {
      font-family: 'Outfit', sans-serif;
      background: #faf9f7;
@@ -23,9 +20,6 @@
      min-height: 100vh;
    }
    
-   /* ══════════════════════════════════════════
-      HERO
-      ══════════════════════════════════════════ */
    .cp-hero {
      background: url("/images/WhatsApp Image 2026-04-03 at 10.14.36.jpeg") center/cover no-repeat;
      position: relative;
@@ -120,9 +114,6 @@
      color: rgba(255,255,255,.3);
    }
    
-   /* ══════════════════════════════════════════
-      TOOLBAR (search + sort)
-      ══════════════════════════════════════════ */
    .cp-toolbar {
      max-width: 1400px;
      margin: 0 auto;
@@ -133,7 +124,6 @@
      flex-wrap: wrap;
    }
    
-   /* Search */
    .cp-search-wrap {
      position: relative;
      flex: 1;
@@ -183,7 +173,6 @@
    }
    .cp-search-clear:hover { color: #c1654b; }
    
-   /* Sort */
    .cp-sort-wrap { display: flex; align-items: center; gap: 10px; }
    .cp-sort-label {
      font-size: 11px;
@@ -207,7 +196,6 @@
    }
    .cp-sort-sel:focus { border-color: #7a9e7e; }
    
-   /* Reset */
    .cp-reset-btn {
      background: none;
      border: 1px solid #e0d8ce;
@@ -222,17 +210,13 @@
      white-space: nowrap;
    }
    .cp-reset-btn:hover { background: #c1654b; color: #fff; border-color: #c1654b; }
-   
-   /* ══════════════════════════════════════════
-      GRID WRAP
-      ══════════════════════════════════════════ */
+
    .cp-grid-wrap {
      max-width: 1400px;
      margin: 0 auto;
      padding: 48px 60px 80px;
    }
    
-   /* Spinner */
    .cp-spinner-wrap {
      display: flex;
      justify-content: center;
@@ -247,7 +231,6 @@
      animation: spin 0.8s linear infinite;
    }
    
-   /* Error */
    .cp-error {
      display: flex;
      align-items: center;
@@ -274,7 +257,6 @@
    }
    .cp-error button:hover { background: #c1654b; color: #fff; }
    
-   /* Empty */
    .cp-empty {
      padding: 80px 0;
      text-align: center;
@@ -304,9 +286,6 @@
    }
    .cp-empty button:hover { background: #7a9e7e; }
    
-   /* ══════════════════════════════════════════
-      BENTO GRID  — eyni Rooms sistemi
-      ══════════════════════════════════════════ */
    .cp-grid {
      display: grid;
      grid-template-columns: repeat(12, 1fr);
@@ -314,14 +293,10 @@
      gap: 18px;
    }
    
-   /* Span definitions — Rooms ilə identik */
    .cp-card[data-span="large"]  { grid-column: span 5; grid-row: span 2; }
    .cp-card[data-span="medium"] { grid-column: span 4; grid-row: span 1; min-height: 280px; }
    .cp-card[data-span="small"]  { grid-column: span 3; grid-row: span 1; min-height: 240px; }
    
-   /* ══════════════════════════════════════════
-      KART — Rooms kartı ilə identik
-      ══════════════════════════════════════════ */
    .cp-card {
      position: relative;
      border-radius: 22px;
@@ -333,7 +308,6 @@
      border: 1px solid rgba(255,255,255,.06);
    }
    
-   /* Şəkil */
    .cp-card-img {
      position: absolute;
      inset: 0;
@@ -348,7 +322,6 @@
      filter: brightness(.6);
    }
    
-   /* Gradient overlay */
    .cp-card-ov {
      position: absolute;
      inset: 0;
@@ -357,7 +330,6 @@
    }
    .cp-card:hover .cp-card-ov { opacity: 1.2; }
    
-   /* Accent çizgi — üst */
    .cp-card-accent {
      position: absolute;
      top: 0;
@@ -370,7 +342,6 @@
    }
    .cp-card:hover .cp-card-accent { transform: scaleX(1); }
    
-   /* Kart məzmunu */
    .cp-card-body {
      position: absolute;
      bottom: 0;
@@ -401,12 +372,10 @@
      letter-spacing: -.3px;
    }
    
-   /* Span-a görə font ölçüsü */
    .cp-card[data-span="large"]  .cp-card-name { font-size: clamp(28px, 3.5vw, 40px); }
    .cp-card[data-span="medium"] .cp-card-name { font-size: clamp(22px, 2.5vw, 30px); }
    .cp-card[data-span="small"]  .cp-card-name { font-size: clamp(18px, 2vw, 24px); }
    
-   /* CTA — hover-da görünür */
    .cp-card-cta {
      display: inline-flex;
      align-items: center;
@@ -438,9 +407,6 @@
      border-color: #fff;
    }
    
-   /* ══════════════════════════════════════════
-      SHOW MORE / LESS
-      ══════════════════════════════════════════ */
    .cp-toggle-wrap {
      margin-top: 48px;
      display: flex;
@@ -484,9 +450,6 @@
      border-radius: 10px;
    }
    
-   /* ══════════════════════════════════════════
-      RESPONSIVE
-      ══════════════════════════════════════════ */
    @media (max-width: 1200px) {
      .cp-card[data-span="large"]  { grid-column: span 7; }
      .cp-card[data-span="medium"] { grid-column: span 5; }

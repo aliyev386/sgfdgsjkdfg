@@ -27,6 +27,7 @@ import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 import ContactPage from "./pages/common/Contact.jsx";
 import NotFoundPage from "./pages/common/NotFound.jsx";
 import AboutPage from "./pages/common/About.jsx";
+import PaymentResultPage from "./pages/order/PaymentResultPage.jsx";
 const router = createBrowserRouter([
   {
     element: <App />,
@@ -35,7 +36,7 @@ const router = createBrowserRouter([
       { path: "/categories",element: <CategoryPage /> },
       { path: "/collections",element: <RoomsPage /> },
       { path: "/category",element: <FurnitureCategoryPage /> },
-      { path: "/category/:id",element: <FurnitureCategoryPage /> },
+      { path: "/categories/:id",element: <FurnitureCategoryPage /> },
       { path: "/cart",element: <CartPage /> },
       { path: "/room-collections",element: <RoomCollectionsPage /> },
       { path: "/room-collections/:categoryId", element: <RoomCollectionsPage /> },
@@ -58,6 +59,18 @@ const router = createBrowserRouter([
       {
         path: "/checkout",
         element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>,
+      },
+      {
+        path: "/payment/success",
+        element: <ProtectedRoute><PaymentResultPage mode="success" /></ProtectedRoute>,
+      },
+      {
+        path: "/payment/cancel",
+        element: <ProtectedRoute><PaymentResultPage mode="cancel" /></ProtectedRoute>,
+      },
+      {
+        path: "/payment/failed",
+        element: <ProtectedRoute><PaymentResultPage mode="failed" /></ProtectedRoute>,
       },
       {
         path: "/admin",

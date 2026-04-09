@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── KEYFRAMES ─────────────────────────────────────────── */
 @keyframes cdFadeUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
 @keyframes cdImgIn    { from{opacity:0;transform:scale(1.03)}       to{opacity:1;transform:none} }
 @keyframes cdSlideR   { from{opacity:0;transform:translateX(32px)}  to{opacity:1;transform:none} }
@@ -9,7 +8,6 @@
 @keyframes cdLbIn     { from{opacity:0} to{opacity:1} }
 @keyframes cdCardIn   { from{opacity:0;transform:translateY(20px) scale(.98)} to{opacity:1;transform:none} }
 
-/* ── BASE ──────────────────────────────────────────────── */
 .cd-page {
   font-family: 'DM Sans', sans-serif;
   background: #fff;
@@ -17,7 +15,6 @@
   min-height: 100vh;
 }
 
-/* ── BREADCRUMB ────────────────────────────────────────── */
 .cd-breadcrumb {
   max-width: 1400px;
   margin: 0 auto;
@@ -40,7 +37,6 @@
 .cd-bc-sep { color: #D4CCC5; font-size: 11px; }
 .cd-bc-cur { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #6B6B6B; font-weight: 500; }
 
-/* ── MAIN SPLIT LAYOUT ─────────────────────────────────── */
 .cd-split {
   max-width: 1400px;
   margin: 0 auto;
@@ -51,7 +47,6 @@
   align-items: start;
 }
 
-/* ── LEFT: IMAGE GALLERY ───────────────────────────────── */
 .cd-gallery {
   position: sticky;
   top: 100px;
@@ -113,7 +108,6 @@
 }
 .cd-main-img-wrap:hover .cd-img-zoom-hint { opacity: 1; }
 
-/* Thumbnails */
 .cd-thumbs {
   display: flex;
   gap: 10px;
@@ -137,7 +131,6 @@
 .cd-thumb.active:hover { border-color: #7A9E7E; }
 .cd-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ── RIGHT: INFO PANEL ─────────────────────────────────── */
 .cd-info {
   display: flex;
   flex-direction: column;
@@ -186,7 +179,6 @@
   border-bottom: 1px solid #E5DDD4;
 }
 
-/* Price block */
 .cd-price-block {
   display: flex;
   align-items: baseline;
@@ -222,7 +214,6 @@
   letter-spacing: .5px;
 }
 
-/* Meta list */
 .cd-meta {
   display: flex;
   flex-direction: column;
@@ -268,7 +259,6 @@
   animation: cdPulse 2s ease-in-out infinite;
 }
 
-/* CTA buttons */
 .cd-cta-row {
   display: flex;
   flex-direction: column;
@@ -315,7 +305,6 @@
 }
 .cd-btn-secondary:hover { border-color: #1C1C1C; color: #1C1C1C; }
 
-/* Perks */
 .cd-perks {
   display: flex;
   flex-direction: column;
@@ -341,7 +330,6 @@
 .cd-perk-text { font-size: 13px; color: #6B6B6B; line-height: 1.5; }
 .cd-perk-text strong { color: #1C1C1C; font-weight: 500; display: block; font-size: 13px; margin-bottom: 1px; }
 
-/* ── DIVIDER ───────────────────────────────────────────── */
 .cd-section-divider {
   max-width: 1400px;
   margin: 0 auto 0;
@@ -352,7 +340,6 @@
   background: #E5DDD4;
 }
 
-/* ── PRODUCTS SECTION ──────────────────────────────────── */
 .cd-products-section {
   background: #F7F3EE;
   padding: 80px 72px;
@@ -432,14 +419,12 @@
 }
 .cd-sort-select:focus { border-color: #7A9E7E; }
 
-/* Products grid */
 .cd-prod-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 }
 
-/* ── PRODUCT CARD ──────────────────────────────────────── */
 .cd-prod-card {
   background: #fff;
   cursor: pointer;
@@ -568,7 +553,6 @@
   font-weight: 300;
 }
 
-/* ── EMPTY STATE ───────────────────────────────────────── */
 .cd-empty {
   grid-column: 1 / -1;
   text-align: center;
@@ -579,7 +563,6 @@
 .cd-empty-t { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; color: #1C1C1C; margin-bottom: 10px; }
 .cd-empty-s { font-size: 14px; color: #A8A09A; }
 
-/* ── LIGHTBOX ──────────────────────────────────────────── */
 .cd-lb {
   position: fixed;
   inset: 0;
@@ -645,7 +628,6 @@
   color: rgba(255,255,255,.5);
 }
 
-/* ── TOAST ─────────────────────────────────────────────── */
 .cd-toast {
   position: fixed;
   bottom: 28px;
@@ -674,7 +656,6 @@
   flex-shrink: 0;
 }
 
-/* ── SKELETON / LOADING ────────────────────────────────── */
 .cd-loading-page {
   min-height: 100vh;
   display: flex;
@@ -705,7 +686,6 @@
   font-weight: 500;
 }
 
-/* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .cd-split { grid-template-columns: 1fr; gap: 48px; padding: 40px 48px 64px; }
   .cd-gallery { position: static; }
@@ -727,7 +707,6 @@
   .cd-prod-grid { grid-template-columns: 1fr; }
   .cd-title { font-size: 34px; }
 }
-/* ── NEW: PRIMARY CTA ROW ──────────────────────────────────── */
 .cd-cta-row {
   display: flex;
   gap: 12px;
@@ -759,7 +738,6 @@
 .cd-btn-cart.adding { background: #7A9E7E; opacity: .85; cursor: not-allowed; }
 .cd-btn-cart:disabled { cursor: not-allowed; }
 
-/* ── SAVE (HEART) BUTTON ──────────────────────────────────── */
 .cd-btn-save {
   display: flex;
   align-items: center;
@@ -793,7 +771,6 @@
   background: #FFE8E2;
 }
 
-/* ── SECONDARY LINK ROW ───────────────────────────────────── */
 .cd-secondary-link-row {
   margin-bottom: 28px;
 }
@@ -819,7 +796,6 @@
 }
 .cd-secondary-link-row .cd-btn-secondary:hover { border-color: #1C1C1C; color: #1C1C1C; }
 
-/* ── KREDIT KALKULYATORU TOGGLE ───────────────────────────── */
 .cd-credit-section {
   margin-bottom: 24px;
   border: 1.5px solid #E5DDD4;
@@ -888,7 +864,6 @@
   animation: cdFadeUp .3s ease;
 }
 
-/* ── PRODUCT CARD: WISH BUTTON ────────────────────────────── */
 .cd-prod-wish-btn {
   position: absolute;
   top: 12px;
@@ -912,7 +887,6 @@
 .cd-prod-wish-btn:hover { background: #fff; color: #D4714A; transform: scale(1.1); }
 .cd-prod-wish-btn.active { opacity: 1; color: #D4714A; background: #fff; }
 
-/* ── PRODUCT CARD: CART BUTTON ────────────────────────────── */
 .cd-prod-cart-btn {
   display: flex;
   align-items: center;
@@ -942,7 +916,6 @@
   .cd-btn-cart { width: 100%; }
   .cd-btn-save { width: 100%; }
 }
-/* ── IN-CART STATE ──────────────────────────────────────── */
 .cd-prod-hover-btn.cart-btn.in-cart {
   background: #4A8A50;
   color: #fff;

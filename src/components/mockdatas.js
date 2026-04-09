@@ -2,7 +2,6 @@ export const MOCK_SLIDES = [
   {
     id: 1,
     image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1800&q=85",
-    // DB-dən gəlir, tərcümə olunmur:
     heading: "Timeless Furniture for Modern Living",
     subheading: "Handcrafted pieces that blend artisan tradition with contemporary design.",
   },
@@ -27,7 +26,7 @@ export const BADGE_COLORS = {
 export const MOCK_CAMPAIGNS = [
   {
     id: 1,
-    title: "Spring Sale",          // DB-dən gəlir
+    title: "Spring Sale",
     description: "Up to 30% off on all living room furniture.",
     discount_label: "−30%",
     end_date: "2025-05-31",

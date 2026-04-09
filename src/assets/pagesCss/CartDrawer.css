@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── Keyframes ─────────────────────────────────────────────── */
 @keyframes cdSlideIn    { from{transform:translateX(100%)} to{transform:translateX(0)} }
 @keyframes cdSlideOut   { from{transform:translateX(0)} to{transform:translateX(100%)} }
 @keyframes cdFadeIn     { from{opacity:0} to{opacity:1} }
@@ -13,9 +12,6 @@
 @keyframes cdCountUp    { from{transform:translateY(8px);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes cdStepPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
 
-/* ═══════════════════════════════════════════════════════════
-   OVERLAY
-═══════════════════════════════════════════════════════════ */
 .cd-overlay {
   position: fixed;
   inset: 0;
@@ -26,9 +22,6 @@
 }
 .cd-overlay.closing { animation: cdFadeOut .3s ease forwards; }
 
-/* ═══════════════════════════════════════════════════════════
-   DRAWER SHELL  (large ~62% from right)
-═══════════════════════════════════════════════════════════ */
 .cd {
   position: fixed;
   top: 0;
@@ -49,7 +42,6 @@
 }
 .cd.closing { animation: cdSlideOut .38s cubic-bezier(.55,0,1,.45) forwards; }
 
-/* ── Header ──────────────────────────────────────────────── */
 .cd-header {
   display: flex;
   align-items: center;
@@ -108,7 +100,6 @@
 .cd-close:hover { background:#1C1C1C; color:#fff; border-color:#1C1C1C; transform:rotate(90deg); }
 .cd-close svg { width:16px; height:16px; }
 
-/* ── Body: Two-column split ───────────────────────────────── */
 .cd-body {
   flex: 1;
   overflow: hidden;
@@ -116,7 +107,6 @@
   grid-template-columns: 1fr 320px;
 }
 
-/* Left — items list */
 .cd-items-col {
   overflow-y: auto;
   padding: 0 0 120px;
@@ -128,7 +118,6 @@
 .cd-items-col::-webkit-scrollbar-track { background: #F7F3EE; }
 .cd-items-col::-webkit-scrollbar-thumb { background: #C8DBC9; border-radius: 2px; }
 
-/* Col header */
 .cd-col-head {
   display: grid;
   grid-template-columns: 88px 1fr 100px 36px;
@@ -145,7 +134,6 @@
   z-index: 2;
 }
 
-/* Item row */
 .cd-item {
   display: grid;
   grid-template-columns: 88px 1fr 100px 36px;
@@ -201,7 +189,6 @@
   color: #6B6B6B;
 }
 
-/* Qty control */
 .cd-qty {
   display: flex;
   align-items: center;
@@ -236,7 +223,6 @@
   animation: cdCountUp .2s ease;
 }
 
-/* Line price */
 .cd-item-line-price {
   font-family: 'Cormorant Garamond', serif;
   font-size: 20px;
@@ -245,7 +231,6 @@
   text-align: right;
 }
 
-/* Remove btn */
 .cd-item-remove {
   background: none;
   border: none;
@@ -260,7 +245,6 @@
 .cd-item-remove:hover { color: #C0392B; transform: scale(1.2); }
 .cd-item-remove svg { width: 14px; height: 14px; }
 
-/* Right — Summary column */
 .cd-summary-col {
   display: flex;
   flex-direction: column;
@@ -335,7 +319,6 @@
   animation: cdCountUp .25s ease;
 }
 
-/* Shipping note */
 .cd-shipping-note {
   background: #EAF3EB;
   border: 1px solid #C8DBC9;
@@ -350,7 +333,6 @@
 }
 .cd-shipping-note::before { content:'✓'; font-weight:700; }
 
-/* Checkout button */
 .cd-checkout-btn {
   display: flex;
   align-items: center;
@@ -395,7 +377,6 @@
 }
 .cd-continue-link:hover { color: #7A9E7E; }
 
-/* Empty state */
 .cd-empty {
   display: flex;
   flex-direction: column;
@@ -449,7 +430,6 @@
 }
 .cd-empty-btn:hover { background:#7A9E7E; transform:translateY(-2px); }
 
-/* Loading */
 .cd-loading {
   display: flex;
   flex-direction: column;
@@ -474,7 +454,6 @@
   color: #6B6B6B;
 }
 
-/* Clear button */
 .cd-clear-btn {
   display: flex;
   align-items: center;
@@ -493,7 +472,6 @@
 }
 .cd-clear-btn:hover { color: #C0392B; }
 
-/* Toast */
 .cd-toast {
   position: fixed;
   bottom: 28px;
@@ -515,9 +493,6 @@
 .cd-toast-dot { width:5px; height:5px; border-radius:50%; background:#7A9E7E; flex-shrink:0; }
 .cd-toast.error .cd-toast-dot { background:rgba(255,255,255,.6); }
 
-/* ═══════════════════════════════════════════════════════════
-   CHECKOUT MODAL  (full screen)
-═══════════════════════════════════════════════════════════ */
 .cko {
   position: fixed;
   inset: 0;
@@ -531,7 +506,6 @@
   overflow-y: auto;
 }
 
-/* Header */
 .cko-header {
   display: flex;
   align-items: center;
@@ -571,7 +545,6 @@
 .cko-back:hover { color: #7A9E7E; }
 .cko-back svg { width:16px; height:16px; }
 
-/* Steps */
 .cko-steps {
   display: flex;
   align-items: center;
@@ -631,7 +604,6 @@
 }
 .cko-step-line.done { background: #7A9E7E; }
 
-/* Body */
 .cko-body {
   flex: 1;
   display: grid;
@@ -644,7 +616,6 @@
   align-items: start;
 }
 
-/* Form area */
 .cko-form-area {}
 .cko-section-title {
   font-family: 'Cormorant Garamond', serif;
@@ -655,7 +626,6 @@
 }
 .cko-section-title em { font-style:italic; color:#7A9E7E; }
 
-/* Form grid */
 .cko-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .cko-grid.full { grid-template-columns: 1fr; }
 .cko-field {
@@ -691,7 +661,6 @@
   letter-spacing: .5px;
 }
 
-/* Payment method selector */
 .cko-pay-methods {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -745,7 +714,6 @@
 }
 .cko-pay-desc { font-size: 11px; color: #6B6B6B; line-height: 1.5; }
 
-/* Bank select (credit) */
 .cko-credit-section {
   border: 1px solid #E5DDD4;
   padding: 24px 24px;
@@ -830,7 +798,6 @@
   color: #1C1C1C;
 }
 
-/* Right panel — order review */
 .cko-order-panel {
   position: sticky;
   top: 120px;
@@ -912,7 +879,6 @@
   line-height: 1;
 }
 
-/* Place order button */
 .cko-place-btn {
   display: flex;
   align-items: center;
@@ -963,7 +929,6 @@
 .cko-terms.checked .cko-terms-box::after { display:block; }
 .cko-terms-text { font-size:11px; color:#6B6B6B; line-height:1.5; }
 
-/* Success screen */
 .cko-success {
   flex: 1;
   display: flex;
@@ -1012,7 +977,6 @@
 }
 .cko-success-btn:hover { background:#7A9E7E; transform:translateY(-2px); }
 
-/* Responsive */
 @media (max-width: 1200px) {
   .cd { width: 78%; min-width: 560px; }
 }

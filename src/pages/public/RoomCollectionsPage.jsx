@@ -11,14 +11,12 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/RoomCollections.css";
 
-// ── ROOM META (API-dan gəlir)
 const ACCENTS2 = ["#7A9E7E","#C9A84C","#C1654B","#5C8DB8","#9B8AC4","#7A9E7E","#E8A87C","#A0856C"]; 
 
 
 const fmt = (n) => `$${Number(n).toLocaleString()}`;
 const BADGE_CLR = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C" };
 
-// ── COLLECTION CARD ───────────────────────────────────────────
 const CollCard = memo(function CollCard({ coll, idx, accent, t }) {
   const navigate = useNavigate();
   return (
@@ -154,7 +152,6 @@ export default function RoomCollectionsPage() {
           </div>
         </div>
 
-        {/* ROOMS NAV */}
         <nav className="rcp-rooms-nav">
           <div className="rcp-rooms-nav-inner" style={{"--accent":accent}}>
             {allRooms.map(r => (
@@ -170,7 +167,6 @@ export default function RoomCollectionsPage() {
           </div>
         </nav>
 
-        {/* MAIN */}
         <div className="rcp-main">
           <div className="rcp-section-head">
           <h2 className="rcp-section-title" style={{"--accent":accent}}>

@@ -1,4 +1,3 @@
-// src/pages/auth/ForgotPasswordPage.jsx
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -134,14 +133,12 @@ export default function ForgotPasswordPage() {
     <div className="auth-root">
       <div className="auth-right">
         <div className="auth-form-container">
-          {/* Logo */}
           <div className="auth-logo">
             <DivanLogo />
             <div className="auth-logo-name">DIVAN</div>
             <div className="auth-logo-tagline">{t.tagline}</div>
           </div>
 
-          {/* Language switcher */}
           <div className="auth-lang-switcher">
             {LANGS.map((l) => (
               <button key={l.code} className={`auth-lang-btn${lang === l.code ? " active" : ""}`}

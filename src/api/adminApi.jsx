@@ -2,34 +2,22 @@
 
 import axiosInstance from "./axiosInstance";
 
-// ════════════════════════════════════════════════════════════
-// 📊 DASHBOARD
-// ════════════════════════════════════════════════════════════
+
 export const dashboardApi = {
-  // GET /admin/dashboard/stats
-  // Response: { totalProducts, totalOrders, todayOrders, totalRevenue, outOfStock, totalCustomers }
   getStats: () =>
     axiosInstance.get("/admin/dashboard/stats").then((r) => r.data),
 
-  // GET /admin/dashboard/top-products?limit=5
-  // Response: [{ id, name, price, stock, category }]
   getTopProducts: (limit = 5) =>
     axiosInstance
       .get("/admin/dashboard/top-products", { params: { limit } })
       .then((r) => r.data),
 
-  // GET /admin/dashboard/monthly-revenue?year=2024
-  // Response: [{ month, revenue, orders }]
   getMonthlyRevenue: (year) =>
     axiosInstance
       .get("/admin/dashboard/monthly-revenue", { params: { year } })
       .then((r) => r.data),
 };
 
-// ════════════════════════════════════════════════════════════
-// 📦 PRODUCTS
-// ════════════════════════════════════════════════════════════
-// Helper to extract data array from ApiResponse wrapper
 const unwrapList = (r) => {
   const d = r.data;
   if (Array.isArray(d)) return { data: d, total: d.length };
@@ -39,16 +27,12 @@ const unwrapList = (r) => {
 const unwrap = (r) => r.data?.data ?? r.data;
 
 export const productApi = {
-  // GET /products?page=1&pageSize=10
   getAll: (params = {}) =>
     axiosInstance.get("/products", { params: { page: params.page||1, pageSize: params.limit||params.pageSize||10, ...params } })
       .then(unwrapList),
 
   getById: (id) =>
     axiosInstance.get(`/products/${id}`).then(unwrap),
-
-  // POST /products  — Admin only
-  // Body maps to CreateProductDto
   create: (data) =>
     axiosInstance.post("/products", buildProductPayload(data)).then(unwrap),
 
@@ -58,7 +42,6 @@ export const productApi = {
   remove: (id) =>
     axiosInstance.delete(`/products/${id}`).then(unwrap),
 
-  // POST /media/upload?folder=products
   uploadImage: (file) => {
     const fd = new FormData();
     fd.append("file", file);
@@ -70,7 +53,7 @@ export const productApi = {
   },
 };
 
-// Build CreateProductDto / UpdateProductDto from admin form data
+
 function buildProductPayload(form, id) {
   const translations = ["az","en","ru"].map(lang => ({
     lang,
@@ -86,8 +69,7 @@ function buildProductPayload(form, id) {
 
   const colors = (form.colors || []).map(c => {
     let hex = c.hex || c.hexCode || "#000000";
-    if (!hex.startsWith("#")) hex = "#" + hex;
-    // Ensure 6-char hex: #RGB → #RRGGBB
+    if (!hex.startsWith("#")) hex = "#" + hex;  
     if (hex.length === 4) {
       hex = "#" + hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
     }
@@ -114,11 +96,7 @@ function buildProductPayload(form, id) {
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// 🏷️ CATEGORIES (Furniture Categories)
-// ════════════════════════════════════════════════════════════
 export const categoryApi = {
-  // GET /furniture-categories
   getAll: (params = {}) =>
     axiosInstance.get("/furniture-categories", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -128,8 +106,6 @@ export const categoryApi = {
   getById: (id) =>
     axiosInstance.get(`/furniture-categories/${id}`).then(unwrap),
 
-  // POST /furniture-categories  — Admin
-  // Body: CreateFurnitureCategoryDto: { translations:[{lang,name}], imageUrl? }
   create: (form) =>
     axiosInstance.post("/furniture-categories", buildCategoryPayload(form)).then(unwrap),
 
@@ -159,12 +135,7 @@ function buildCategoryPayload(form, id) {
     })),
   };
 }
-
-// ════════════════════════════════════════════════════════════
-// 🗂️ COLLECTIONS
-// ════════════════════════════════════════════════════════════
 export const collectionApi = {
-  // GET /collections
   getAll: (params = {}) =>
     axiosInstance.get("/collections", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -174,8 +145,6 @@ export const collectionApi = {
   getById: (id) =>
     axiosInstance.get(`/collections/${id}`).then(unwrap),
 
-  // POST /collections  — Admin
-  // Body: CreateCollectionDto
   create: (form) =>
     axiosInstance.post("/collections", buildCollectionPayload(form)).then(unwrap),
 
@@ -203,11 +172,7 @@ function buildCollectionPayload(form, id) {
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// 🗂️ COLLECTION CATEGORIES
-// ════════════════════════════════════════════════════════════
 export const collectionCategoryApi = {
-  // GET /collection-categories
   getAll: (params = {}) =>
     axiosInstance.get("/collection-categories", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -246,12 +211,7 @@ function buildCollCatPayload(form, id) {
     })),
   };
 }
-
-// ════════════════════════════════════════════════════════════
-// 🛍️ ORDERS
-// ════════════════════════════════════════════════════════════
 export const orderApi = {
-  // GET /orders/admin/all  (Admin role required)
   getAll: (params = {}) =>
     axiosInstance.get("/orders/admin/all", {
       params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 8 }
@@ -265,16 +225,11 @@ export const orderApi = {
   getById: (id) =>
     axiosInstance.get(`/orders/${id}`).then(unwrap),
 
-  // PUT /orders/admin/:id/status  — Admin
   updateStatus: (id, status) =>
     axiosInstance.put(`/orders/admin/${id}/status`, { status }).then(unwrap),
 };
 
-// ════════════════════════════════════════════════════════════
-// 🖼️ HERO SECTIONS
-// ════════════════════════════════════════════════════════════
 export const heroApi = {
-  // GET /hero-sections/all  (Admin sees all, not just active)
   getAll: (params = {}) =>
     axiosInstance.get("/hero-sections/all", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -284,8 +239,6 @@ export const heroApi = {
   getById: (id) =>
     axiosInstance.get(`/hero-sections/${id}`).then(unwrap),
 
-  // POST /hero-sections — Admin
-  // Body: CreateHeroSectionDto: { imageUrl, translations:[{lang,title,subtitle,badgeText}] }
   create: (form) =>
     axiosInstance.post("/hero-sections", buildHeroPayload(form)).then(unwrap),
 
@@ -321,11 +274,7 @@ function buildHeroPayload(form) {
   };
 }
 
-// ════════════════════════════════════════════════════════════
-// 📣 CAMPAIGNS
-// ════════════════════════════════════════════════════════════
 export const campaignApi = {
-  // GET /campaigns/all  (Admin — all campaigns)
   getAll: (params = {}) =>
     axiosInstance.get("/campaigns/all", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -335,8 +284,6 @@ export const campaignApi = {
   getById: (id) =>
     axiosInstance.get(`/campaigns/${id}`).then(unwrap),
 
-  // POST /campaigns  — Admin
-  // Body: CreateCampaignDto
   create: (form) =>
     axiosInstance.post("/campaigns", buildCampaignPayload(form)).then(unwrap),
 
@@ -368,12 +315,7 @@ function buildCampaignPayload(form) {
     })),
   };
 }
-
-// ════════════════════════════════════════════════════════════
-// 🎟️ DISCOUNT CODES
-// ════════════════════════════════════════════════════════════
 export const discountCodeApi = {
-  // GET /discount-codes
   getAll: (params = {}) =>
     axiosInstance.get("/discount-codes", { params }).then(r => {
       const arr = r.data?.data ?? r.data;
@@ -383,12 +325,10 @@ export const discountCodeApi = {
   getById: (id) =>
     axiosInstance.get(`/discount-codes/${id}`).then(unwrap),
 
-  // POST /discount-codes  — Admin
-  // Backend DiscountType enum: 1=Percent, 2=Fixed
   create: (form) =>
     axiosInstance.post("/discount-codes", {
       code:           (form.code || "").toUpperCase(),
-      type:           form.type === "percent" ? 1 : 2,   // DiscountType: 1=Percent, 2=Fixed
+      type:           form.type === "percent" ? 1 : 2,
       value:          Number(form.value)  || 0,
       maxUses:        Number(form.limit)  || null,
       minOrderAmount: Number(form.min_order) || null,
@@ -405,7 +345,6 @@ export const discountCodeApi = {
       expiresAt:      form.expiration ? new Date(form.expiration).toISOString() : null,
     }).then(unwrap),
 
-  // PATCH /discount-codes/:id/deactivate
   deactivate: (id) =>
     axiosInstance.patch(`/discount-codes/${id}/deactivate`).then(unwrap),
 

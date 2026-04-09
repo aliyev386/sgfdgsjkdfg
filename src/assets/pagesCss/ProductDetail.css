@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── KEYFRAMES ─────────────────────────────────────────── */
 @keyframes pdpFadeUp  { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
 @keyframes pdpImgIn   { from{opacity:0;transform:scale(1.03)}       to{opacity:1;transform:none} }
 @keyframes pdpSlideR  { from{opacity:0;transform:translateX(32px)}  to{opacity:1;transform:none} }
@@ -9,7 +8,6 @@
 @keyframes pdpLbIn    { from{opacity:0} to{opacity:1} }
 @keyframes pdpSpin    { to{transform:rotate(360deg)} }
 
-/* ── BASE ──────────────────────────────────────────────── */
 .pdp-page {
   font-family: 'DM Sans', sans-serif;
   background: #fff;
@@ -17,7 +15,6 @@
   min-height: 100vh;
 }
 
-/* ── BREADCRUMB ────────────────────────────────────────── */
 .pdp-breadcrumb {
   max-width: 1400px;
   margin: 0 auto;
@@ -41,7 +38,6 @@
 .pdp-bc-sep  { color: #D4CCC5; font-size: 11px; }
 .pdp-bc-cur  { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #6B6B6B; font-weight: 500; }
 
-/* ── SPLIT LAYOUT ──────────────────────────────────────── */
 .pdp-split {
   max-width: 1400px;
   margin: 0 auto;
@@ -52,7 +48,6 @@
   align-items: start;
 }
 
-/* ── GALLERY ───────────────────────────────────────────── */
 .pdp-gallery {
   position: sticky;
   top: 100px;
@@ -124,7 +119,6 @@
 .pdp-thumb.active:hover { border-color: #7A9E7E; }
 .pdp-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ── INFO PANEL ────────────────────────────────────────── */
 .pdp-info {
   display: flex;
   flex-direction: column;
@@ -165,7 +159,6 @@
 }
 .pdp-name em { font-style: italic; color: #7A9E7E; }
 
-/* Rating */
 .pdp-rating-row {
   display: flex;
   align-items: center;
@@ -189,7 +182,6 @@
 .pdp-reviews-link:hover { color: #7A9E7E; }
 .pdp-sku { font-size: 11px; color: #B8B0A8; letter-spacing: 1px; margin-left: auto; }
 
-/* Price */
 .pdp-price-block {
   display: flex; align-items: baseline; gap: 14px;
   margin-bottom: 10px;
@@ -216,7 +208,6 @@
   margin-bottom: 16px; letter-spacing: .5px;
 }
 
-/* Stock */
 .pdp-stock-row {
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 24px;
@@ -235,7 +226,6 @@
 .pdp-stock-dot.red { background: #C94B4B; }
 .pdp-stock-txt { font-size: 13px; font-weight: 400; }
 
-/* Meta table */
 .pdp-meta {
   display: flex; flex-direction: column; gap: 0;
   margin-bottom: 28px;
@@ -255,7 +245,6 @@
 }
 .pdp-meta-val { font-size: 13px; color: #1C1C1C; font-weight: 400; }
 
-/* Options */
 .pdp-opt-block { margin-bottom: 20px; }
 .pdp-opt-label {
   font-size: 11px; letter-spacing: 1.5px;
@@ -288,7 +277,6 @@
 .pdp-size-btn:hover { border-color: #7A9E7E; color: #7A9E7E; }
 .pdp-size-btn.active { background: #1C1C1C; border-color: #1C1C1C; color: #fff; }
 
-/* ── CREDIT CHIPS ──────────────────────────────────────── */
 .pdp-credit-chips {
   margin-bottom: 24px;
 }
@@ -330,7 +318,6 @@
   padding: 0;
 }
 
-/* Credit body */
 .pdp-credit-body {
   border: 1.5px solid #7A9E7E;
   padding: 24px;
@@ -356,7 +343,6 @@
 }
 .pdp-credit-close:hover { color: #1C1C1C; }
 
-/* ── QTY + CTA ─────────────────────────────────────────── */
 .pdp-cta-row {
   display: flex; gap: 12px; align-items: stretch;
   margin-bottom: 12px;
@@ -395,7 +381,6 @@
 .pdp-btn-buy:disabled { opacity: .45; cursor: not-allowed; }
 .pdp-btn-buy.adding { background: #7A9E7E; }
 
-/* Secondary row */
 .pdp-secondary-row {
   display: flex; gap: 12px;
   margin-bottom: 28px;
@@ -431,7 +416,6 @@
 .pdp-btn-wish:hover { border-color: #D4714A; color: #D4714A; }
 .pdp-btn-wish.saved { border-color: #D4714A; background: #FFF5F2; color: #D4714A; }
 
-/* Perks */
 .pdp-perks {
   display: flex; flex-direction: column; gap: 14px;
   padding-top: 28px;
@@ -447,11 +431,9 @@
 .pdp-perk-text { font-size: 13px; color: #6B6B6B; line-height: 1.5; }
 .pdp-perk-text strong { color: #1C1C1C; font-weight: 500; display: block; font-size: 13px; margin-bottom: 1px; }
 
-/* ── SECTION DIVIDER ───────────────────────────────────── */
 .pdp-section-divider { max-width: 1400px; margin: 0 auto; padding: 0 72px; }
 .pdp-section-divider-line { height: 1px; background: #E5DDD4; }
 
-/* ── TABS ──────────────────────────────────────────────── */
 .pdp-tabs-section {
   background: #F7F3EE;
   padding: 64px 72px;
@@ -503,7 +485,6 @@
 .pdp-spec-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #A8A09A; font-weight: 500; }
 .pdp-spec-val   { font-size: 13px; color: #1C1C1C; font-weight: 400; }
 
-/* Empty tab state */
 .pdp-empty-tab {
   text-align: center; padding: 56px 40px;
   background: #fff;
@@ -511,7 +492,6 @@
 .pdp-empty-ic { font-size: 36px; display: block; margin-bottom: 12px; }
 .pdp-empty-tab p { font-size: 14px; color: #A8A09A; }
 
-/* Reviews */
 .pdp-reviews-hero {
   display: flex; align-items: center; gap: 32px;
   background: #fff; padding: 28px 32px;
@@ -542,7 +522,6 @@
 .pdp-rev-text::before { content: '"'; }
 .pdp-rev-text::after  { content: '"'; }
 
-/* ── RELATED ───────────────────────────────────────────── */
 .pdp-related {
   max-width: 1400px;
   margin: 0 auto;
@@ -637,7 +616,6 @@
 .pdp-rel-price { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; color: #1C1C1C; }
 .pdp-rel-old   { font-size: 13px; color: #B8B0A8; text-decoration: line-through; font-family: 'Cormorant Garamond', serif; font-weight: 300; }
 
-/* ── LIGHTBOX ──────────────────────────────────────────── */
 .pdp-lb {
   position: fixed; inset: 0; z-index: 900;
   background: rgba(0,0,0,.92);
@@ -678,7 +656,6 @@
   color: rgba(255,255,255,.5);
 }
 
-/* ── TOAST ─────────────────────────────────────────────── */
 .pdp-toast {
   position: fixed; bottom: 28px; right: 28px; z-index: 9999;
   background: #1C1C1C; color: #fff;
@@ -695,7 +672,6 @@
   font-size: 11px; flex-shrink: 0;
 }
 
-/* ── LOADING ───────────────────────────────────────────── */
 .pdp-loading-page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
@@ -717,7 +693,6 @@
   text-transform: uppercase; color: #A8A09A; font-weight: 500;
 }
 
-/* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .pdp-split { grid-template-columns: 1fr; gap: 40px; padding: 40px 48px 56px; }
   .pdp-gallery { position: static; }
@@ -742,7 +717,6 @@
   .pdp-name { font-size: 32px; }
   .pdp-cta-row { flex-wrap: wrap; }
 }
-/* ── DESCRIPTION LAYOUT ────────────────────────────────── */
 .pdp-desc-layout {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -760,7 +734,6 @@
   font-weight: 500; margin-bottom: 12px;
 }
 
-/* ── DIMENSION CARD ─────────────────────────────────────── */
 .pdp-dim-card {
   background: #fff;
   border: 1.5px solid #E5DDD4;
@@ -794,7 +767,6 @@
 }
 .pdp-dim-val small { font-size: 11px; color: #A8A09A; font-family: 'DM Sans', sans-serif; }
 
-/* ── REVIEW FORM ────────────────────────────────────────── */
 .pdp-review-form {
   background: #fff;
   border: 1.5px solid #E5DDD4;
@@ -862,7 +834,6 @@
 .pdp-review-submit:disabled { opacity: .5; cursor: not-allowed; }
 .pdp-review-submit.sending { opacity: .6; }
 
-/* ── REVIEW SUCCESS ─────────────────────────────────────── */
 .pdp-review-success {
   background: #E8F0E8;
   border: 1.5px solid #7A9E7E;
@@ -873,7 +844,6 @@
   animation: pdpFadeUp .4s ease both;
 }
 
-/* ── LOAD MORE BUTTON ───────────────────────────────────── */
 .pdp-load-more-btn {
   padding: 12px 40px;
   background: transparent;
@@ -889,12 +859,10 @@
 .pdp-load-more-btn:hover { background: #1C1C1C; color: #fff; }
 .pdp-load-more-btn:disabled { opacity: .4; cursor: not-allowed; }
 
-/* ── INTERACTIVE STARS ──────────────────────────────────── */
 .pdp-stars { display: inline-flex; gap: 2px; }
 .pdp-star { color: #E5DDD4; transition: color .15s; }
 .pdp-star.on { color: #C9A84C; }
 
-/* ── IN-CART BUTTON STATES ──────────────────────────────── */
 .pdp-btn-buy.in-cart,
 .pdp-btn-cart.in-cart {
   background: #4A8A50;

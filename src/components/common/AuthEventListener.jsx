@@ -9,12 +9,11 @@ export default function AuthEventListener() {
   const isAuth     = useSelector(selectIsAuth);
   const { openAuthModal } = useAuthModal();
 
-  // App ilk açılanda istifadəçi artıq login-dirsə wishlist-i sync et
   useEffect(() => {
     if (isAuth) {
       dispatch(syncWishlistFromBackend());
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onRefreshed = (e) => {
@@ -26,12 +25,10 @@ export default function AuthEventListener() {
       dispatch(clearWishlist());
     };
 
-    // Login uğurlu olanda wishlist-i backend-dən yüklə
     const onLogin = () => {
       dispatch(syncWishlistFromBackend());
     };
 
-    // Token yoxdursa və ya expire olubsa — modal aç, redirect yox
     const onRequireLogin = () => {
       openAuthModal("login");
     };

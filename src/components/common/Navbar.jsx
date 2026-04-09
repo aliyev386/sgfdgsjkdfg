@@ -50,12 +50,15 @@ export default function Navbar() {
     dispatch(setLang(code));
   };
 
-  const handleLogout = async () => {
-    try { await apiLogout(); } catch { /* backend çatışmasa belə local temizlə */ }
-    dispatch(logoutAction());
-    navigate("/");
-  };
-
+const handleLogout = async () => {
+  try {
+    await apiLogout();
+  } catch (error) {
+    console.error(error); // istəyə görə
+  }
+  dispatch(logoutAction());
+  navigate("/");
+};
   const isActive = (path) => location.pathname === path ? "active" : "";
 
   return (

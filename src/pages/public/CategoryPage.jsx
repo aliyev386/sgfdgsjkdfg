@@ -86,7 +86,6 @@ export default function CategoriesPage() {
     searchRef.current?.focus();
   }, []);
 
-  /* ---- span-ları axtarışdan sonra yenidən hesabla ---- */
   const categoriesWithSpan = visibleCategories.map((c, i) => ({
     ...c,
     span: SPANS[i % SPANS.length],
@@ -97,7 +96,6 @@ export default function CategoriesPage() {
     <div className="cp-page">
       <Navbar />
 
-      {/* ── HERO ── */}
       <div className="cp-hero">
         <div className="cp-hero-noise" />
         <div className="cp-hero-orb cp-hero-orb1" />
@@ -118,7 +116,6 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* ── TOOLBAR ── */}
       <div className="cp-toolbar">
         <div className="cp-search-wrap">
           <span className="cp-search-icon">⌕</span>
@@ -154,17 +151,14 @@ export default function CategoriesPage() {
         )}
       </div>
 
-      {/* ── GRID ── */}
       <div className="cp-grid-wrap">
 
-        {/* Yüklənmə */}
         {loading && (
           <div className="cp-spinner-wrap">
             <div className="cp-spinner" />
           </div>
         )}
 
-        {/* Xəta */}
         {!loading && error && (
           <div className="cp-error">
             <span>⚠️</span>
@@ -173,7 +167,6 @@ export default function CategoriesPage() {
           </div>
         )}
 
-        {/* Boş nəticə */}
         {!loading && !error && filtered.length === 0 && (
           <div className="cp-empty">
             <span className="cp-empty-ic">🗂</span>
@@ -183,7 +176,6 @@ export default function CategoriesPage() {
           </div>
         )}
 
-        {/* Grid */}
         {!loading && !error && categoriesWithSpan.length > 0 && (
           <>
             <div className="cp-grid">
@@ -216,7 +208,6 @@ export default function CategoriesPage() {
               ))}
             </div>
 
-            {/* Show More / Less */}
             {showToggle && (
               <div className="cp-toggle-wrap">
                 <div className="cp-toggle-line" />

@@ -28,7 +28,6 @@ export default function HeroSlider({ slides = [], t }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Slides */}
       {slides.map((slide, i) => (
         <div
           key={slide.id}
@@ -45,7 +44,6 @@ export default function HeroSlider({ slides = [], t }) {
         </div>
       ))}
 
-      {/* Content — heading/subheading DB-dən gəlir, TƏRCÜMƏ OLUNMUR */}
       <div className="hp-hero-ct" style={{ position: "relative", zIndex: 10 }}>
         <div className="hp-badge">{t("hero.badge")}</div>
         <h1 className="hp-h1">{slides[current]?.heading}</h1>
@@ -56,7 +54,6 @@ export default function HeroSlider({ slides = [], t }) {
         </div>
       </div>
 
-      {/* Arrows */}
       {slides.length > 1 && (
         <>
           <button className="hp-arrow prev" onClick={() => goTo(current - 1)} aria-label="Previous">←</button>
@@ -64,7 +61,6 @@ export default function HeroSlider({ slides = [], t }) {
         </>
       )}
 
-      {/* Dots */}
       {slides.length > 1 && (
         <div className="hp-dots" role="tablist">
           {slides.map((_, i) => (
@@ -80,7 +76,6 @@ export default function HeroSlider({ slides = [], t }) {
         </div>
       )}
 
-      {/* Scroll hint */}
       <div className="hp-scroll">
         <span>Scroll</span>
         <div className="hp-scroll-line" />

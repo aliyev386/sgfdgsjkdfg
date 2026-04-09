@@ -1,12 +1,5 @@
-// src/components/credit/CreditCalculator.jsx
-// ─────────────────────────────────────────────────────────────
-// Azərbaycan bazarına uyğun kredit kalkulyatoru
-// Reusable — ProductDetail, CartDrawer, CheckoutPage-də istifadə olunur
-// Bütün stillər daxilindədir
-// ─────────────────────────────────────────────────────────────
 import { useState, useMemo } from "react";
 
-// ── Azərbaycan bankları ─────────────────────────────────────
 export const AZ_BANKS = [
   { id: "kapital", name: "Kapital Bank",  logo: "KB", color: "#E30613", rate12: 1.5, rate24: 1.8 },
   { id: "abb",     name: "ABB",           logo: "ABB", color: "#004A97", rate12: 1.7, rate24: 2.0 },
@@ -16,15 +9,13 @@ export const AZ_BANKS = [
   { id: "leobank", name: "Leobank",      logo: "LB", color: "#FF6B00", rate12: 2.0, rate24: 2.3 },
 ];
 
-// ── Müddətlər ──────────────────────────────────────────────
 export const PERIODS = [
   { months: 4,  label: "4 ay",  interest: 0,    badge: "0%" },
   { months: 6,  label: "6 ay",  interest: 0,    badge: "0%" },
-  { months: 12, label: "12 ay", interest: null, badge: null }, // bank rate
+  { months: 12, label: "12 ay", interest: null, badge: null },
   { months: 24, label: "24 ay", interest: null, badge: null },
 ];
 
-// ── İlkin ödəniş seçimləri ─────────────────────────────────
 export const DOWN_OPTIONS = [
   { pct: 0,  label: "0%"  },
   { pct: 10, label: "10%" },
@@ -32,7 +23,6 @@ export const DOWN_OPTIONS = [
   { pct: 30, label: "30%" },
 ];
 
-// ── Hesablama məntiqi ──────────────────────────────────────
 export function calcCredit({ price, downPct, months, bankRate }) {
   const downAmount  = Math.round(price * downPct / 100);
   const principal   = price - downAmount;
@@ -44,7 +34,6 @@ export function calcCredit({ price, downPct, months, bankRate }) {
     monthly      = principal / months;
     totalCredit  = principal;
   } else {
-    // annuity formula
     const r = monthlyRate;
     const n = months;
     monthly     = principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -65,7 +54,6 @@ export function calcCredit({ price, downPct, months, bankRate }) {
 
 const fmt = (n) => `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// ── Inline CSS ─────────────────────────────────────────────
 const CSS = `
 @keyframes ccFadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 @keyframes ccSpin { to{transform:rotate(360deg)} }
@@ -153,9 +141,6 @@ const CSS = `
 }
 `;
 
-// ══════════════════════════════════════════════════════════
-// Main component
-// ══════════════════════════════════════════════════════════
 export default function CreditCalculator({ price, compact = false, onSelect }) {
   const [bank,     setBank]    = useState(AZ_BANKS[0].id);
   const [months,   setMonths]  = useState(12);
@@ -174,7 +159,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
       <style>{CSS}</style>
       <div className="cc">
 
-        {/* ── Banks ── */}
         {!compact && (
           <>
             <span className="cc-section-lbl">Bank seçin</span>
@@ -193,7 +177,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
           </>
         )}
 
-        {/* ── İlkin ödəniş ── */}
         <span className="cc-section-lbl">İlkin ödəniş</span>
         <div className="cc-down-grid">
           {DOWN_OPTIONS.map(d => (
@@ -210,7 +193,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
           ))}
         </div>
 
-        {/* ── Müddət ── */}
         <span className="cc-section-lbl">Müddət</span>
         <div className="cc-row">
           {PERIODS.map(p => (
@@ -225,7 +207,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
           ))}
         </div>
 
-        {/* ── Nəticə ── */}
         {compact && (
           <>
             <span className="cc-section-lbl">Bank seçin</span>

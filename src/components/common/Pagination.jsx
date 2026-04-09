@@ -10,7 +10,6 @@ export default function Pagination({ current, total, onPageChange, accentColor =
 
   return (
     <div style={styles.container}>
-      {/* Prev */}
       <button
         style={styles.btn}
         disabled={current === 1}
@@ -19,7 +18,6 @@ export default function Pagination({ current, total, onPageChange, accentColor =
         {"<"}
       </button>
 
-      {/* Pages */}
       {pages.map((p) => (
         <button
           key={p}
@@ -35,7 +33,6 @@ export default function Pagination({ current, total, onPageChange, accentColor =
         </button>
       ))}
 
-      {/* Next */}
       <button
         style={styles.btn}
         disabled={current === total}

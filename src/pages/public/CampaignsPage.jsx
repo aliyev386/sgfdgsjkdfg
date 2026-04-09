@@ -14,7 +14,6 @@ import cartApi from "../../api/cartApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
-// ─── Helpers ──────────────────────────────────────────────
 const fmt = (n) => `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function timeLeft(endDate) {
@@ -26,7 +25,6 @@ function timeLeft(endDate) {
   return { d, h, m, total: diff };
 }
 
-// ─── Countdown ────────────────────────────────────────────
 function Countdown({ endDate }) {
   const [left, setLeft] = useState(() => timeLeft(endDate));
 
@@ -46,7 +44,6 @@ function Countdown({ endDate }) {
   );
 }
 
-// ─── Toast ────────────────────────────────────────────────
 function Toast({ msg, ok, onClose }) {
   useEffect(() => { const id = setTimeout(onClose, 3000); return () => clearTimeout(id); }, [onClose]);
   return (
@@ -56,7 +53,6 @@ function Toast({ msg, ok, onClose }) {
   );
 }
 
-// ─── Hero Banner ──────────────────────────────────────────
 function HeroBanner({ campaigns }) {
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
@@ -120,7 +116,6 @@ function HeroBanner({ campaigns }) {
   );
 }
 
-// ─── Campaign Cards Strip ──────────────────────────────────
 function CampaignStrip({ campaigns }) {
   if (!campaigns.length) return null;
   return (
@@ -164,7 +159,6 @@ function CampaignStrip({ campaigns }) {
   );
 }
 
-// ─── Product Card ──────────────────────────────────────────
 function ProductCard({ product, onAddCart, adding, inCart }) {
   const navigate = useNavigate();
   const price = product.discountPrice ?? product.price;
@@ -199,7 +193,6 @@ function ProductCard({ product, onAddCart, adding, inCart }) {
   );
 }
 
-// ─── Collection Card ──────────────────────────────────────
 function CollectionCard({ col }) {
   const navigate = useNavigate();
   const img = col.imageUrl || "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=700&q=80";
@@ -218,7 +211,6 @@ function CollectionCard({ col }) {
   );
 }
 
-// ─── Skeleton ─────────────────────────────────────────────
 function Skeleton({ count = 4, type = "prod" }) {
   return (
     <div className={`cp-sk-grid ${type}`}>
@@ -229,9 +221,6 @@ function Skeleton({ count = 4, type = "prod" }) {
   );
 }
 
-// ══════════════════════════════════════════════════════════
-// MAIN PAGE
-// ══════════════════════════════════════════════════════════
 export default function CampaignsPage() {
   const { t } = useTranslation();
   const lang = useSelector(selectLang);
@@ -253,21 +242,17 @@ export default function CampaignsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("discount");
 
-  // ── Data fetch ──────────────────────────────────────────
   useEffect(() => {
     window.scrollTo({ top: 0 });
 
-    // Kampaniyalar
     campaignApi.getActive()
       .then(res => setCampaigns(Array.isArray(res) ? res : []))
       .catch(() => setCampaigns([]))
       .finally(() => setLoading(false));
 
-    // Endirimli məhsullar — discountPrice olan
     productApi.getAll({ page: 1, pageSize: 24 })
       .then(res => {
         const arr = res?.data ?? (Array.isArray(res) ? res : []);
-        // discountPrice olanları önə çıkar
         const sorted = [...arr].sort((a, b) => {
           const aDisc = a.discountPrice ? (1 - a.discountPrice / a.price) : 0;
           const bDisc = b.discountPrice ? (1 - b.discountPrice / b.price) : 0;
@@ -278,14 +263,12 @@ export default function CampaignsPage() {
       .catch(() => setProducts([]))
       .finally(() => setProdLoading(false));
 
-    // Kolleksiyalar
     collectionApi.getAll()
       .then(res => setCollections(Array.isArray(res) ? res : []))
       .catch(() => setCollections([]))
       .finally(() => setCollLoading(false));
   }, [lang]);
 
-  // ── Add to cart ─────────────────────────────────────────
   const handleAddCart = useCallback(async (productId) => {
     if (!isAuth) { openAuthModal("login"); return; }
     if (inCart(productId)) return;
@@ -301,7 +284,6 @@ export default function CampaignsPage() {
     }
   }, [isAuth, openAuthModal, dispatch]);
 
-  // ── Filtered / sorted products ──────────────────────────
   const filtered = products.filter(p => {
     if (activeTab === "sale") return !!p.discountPrice;
     if (activeTab === "new") return p.label === "new_in";
@@ -328,14 +310,11 @@ export default function CampaignsPage() {
 
       <Navbar />
 
-      {/* ── Hero ── */}
       {!loading && <HeroBanner campaigns={campaigns} />}
       {loading && <div className="cp-hero-sk" />}
 
-      {/* ── Campaign Strip ── */}
       {!loading && campaigns.length > 0 && <CampaignStrip campaigns={campaigns} />}
 
-      {/* ── Sale Stats Bar ── */}
       <div className="cp-stats-bar">
         <div className="cp-stats-inner">
           <div className="cp-stat">
@@ -360,7 +339,6 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* ── Discounted Products ── */}
       <section id="camp-products" className="cp-section">
         <div className="cp-section-inner">
           <div className="cp-section-head">
@@ -377,7 +355,6 @@ export default function CampaignsPage() {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="cp-tabs">
             {[
               { key: "all", label: "Hamısı", count: products.length },
@@ -414,7 +391,6 @@ export default function CampaignsPage() {
         </div>
       </section>
 
-      {/* ── Divider Banner ── */}
       <div className="cp-divider-banner">
         <div className="cp-divider-ov" />
         <div className="cp-divider-ct">
@@ -424,7 +400,6 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      {/* ── Collections ── */}
       <section id="camp-collections" className="cp-section cream">
         <div className="cp-section-inner">
           <div className="cp-section-head">
@@ -455,7 +430,6 @@ export default function CampaignsPage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA ── */}
       <section className="cp-bottom-cta">
         <div className="cp-bottom-cta-inner">
           <div className="cp-eyebrow center"><span />XÜSUSİ TƏKLİF</div>
@@ -475,9 +449,6 @@ export default function CampaignsPage() {
   );
 }
 
-// ══════════════════════════════════════════════════════════
-// CSS
-// ══════════════════════════════════════════════════════════
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
@@ -489,7 +460,6 @@ const CSS = `
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-/* ── SHARED ── */
 .cp-eyebrow{font-size:11px;letter-spacing:3.5px;text-transform:uppercase;color:#7A9E7E;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:12px}
 .cp-eyebrow span{display:block;width:28px;height:1px;background:#7A9E7E;flex-shrink:0}
 .cp-eyebrow.center{justify-content:center}
@@ -504,7 +474,6 @@ const CSS = `
 .cp-view-all{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6B6B6B;border-bottom:1px solid #E5DDD4;padding-bottom:2px;text-decoration:none;transition:all .3s;white-space:nowrap}
 .cp-view-all:hover{color:#7A9E7E;border-bottom-color:#7A9E7E}
 
-/* ── HERO ── */
 .cp-hero{position:relative;height:92vh;min-height:640px;overflow:hidden;display:flex;align-items:center;background:#1C1C1C}
 .cp-hero-sk{height:92vh;min-height:640px;background:linear-gradient(135deg,#EDE7DC,#D6CFC5);animation:cpSk 1.8s ease infinite}
 .cp-hero-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.2s ease}
@@ -526,14 +495,12 @@ const CSS = `
 .cp-hero-dot{width:28px;height:2px;background:rgba(255,255,255,.3);border:none;cursor:pointer;transition:all .3s;padding:0}
 .cp-hero-dot.on{background:#fff;width:48px}
 
-/* ── COUNTDOWN ── */
 .cp-countdown{display:flex;align-items:baseline;gap:4px}
 .cp-cd-n{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:#fff;line-height:1;min-width:28px;text-align:center}
 .cp-cd-l{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-right:4px}
 .cp-cd-sep{font-family:'Cormorant Garamond',serif;font-size:24px;color:rgba(255,255,255,.3);margin:0 2px}
 .cp-expired{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4)}
 
-/* ── CAMPAIGN STRIP ── */
 .cp-strip{background:#F7F3EE;padding:100px 60px}
 .cp-strip-inner{max-width:1380px;margin:0 auto}
 .cp-strip-head{margin-bottom:56px}
@@ -556,7 +523,6 @@ const CSS = `
 .cp-strip-cta{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#7A9E7E;text-decoration:none;border-bottom:1px solid #C8DBC9;padding-bottom:2px;transition:all .3s;font-weight:500}
 .cp-strip-cta:hover{color:#5a8060;border-bottom-color:#5a8060}
 
-/* ── STATS BAR ── */
 .cp-stats-bar{background:#1C1C1C;padding:40px 60px}
 .cp-stats-inner{max-width:1380px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
 .cp-stat{text-align:center;padding:0 60px;flex-shrink:0}
@@ -564,7 +530,6 @@ const CSS = `
 .cp-stat-l{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-top:8px}
 .cp-stat-div{width:1px;height:48px;background:rgba(255,255,255,.1);flex-shrink:0}
 
-/* ── SECTIONS ── */
 .cp-section{padding:110px 60px}
 .cp-section.cream{background:#F7F3EE}
 .cp-section-inner{max-width:1380px;margin:0 auto}
@@ -573,7 +538,6 @@ const CSS = `
 .cp-sort{padding:10px 16px;border:1px solid #E5DDD4;background:#F7F3EE;font-size:12px;font-family:'DM Sans',sans-serif;color:#1C1C1C;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236B6B6B' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .cp-sort:focus{border-color:#7A9E7E}
 
-/* ── TABS ── */
 .cp-tabs{display:flex;gap:0;border-bottom:1px solid #E5DDD4;margin-bottom:48px;overflow-x:auto}
 .cp-tab{padding:14px 28px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#6B6B6B;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;white-space:nowrap;transition:all .3s;display:flex;align-items:center;gap:8px}
 .cp-tab.on{color:#1C1C1C;border-bottom-color:#1C1C1C}
@@ -581,7 +545,6 @@ const CSS = `
 .cp-tab-count{background:#F7F3EE;color:#6B6B6B;font-size:10px;padding:2px 7px;border-radius:20px}
 .cp-tab.on .cp-tab-count{background:#1C1C1C;color:#fff}
 
-/* ── PRODUCT GRID ── */
 .cp-prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:28px}
 .cp-prod-card{cursor:pointer;animation:cpFadeUp .5s both}
 .cp-prod-img-wrap{position:relative;height:320px;overflow:hidden;background:#EDE7DC;margin-bottom:16px}
@@ -603,7 +566,6 @@ const CSS = `
 .cp-prod-price{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:#1C1C1C}
 .cp-prod-old{font-size:14px;color:#9CA3AF;text-decoration:line-through}
 
-/* ── COLLECTION GRID ── */
 .cp-coll-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .cp-coll-card{cursor:pointer;animation:cpFadeUp .5s both}
 .cp-coll-img-wrap{position:relative;height:400px;overflow:hidden;background:#EDE7DC}
@@ -617,7 +579,6 @@ const CSS = `
 .cp-coll-cta{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#fff;opacity:0;transform:translateY(8px);transition:all .3s;display:inline-block}
 .cp-coll-card:hover .cp-coll-cta{opacity:1;transform:translateY(0)}
 
-/* ── DIVIDER BANNER ── */
 .cp-divider-banner{position:relative;height:380px;overflow:hidden;background:linear-gradient(135deg,#1C1C1C 0%,#2D3A2E 100%);display:flex;align-items:center;justify-content:center}
 .cp-divider-ov{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(122,158,126,.15) 0%,transparent 70%)}
 .cp-divider-ct{position:relative;z-index:1;text-align:center;padding:0 40px}
@@ -625,30 +586,25 @@ const CSS = `
 .cp-divider-h{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,48px);font-weight:300;color:#fff;line-height:1.2;margin-bottom:36px}
 .cp-divider-h em{font-style:italic;color:#C8DBC9}
 
-/* ── BOTTOM CTA ── */
 .cp-bottom-cta{padding:120px 60px;background:#fff;text-align:center}
 .cp-bottom-cta-inner{max-width:560px;margin:0 auto}
 .cp-bottom-sub{font-size:15px;color:#6B6B6B;line-height:1.8;margin:24px 0 40px;font-weight:300}
 .cp-bottom-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 
-/* ── SKELETONS ── */
 .cp-sk-grid{display:grid;gap:28px}
 .cp-sk-grid.prod{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
 .cp-sk-grid.coll{grid-template-columns:repeat(3,1fr)}
 .cp-sk-card{background:linear-gradient(90deg,#EDE7DC 25%,#E5DDD4 50%,#EDE7DC 75%);background-size:200% 100%;animation:cpSk 1.5s ease infinite;height:380px}
 .cp-sk-grid.prod .cp-sk-card{height:400px}
 
-/* ── EMPTY ── */
 .cp-empty{text-align:center;padding:80px 40px}
 .cp-empty-ic{font-size:48px;display:block;margin-bottom:16px;opacity:.5}
 .cp-empty-t{font-family:'Cormorant Garamond',serif;font-size:22px;color:#6B6B6B;font-weight:300}
 
-/* ── TOAST ── */
 .cp-toast{position:fixed;bottom:32px;right:32px;z-index:999;display:flex;align-items:center;gap:10px;padding:14px 24px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;animation:cpFadeUp .3s ease;box-shadow:0 12px 40px rgba(28,28,28,.2)}
 .cp-toast.ok{background:#1C1C1C;color:#fff}
 .cp-toast.err{background:#C0392B;color:#fff}
 
-/* ── RESPONSIVE ── */
 @media(max-width:1100px){
   .cp-coll-grid{grid-template-columns:repeat(2,1fr)}
   .cp-stats-inner{gap:0}

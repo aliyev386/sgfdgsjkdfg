@@ -7,7 +7,6 @@ export default function NewsletterSection({ t }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email.trim()) return;
-    // TODO: newsletterApi.subscribe(email)
     setSent(true);
   };
 

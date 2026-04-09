@@ -13,7 +13,6 @@
   padding-bottom: 60px;
 }
 
-/* Big background 404 */
 .nf-bg-text {
   position: absolute;
   font-family: 'Cormorant Garamond', serif;
@@ -37,7 +36,6 @@
 @keyframes nfFloat  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 @keyframes nfLine   { from{transform:scaleX(0)} to{transform:scaleX(1)} }
 
-/* Decorative chair */
 .nf-deco {
   position: absolute;
   right: clamp(40px, 8vw, 160px);
@@ -48,7 +46,6 @@
 }
 .nf-chair svg { width: clamp(100px, 14vw, 180px); height: auto; }
 
-/* Inner content */
 .nf-inner {
   position: relative; z-index: 2;
   max-width: 520px;

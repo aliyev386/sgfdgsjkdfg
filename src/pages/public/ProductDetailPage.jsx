@@ -1,6 +1,3 @@
-// src/pages/public/ProductDetailPage.jsx
-// Route: /details/:id
-
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import CreditCalculator, { calcCredit, AZ_BANKS } from "../../components/credit/CreditCalculator";
@@ -20,7 +17,6 @@ const fmt = (n) => `₼${Number(n).toLocaleString()}`;
 const BADGE_CLR = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C" };
 const REVIEWS_PER_PAGE = 5;
 
-// ── STARS ────────────────────────────────────────────────────
 function Stars({ n, size = 13, interactive = false, onSet }) {
   const [hover, setHover] = useState(0);
   return (
@@ -42,7 +38,6 @@ function Stars({ n, size = 13, interactive = false, onSet }) {
   );
 }
 
-// ── RELATED CARD ─────────────────────────────────────────────
 const RelCard = memo(function RelCard({ item, t }) {
   const navigate = useNavigate();
   return (
@@ -73,7 +68,6 @@ const RelCard = memo(function RelCard({ item, t }) {
   );
 });
 
-// ── ICON SVGs ────────────────────────────────────────────────
 const IconCart = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="17" height="17">
     <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" strokeLinecap="round" strokeLinejoin="round"/>
@@ -100,7 +94,6 @@ const IconReturn = () => (
   </svg>
 );
 
-// ── REVIEW FORM ───────────────────────────────────────────────
 function ReviewForm({ productId, t, onSuccess }) {
   const [name,    setName]    = useState("");
   const [email,   setEmail]   = useState("");
@@ -166,7 +159,6 @@ function ReviewForm({ productId, t, onSuccess }) {
   );
 }
 
-// ── PAGE ─────────────────────────────────────────────────────
 export default function ProductDetailPage() {
   const { id: productId } = useParams();
   const { t }             = useTranslation();
@@ -182,7 +174,6 @@ export default function ProductDetailPage() {
   const [similar,    setSimilar]    = useState([]);
   const [loading,    setLoading]    = useState(true);
 
-  // Reviews state
   const [reviews,       setReviews]       = useState([]);
   const [reviewsTotal,  setReviewsTotal]  = useState(0);
   const [reviewsPage,   setReviewsPage]   = useState(1);
@@ -204,7 +195,6 @@ export default function ProductDetailPage() {
   const [toast,      setToast]      = useState(null);
   const toastTimer = useRef(null);
 
-  // Load reviews
   const loadReviews = useCallback(async (pid, page = 1, append = false) => {
     setReviewsLoading(true);
     try {
@@ -253,7 +243,6 @@ export default function ProductDetailPage() {
         };
         setProduct(mapped);
 
-        // Load similar products
         productApi.getSimilar(p.id)
           .then(arr => {
             setSimilar((arr ?? []).map(x => ({
@@ -268,7 +257,6 @@ export default function ProductDetailPage() {
           })
           .catch(() => {});
 
-        // Load reviews
         loadReviews(p.id, 1, false);
       })
       .catch(() => navigate("/categories"))
@@ -310,7 +298,6 @@ export default function ProductDetailPage() {
     setTimeout(() => setRevSuccess(false), 4000);
   };
 
-  // Lightbox keyboard
   useEffect(() => {
     if (!lbOpen || !product?.images?.length) return;
     const h = (e) => {
@@ -322,7 +309,6 @@ export default function ProductDetailPage() {
     return () => window.removeEventListener("keydown", h);
   }, [lbOpen, product?.images?.length]);
 
-  // ── LOADING ──────────────────────────────────────────────
   if (loading) return (
     <div className="pdp-page">
       <Navbar />
@@ -365,7 +351,6 @@ export default function ProductDetailPage() {
     <div className="pdp-page">
       <Navbar />
 
-      {/* BREADCRUMB */}
       <nav className="pdp-breadcrumb">
         <Link to="/">{t("pdp.home")}</Link>
         <span className="pdp-bc-sep">/</span>
@@ -376,10 +361,8 @@ export default function ProductDetailPage() {
         <span className="pdp-bc-cur">{product.name}</span>
       </nav>
 
-      {/* SPLIT */}
       <div className="pdp-split">
 
-        {/* LEFT: GALLERY */}
         <div className="pdp-gallery">
           <div className="pdp-main-img-wrap" onClick={() => setLbOpen(true)}>
             <img className="pdp-main-img" src={product.images[activeImg]} alt={product.name} />
@@ -410,7 +393,6 @@ export default function ProductDetailPage() {
           )}
         </div>
 
-        {/* RIGHT: INFO */}
         <div className="pdp-info">
           <div className="pdp-eyebrow">
             <Link to={`/furniture-categories/${product.category.id}`} className="pdp-cat-link">
@@ -423,7 +405,6 @@ export default function ProductDetailPage() {
             <em>{product.name.split(" ").slice(-1)[0]}</em>
           </h1>
 
-          {/* Rating row */}
           <div className="pdp-rating-row">
             <Stars n={parseFloat(displayRating) || 0} size={14} />
             {displayRating !== "—" && <span className="pdp-rating-n">{displayRating}</span>}
@@ -433,7 +414,6 @@ export default function ProductDetailPage() {
             <span className="pdp-sku">SKU: {product.sku}</span>
           </div>
 
-          {/* Price */}
           <div className="pdp-price-block">
             <span className="pdp-price">{fmt(product.price)}</span>
             {product.old_price && <span className="pdp-price-old">{fmt(product.old_price)}</span>}
@@ -441,7 +421,6 @@ export default function ProductDetailPage() {
           </div>
           <p className="pdp-price-label">{t("pdp.inc_vat")}</p>
 
-          {/* Stock */}
           <div className="pdp-stock-row">
             <div className={`pdp-stock-dot${product.in_stock ? " green" : " red"}`} />
             <span className="pdp-stock-txt" style={{ color: product.in_stock ? "#4A8A50" : "#C94B4B" }}>
@@ -451,7 +430,6 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          {/* Meta */}
           <div className="pdp-meta">
             {product.category.name && (
               <div className="pdp-meta-row">
@@ -490,7 +468,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Color */}
           {product.colors.length > 0 && (
             <div className="pdp-opt-block">
               <p className="pdp-opt-label">
@@ -511,7 +488,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Size */}
           {product.sizes?.length > 0 && (
             <div className="pdp-opt-block">
               <p className="pdp-opt-label">
@@ -532,7 +508,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Kredit preview chips */}
           <div className="pdp-credit-chips">
             <span className="pdp-credit-chips-label">Kreditlə:</span>
             <div className="pdp-credit-chips-row">
@@ -549,7 +524,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Credit calculator accordion */}
           {creditOpen && (
             <div className="pdp-credit-body">
               <div className="pdp-credit-body-head">
@@ -560,7 +534,6 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* QTY + CTA */}
           <div className="pdp-cta-row">
             <div className="pdp-qty">
               <button className="pdp-qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
@@ -594,8 +567,6 @@ export default function ProductDetailPage() {
               <span>{isSaved ? t("pdp.saved") : t("pdp.save_wishlist")}</span>
             </button>
           </div>
-
-          {/* Perks */}
           <div className="pdp-perks">
             <div className="pdp-perk">
               <div className="pdp-perk-icon"><IconDelivery /></div>
@@ -622,10 +593,8 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* DIVIDER */}
       <div className="pdp-section-divider"><div className="pdp-section-divider-line" /></div>
 
-      {/* TABS */}
       <section className="pdp-tabs-section">
         <div className="pdp-tab-bar">
           {tabs.map(tab => (
@@ -639,7 +608,6 @@ export default function ProductDetailPage() {
           ))}
         </div>
 
-        {/* ── DESCRIPTION TAB ── */}
         {activeTab === "description" && (
           <div className="pdp-tab-panel">
             <div className="pdp-desc-layout">
@@ -655,7 +623,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {/* Dimension card */}
               {(product.width || product.height || product.depth || product.weight) && (
                 <div className="pdp-dim-card">
                   <h4 className="pdp-dim-title">{t("pdp.dimensions")}</h4>
@@ -700,7 +667,6 @@ export default function ProductDetailPage() {
           </div>
         )}
 
-        {/* ── SPECIFICATIONS TAB ── */}
         {activeTab === "specifications" && (
           <div className="pdp-tab-panel">
             {hasSpecs ? (
@@ -761,10 +727,8 @@ export default function ProductDetailPage() {
           </div>
         )}
 
-        {/* ── REVIEWS TAB ── */}
         {activeTab === "reviews" && (
           <div className="pdp-tab-panel">
-            {/* Rating summary */}
             <div className="pdp-reviews-hero">
               <span className="pdp-rev-big-n">{displayRating}</span>
               <div className="pdp-rev-right">
@@ -773,21 +737,18 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Review success banner */}
             {revSuccess && (
               <div className="pdp-review-success">
                 ✓ {t("pdp.review_submitted")}
               </div>
             )}
 
-            {/* Review form */}
             <ReviewForm
               productId={parseInt(productId)}
               t={t}
               onSuccess={handleReviewSuccess}
             />
 
-            {/* Reviews list */}
             {reviewsLoading && reviews.length === 0 ? (
               <div className="pdp-empty-tab">
                 <div className="pdp-loader-ring" style={{ margin: "0 auto" }} />
@@ -836,7 +797,6 @@ export default function ProductDetailPage() {
         )}
       </section>
 
-      {/* SIMILAR / YOU MAY ALSO LIKE */}
       {similar.length > 0 && (
         <section className="pdp-related">
           <div className="pdp-related-head">
@@ -852,7 +812,6 @@ export default function ProductDetailPage() {
         </section>
       )}
 
-      {/* LIGHTBOX */}
       {lbOpen && (
         <div className="pdp-lb" onClick={() => setLbOpen(false)}>
           <button className="pdp-lb-close" onClick={() => setLbOpen(false)}>✕</button>
@@ -868,8 +827,6 @@ export default function ProductDetailPage() {
           )}
         </div>
       )}
-
-      {/* TOAST */}
       {toast && (
         <div className="pdp-toast">
           <span className="pdp-toast-check">✓</span>

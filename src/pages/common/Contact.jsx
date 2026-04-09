@@ -21,7 +21,6 @@ export default function ContactPage() {
     <>
       <Navbar/>
       <div className="ct-page">
-        {/* Hero */}
         <div className="ct-hero">
           <div className="ct-hero-inner">
             <p className="ct-eyebrow">Əlaqə</p>
@@ -31,7 +30,6 @@ export default function ContactPage() {
         </div>
 
         <div className="ct-body">
-          {/* Info cards */}
           <div className="ct-info">
             {[
               {
@@ -65,7 +63,6 @@ export default function ContactPage() {
             ))}
           </div>
 
-          {/* Form */}
           <div className="ct-form-wrap">
             {sent ? (
               <div className="ct-success">

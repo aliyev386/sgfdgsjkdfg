@@ -1,8 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap');
 
-/* ════════════════════════════════════
-   VARIABLES & KEYFRAMES
-════════════════════════════════════ */
 :root {
   --green:   #7A9E7E;
   --green-d: #5a8060;
@@ -46,9 +43,6 @@ img { display:block; }
 }
 .pr-ani { animation:prTabIn .38s cubic-bezier(.22,1,.36,1) both; }
 
-/* ════════════════════════════════════
-   HERO
-════════════════════════════════════ */
 .pr-hero {
   background: linear-gradient(135deg, #2d3d2e 0%, #3d5440 45%, #4a6e4e 100%);
   padding: 40px 0 0;
@@ -67,7 +61,6 @@ img { display:block; }
   gap:28px; flex-wrap:wrap; position:relative; z-index:2;
 }
 
-/* Avatar */
 .pr-av-wrap {
   position:relative; cursor:pointer; flex-shrink:0;
   animation:prFadeUp .5s cubic-bezier(.22,1,.36,1) both;
@@ -137,9 +130,6 @@ img { display:block; }
 }
 .pr-hs-l { font-size:10px; color:rgba(255,255,255,.55); letter-spacing:.8px; text-transform:uppercase; margin-top:3px; }
 
-/* ════════════════════════════════════
-   SIDEBAR + LAYOUT
-════════════════════════════════════ */
 .pr-layout {
   max-width:1180px; margin:0 auto;
   padding:28px 40px 80px;
@@ -202,15 +192,9 @@ img { display:block; }
 }
 .pr-logout-btn:hover { background:#FEF2F2; }
 
-/* ════════════════════════════════════
-   CONTENT
-════════════════════════════════════ */
 .pr-content { min-width:0; }
 .pr-body    { display:flex; flex-direction:column; gap:18px; }
 
-/* ════════════════════════════════════
-   CARDS
-════════════════════════════════════ */
 .pr-card {
   background:var(--white); border-radius:var(--radius);
   padding:24px 28px;
@@ -237,9 +221,6 @@ img { display:block; }
 }
 .pr-see-all:hover { background:var(--green); color:#fff; }
 
-/* ════════════════════════════════════
-   STAT CARDS
-════════════════════════════════════ */
 .pr-stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
 
 .pr-stat-card {
@@ -267,9 +248,6 @@ img { display:block; }
 }
 .pr-stat-card:hover .pr-stat-arr { opacity:1; transform:translateX(2px); }
 
-/* ════════════════════════════════════
-   ORDER LIST
-════════════════════════════════════ */
 .pr-order-list { display:flex; flex-direction:column; }
 .pr-order-row {
   display:flex; align-items:center; gap:14px;
@@ -293,7 +271,6 @@ img { display:block; }
 .pr-order-meta { font-size:11px; color:var(--sub); margin-top:2px; }
 .pr-order-price{ font-size:14px; font-weight:800; color:var(--text); white-space:nowrap; }
 
-/* Order accordion */
 .pr-ord-item { border-bottom:1px solid #F3F4F6; }
 .pr-ord-item:last-child { border-bottom:none; }
 .pr-ord-row {
@@ -331,18 +308,12 @@ img { display:block; }
 }
 .pr-det-total strong { font-size:15px; color:var(--text); font-weight:800; }
 
-/* ════════════════════════════════════
-   STATUS BADGES
-════════════════════════════════════ */
 .pr-st { padding:4px 10px; border-radius:20px; font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
 .st-green { background:#ECFDF5; color:#059669; }
 .st-blue  { background:#EFF6FF; color:#2563EB; }
 .st-amber { background:#FFFBEB; color:#D97706; }
 .st-red   { background:#FEF2F2; color:#DC2626; }
 
-/* ════════════════════════════════════
-   SAVED GRID
-════════════════════════════════════ */
 .pr-count-pill {
   display:inline-flex; align-items:center; justify-content:center;
   min-width:20px; height:20px; padding:0 6px;
@@ -386,7 +357,6 @@ img { display:block; }
 .pr-saved-name  { font-size:12px; font-weight:700; color:var(--text); padding:10px 12px 2px; }
 .pr-saved-price { font-size:13px; font-weight:800; color:var(--green-d); padding:0 12px 12px; }
 
-/* Saved mini (overview) */
 .pr-saved-mini { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
 .pr-saved-mc {
   border-radius:12px; overflow:hidden; border:1.5px solid var(--border);
@@ -397,9 +367,6 @@ img { display:block; }
 .pr-saved-mname  { font-size:11px; font-weight:600; color:#374151; padding:7px 9px 2px; }
 .pr-saved-mprice { font-size:12px; font-weight:800; color:var(--green-d); padding:0 9px 9px; }
 
-/* ════════════════════════════════════
-   FORMS
-════════════════════════════════════ */
 .pr-fg { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px; }
 .pr-field  { display:flex; flex-direction:column; gap:5px; }
 .pr-fcol2  { grid-column:span 2; }
@@ -417,9 +384,6 @@ img { display:block; }
 .pr-err  { font-size:11px; color:#EF4444; font-weight:600; }
 .pr-ffoot{ margin-top:20px; display:flex; align-items:center; gap:10px; }
 
-/* ════════════════════════════════════
-   BUTTONS
-════════════════════════════════════ */
 .pr-btn-save {
   padding:11px 24px;
   background:linear-gradient(135deg,var(--green),var(--green-d));
@@ -448,9 +412,6 @@ img { display:block; }
 }
 .pr-btn-add:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(90,128,96,.3); }
 
-/* ════════════════════════════════════
-   AVATAR UPLOAD
-════════════════════════════════════ */
 .pr-avatar-drop {
   display:flex; align-items:center; gap:20px;
   padding:18px; border:2px dashed var(--green-m); border-radius:14px;
@@ -475,9 +436,6 @@ img { display:block; }
 .pr-av-title { font-size:13px; font-weight:700; color:#374151; margin-bottom:3px; }
 .pr-av-hint  { font-size:11px; color:var(--sub); }
 
-/* ════════════════════════════════════
-   PASSWORD
-════════════════════════════════════ */
 .pr-pw-wrap { position:relative; }
 .pr-pw-eye  {
   position:absolute; right:11px; top:50%; transform:translateY(-50%);
@@ -489,9 +447,6 @@ img { display:block; }
 .pw-str-bars { display:flex; gap:4px; }
 .pw-str-bar { width:32px; height:4px; border-radius:4px; transition:background .25s; }
 
-/* ════════════════════════════════════
-   2FA
-════════════════════════════════════ */
 .pr-twofa { display:flex; align-items:center; gap:14px; }
 .pr-twofa-ic { font-size:28px; flex-shrink:0; }
 .pr-twofa-txt { flex:1; }
@@ -516,9 +471,6 @@ img { display:block; }
   animation:prTabIn .28s ease;
 }
 
-/* ════════════════════════════════════
-   PAYMENT CARDS
-════════════════════════════════════ */
 .pr-cards-row { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
 .pr-bank-card {
   position:relative; width:260px;
@@ -551,14 +503,12 @@ img { display:block; }
 .pr-bc-val  { font-size:11px; font-weight:700; letter-spacing:.3px; }
 .pr-bc-type { font-size:16px; font-weight:900; font-family:'Courier New',monospace; opacity:.8; }
 
-/* Add card form */
 .pr-add-form {
   margin-top:18px; padding:20px;
   background:#F8FAF8; border:1.5px dashed var(--green-m); border-radius:14px;
 }
 .pr-add-title { font-size:13px; font-weight:700; color:#374151; margin-bottom:12px; }
 
-/* Bank grid */
 .pr-bank-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:18px; }
 .pr-bank-btn {
   display:flex; align-items:center; gap:7px;
@@ -577,7 +527,6 @@ img { display:block; }
   display:flex; align-items:center; justify-content:center;
 }
 
-/* Credits */
 .pr-credit { padding:14px 0; border-bottom:1px solid #F3F4F6; }
 .pr-credit:last-child { border-bottom:none; }
 .pr-credit-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; }
@@ -590,16 +539,10 @@ img { display:block; }
 .pr-credit-foot   { display:flex; justify-content:space-between; font-size:10px; color:var(--sub); font-weight:600; }
 .pr-credit-monthly{ color:var(--green-d); font-weight:700; }
 
-/* ════════════════════════════════════
-   EMPTY
-════════════════════════════════════ */
 .pr-empty { display:flex; flex-direction:column; align-items:center; padding:40px 0; gap:7px; text-align:center; }
 .pr-empty-ic { font-size:42px; opacity:.35; margin-bottom:6px; }
 .pr-empty p  { font-size:13px; color:var(--sub); font-weight:500; }
 
-/* ════════════════════════════════════
-   TOAST
-════════════════════════════════════ */
 .pr-toast {
   position:fixed; bottom:24px; right:24px; z-index:1000;
   display:flex; align-items:center; gap:9px;
@@ -612,9 +555,6 @@ img { display:block; }
 .pr-toast-err { background:linear-gradient(135deg,#DC2626,#EF4444); color:#fff; }
 .pr-toast-ic  { font-size:15px; font-weight:800; }
 
-/* ════════════════════════════════════
-   CONFIRM MODAL
-════════════════════════════════════ */
 .pr-modal-backdrop {
   position:fixed; inset:0; z-index:2000;
   background:rgba(26,26,26,.48); backdrop-filter:blur(5px);
@@ -662,9 +602,6 @@ img { display:block; }
 }
 .pr-modal-confirm.danger:hover { box-shadow:0 5px 14px rgba(220,38,38,.38); }
 
-/* ════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════ */
 @media(max-width:1024px) {
   .pr-layout { grid-template-columns:190px 1fr; gap:18px; }
   .pr-saved-grid { grid-template-columns:repeat(2,1fr); }

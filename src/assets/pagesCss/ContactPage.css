@@ -22,7 +22,6 @@
   color: var(--ct-text);
 }
 
-/* ── HERO ─────────────────────────────── */
 .ct-hero {
   background: #1A1714;
   padding: 72px 0 64px;
@@ -56,7 +55,6 @@
   font-weight: 300; max-width: 440px; line-height: 1.6;
 }
 
-/* ── BODY ─────────────────────────────── */
 .ct-body {
   max-width: 1100px; margin: 0 auto;
   padding: 48px 48px 80px;
@@ -66,7 +64,6 @@
   align-items: start;
 }
 
-/* ── INFO CARDS ───────────────────────── */
 .ct-info {
   display: flex; flex-direction: column; gap: 10px;
 }
@@ -96,7 +93,6 @@
   font-size: 13px; font-weight: 500; color: var(--ct-text); line-height: 1.4;
 }
 
-/* ── FORM ─────────────────────────────── */
 .ct-form-wrap {
   background: var(--ct-white);
   border: 1px solid var(--ct-border);
@@ -151,7 +147,6 @@
   opacity: .5; cursor: not-allowed;
 }
 
-/* ── SUCCESS ──────────────────────────── */
 .ct-success {
   display: flex; flex-direction: column; align-items: center;
   text-align: center; padding: 40px 20px;
@@ -168,7 +163,6 @@
 }
 .ct-success-sub { font-size: 13px; color: var(--ct-sub); }
 
-/* ── RESPONSIVE ───────────────────────── */
 @media (max-width: 900px) {
   .ct-body { grid-template-columns: 1fr; padding: 32px 28px 60px; }
   .ct-hero-inner { padding: 0 28px; }

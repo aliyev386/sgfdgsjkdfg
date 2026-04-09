@@ -1,17 +1,9 @@
-// src/pages/public/AboutPage.jsx
-// ─────────────────────────────────────────────────────────────
-// Amore Mebel — Haqqımızda
-// Bütün stillər bu faylın içindədir (<style> teg vasitəsilə).
-// Xarici CSS faylı tələb olunmur.
-// ─────────────────────────────────────────────────────────────
-
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
-// ── Animated Counter ──────────────────────────────────────
 function Counter({ to, suffix = "", duration = 1800 }) {
   const [val, setVal] = useState(0);
   const ref = useRef();
@@ -40,7 +32,6 @@ function Counter({ to, suffix = "", duration = 1800 }) {
   return <span ref={ref}>{val}{suffix}</span>;
 }
 
-// ── Reveal on scroll ──────────────────────────────────────
 function useReveal() {
   useEffect(() => {
     const els = document.querySelectorAll("[data-reveal]");
@@ -58,7 +49,6 @@ function useReveal() {
   }, []);
 }
 
-// ── Data ──────────────────────────────────────────────────
 const TIMELINE = [
   { year: "2011", title: "Əsas qoyuldu", desc: "Bakıda kiçik emalatxanada ilk əl işi mebel parçaları yaradıldı." },
   { year: "2014", title: "İlk mağaza", desc: "Nərimanov rayonunda ilk showroom açıldı. 200-dən çox müştəri." },
@@ -82,25 +72,17 @@ const VALUES = [
   { n: "04", title: "Zəmanət",       desc: "10 illik konstruktiv zəmanət. Əgər problem varsa — biz həll edirik.",                 icon: <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M20 4L6 10v12c0 8.3 6.1 16 14 18 7.9-2 14-9.7 14-18V10L20 4z" strokeLinejoin="round"/><path d="M14 20l4 4 8-8" strokeLinecap="round" strokeLinejoin="round"/></svg> },
 ];
 
-// ═══════════════════════════════════════════════════════════
-// PAGE STYLES
-// ═══════════════════════════════════════════════════════════
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* ── Reveal util ── */
 [data-reveal] { opacity:0; transform:translateY(32px); transition:opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1) }
 [data-reveal="left"]  { transform:translateX(-32px) }
 [data-reveal="right"] { transform:translateX(32px) }
 [data-reveal="scale"] { transform:scale(.92) }
 .ab-visible { opacity:1 !important; transform:none !important }
 
-/* ── Root ── */
 .ab { font-family:'DM Sans',sans-serif; color:#1C1C1C; background:#fff; overflow-x:hidden }
 
-/* ════════════════════════════════════════════
-   HERO
-════════════════════════════════════════════ */
 .ab-hero {
   min-height: 100vh;
   display: grid;
@@ -138,7 +120,6 @@ const STYLES = `
   z-index: 1;
 }
 
-/* Overlap card */
 .ab-hero-card {
   position: absolute;
   bottom: 60px;
@@ -165,7 +146,6 @@ const STYLES = `
   color: rgba(255,255,255,.5);
 }
 
-/* Hero text */
 .ab-eyebrow {
   font-size: 11px;
   letter-spacing: 3.5px;
@@ -204,7 +184,6 @@ const STYLES = `
   animation: abFadeUp .8s ease .65s both;
 }
 
-/* Vertical text accent */
 .ab-vert-text {
   position: absolute;
   left: -16px;
@@ -221,9 +200,6 @@ const STYLES = `
 @keyframes abFadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 @keyframes abFadeIn { from{opacity:0} to{opacity:1} }
 
-/* ════════════════════════════════════════════
-   STATS BAR
-════════════════════════════════════════════ */
 .ab-stats {
   background: #1C1C1C;
   display: grid;
@@ -257,9 +233,6 @@ const STYLES = `
   margin-bottom: 12px;
 }
 
-/* ════════════════════════════════════════════
-   STORY  (split text + image)
-════════════════════════════════════════════ */
 .ab-story {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -325,9 +298,6 @@ const STYLES = `
   background: rgba(122,158,126,.06);
 }
 
-/* ════════════════════════════════════════════
-   VALUES  (2x2 grid, dark bg)
-════════════════════════════════════════════ */
 .ab-values {
   background: #1A2420;
   padding: 120px 80px;
@@ -413,9 +383,6 @@ const STYLES = `
   line-height: 1.8;
 }
 
-/* ════════════════════════════════════════════
-   TIMELINE
-════════════════════════════════════════════ */
 .ab-timeline-sec {
   padding: 120px 80px;
   background: #fff;
@@ -495,9 +462,6 @@ const STYLES = `
 }
 .ab-tl-desc { font-size: 13px; color: #6B6B6B; line-height: 1.8 }
 
-/* ════════════════════════════════════════════
-   ATELIER  (full bleed image with overlay text)
-════════════════════════════════════════════ */
 .ab-atelier {
   position: relative;
   height: 600px;
@@ -546,7 +510,6 @@ const STYLES = `
 }
 .ab-atelier-h2 em { font-style: italic; color: #C8DBC9 }
 .ab-atelier-p { font-size: 15px; color: rgba(255,255,255,.6); line-height: 1.8; margin-bottom: 36px; max-width: 460px }
-/* floating chips */
 .ab-atelier-chips { display:flex; gap:12px; flex-wrap:wrap }
 .ab-chip {
   display: inline-flex;
@@ -566,9 +529,6 @@ const STYLES = `
 .ab-chip:hover { background: rgba(122,158,126,.35); border-color: rgba(122,158,126,.6) }
 .ab-chip svg { width:12px; height:12px; color:#7A9E7E; flex-shrink:0 }
 
-/* ════════════════════════════════════════════
-   TEAM
-════════════════════════════════════════════ */
 .ab-team-sec {
   padding: 120px 80px;
   background: #F7F3EE;
@@ -644,9 +604,6 @@ const STYLES = `
   color: #7A9E7E;
 }
 
-/* ════════════════════════════════════════════
-   PROCESS  (3-step horizontal)
-════════════════════════════════════════════ */
 .ab-process {
   padding: 120px 80px;
   background: #fff;
@@ -697,9 +654,6 @@ const STYLES = `
 }
 .ab-proc-desc { font-size: 13px; color: #6B6B6B; line-height: 1.8; max-width: 260px; margin: 0 auto }
 
-/* ════════════════════════════════════════════
-   CTA BANNER
-════════════════════════════════════════════ */
 .ab-cta {
   background: linear-gradient(135deg, #1C1C1C 0%, #2D3A2E 100%);
   padding: 100px 80px;
@@ -741,9 +695,6 @@ const STYLES = `
 .ab-cta-sub { font-size: 14px; color: rgba(255,255,255,.45); max-width: 360px; line-height: 1.7 }
 .ab-cta-btns { display:flex; gap:16px; align-items:center; flex-shrink:0 }
 
-/* ════════════════════════════════════════════
-   RESPONSIVE
-════════════════════════════════════════════ */
 @media(max-width:1100px){
   .ab-team-grid { grid-template-columns: repeat(2,1fr) }
   .ab-values-grid { grid-template-columns: 1fr }
@@ -773,15 +724,11 @@ const STYLES = `
 }
 `;
 
-// ═══════════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════════
 export default function AboutPage() {
   const { t } = useTranslation();
   const tlRef = useRef();
   const [tlProgress, setTlProgress] = useState(0);
 
-  // Timeline progress fill on scroll
   useEffect(() => {
     const el = tlRef.current;
     if (!el) return;
@@ -805,7 +752,6 @@ export default function AboutPage() {
       <div className="ab">
         <Navbar />
 
-        {/* ════ HERO ════ */}
         <section className="ab-hero">
           <div className="ab-hero-left">
             <p className="ab-eyebrow">{t("nav.story")}</p>
@@ -838,7 +784,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ════ STATS ════ */}
         <div className="ab-stats">
           {[
             { val: 40000, suffix: "+", label: "Xoşbəxt Ev" },
@@ -856,7 +801,6 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* ════ STORY ════ */}
         <section className="ab-story">
           <div className="ab-story-img-wrap">
             <img
@@ -893,7 +837,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ════ VALUES ════ */}
         <section className="ab-values">
           <div className="ab-values-head" data-reveal>
             <p className="ab-values-ey">Nə üçün biz</p>
@@ -914,9 +857,6 @@ export default function AboutPage() {
             ))}
           </div>
         </section>
-
-
-        {/* ════ CTA ════ */}
 
         <Footer />
       </div>

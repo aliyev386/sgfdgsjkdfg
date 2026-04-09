@@ -24,9 +24,6 @@ const authSlice = createSlice({
       localStorage.setItem("amore_token", token);
       if (refreshToken) localStorage.setItem("amore_refresh_token", refreshToken);
       if (user) localStorage.setItem("amore_user", JSON.stringify(user));
-      // Wishlist sync: login sonrası wishlist backend-dən yüklənir.
-      // Bu işi AuthEventListener və ya login çağıran yer yerinə yetirir.
-      // Store-a dispatch etmək üçün middleware lazımdır — bunu authMiddleware.js-də edirik.
     },
     tokenRefreshed(state, action) {
       const { accessToken, refreshToken } = action.payload;
@@ -43,8 +40,6 @@ const authSlice = createSlice({
       localStorage.removeItem("amore_token");
       localStorage.removeItem("amore_refresh_token");
       localStorage.removeItem("amore_user");
-      // Wishlist localStorage-da da silmək üçün wishlistStore clearWishlist dispatch edilir
-      // — bunu AuthEventListener-də edirik
     },
     updateUser(state, action) {
       state.user = { ...state.user, ...action.payload };

@@ -1,10 +1,6 @@
-// src/store/slices/wishlistStore.js
-// Wishlist həm localStorage-da (offline), həm də backend-də saxlanılır.
-// İstifadəçi login olanda backend-dən sync edilir.
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import wishlistApi from "../../api/wishlistApi";
 
-// ── Async thunk-lar ──────────────────────────────────────────
 export const syncWishlistFromBackend = createAsyncThunk(
   "wishlist/syncFromBackend",
   async (_, { rejectWithValue }) => {
@@ -41,7 +37,6 @@ export const removeFromWishlistAsync = createAsyncThunk(
   }
 );
 
-// ── localStorage helpers ──────────────────────────────────────
 const loadLocal = () => {
   try { return JSON.parse(localStorage.getItem("wishlist")) || []; }
   catch { return []; }
@@ -51,7 +46,6 @@ const saveLocal = (items) => {
   catch {}
 };
 
-// ── Slice ─────────────────────────────────────────────────────
 const wishlistSlice = createSlice({
   name: "wishlist",
   initialState: {

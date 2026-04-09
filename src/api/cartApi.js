@@ -11,7 +11,6 @@ const cartApi = {
       selectedSize:  selectedSize  || undefined,
       quantity,
     });
-    // addItem endpoint-i sadece CartItem qaydarir — tam cart-i ayri cagiriruq
     const cartRes = await axiosInstance.get("/cart");
     return cartRes.data?.data ?? cartRes.data;
   },

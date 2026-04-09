@@ -1,7 +1,3 @@
-// src/pages/public/RoomsPage.jsx
-// Route: /rooms
-// Bütün otaqlar grid şəklində — hər biri /rooms/:roomSlug-a aparır
-
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -12,7 +8,6 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/Rooms.css";
 
-// CollectionCategoryDto-lar API-dan gəlir
 const FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=85",
   "https://images.unsplash.com/photo-1540518614846-7eded433c457?w=900&q=85",
@@ -57,7 +52,6 @@ export default function RoomsPage() {
       <div className="rp-page">
         <Navbar />
 
-        {/* HERO */}
         <div className="rp-hero">
           <div className="rp-hero-noise" />
           <div className="rp-hero-orb rp-hero-orb1" />
@@ -78,7 +72,6 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* GRID */}
         <div className="rp-grid-wrap">
           {loading ? (
             <div style={{ display:"flex", justifyContent:"center", padding:"80px 0", color:"#aaa" }}>
@@ -113,8 +106,6 @@ export default function RoomsPage() {
           )}
         </div>
  
-        {/* BOTTOM BANNER */}
-
  
         <Footer />
       </div>

@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-// Navbar-dan açılan böyük sliding cart panel
-// + Full-screen checkout (nağd / kreditlə)
-// 3 dil dəstəyi: AZ / EN / RU
-// ─────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import cartApi from "../../api/cartApi";
 import "../../assets/pagesCss/CartDrawer.css";
 
-// ── Azerbaijan banks & installment config ──────────────────
 const BANKS = [
   { id: "kapital", name: "Kapital Bank",  rate: 1.8 },
   { id: "abbank",  name: "ABB",           rate: 2.0 },
@@ -22,7 +16,6 @@ const BANKS = [
 const PERIODS = [3, 6, 12, 24];
 const FREE_SHIPPING = 500;
 
-// ── Tiny helpers ───────────────────────────────────────────
 function Toast({ msg, type, onClose }) {
   useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
   return (
@@ -32,13 +25,9 @@ function Toast({ msg, type, onClose }) {
     </div>
   );
 }
-
-// ──────────────────────────────────────────────────────────
-// CHECKOUT MODAL
-// ──────────────────────────────────────────────────────────
 function CheckoutModal({ items, onClose, onSuccess, t }) {
-  const [step,       setStep]       = useState(1);  // 1=delivery, 2=payment, 3=confirm
-  const [payMethod,  setPayMethod]  = useState("cash"); // cash | credit
+  const [step,       setStep]       = useState(1);
+  const [payMethod,  setPayMethod]  = useState("cash");
   const [bank,       setBank]       = useState(null);
   const [period,     setPeriod]     = useState(12);
   const [agreed,     setAgreed]     = useState(false);
@@ -55,7 +44,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
   const shipping  = subtotal >= FREE_SHIPPING ? 0 : 15;
   const orderBase = subtotal + shipping;
 
-  // Credit calc
   const selectedBank    = BANKS.find(b => b.id === bank);
   const monthlyRate     = selectedBank ? selectedBank.rate / 100 : 0;
   const creditTotal     = selectedBank
@@ -99,7 +87,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
     if (!agreed) return;
     setPlacing(true);
     try {
-      // Simulate API call — replace with real order API
       await new Promise(r => setTimeout(r, 1400));
       setSuccess(true);
     } catch {
@@ -136,7 +123,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
 
   return (
     <div className="cko">
-      {/* Header */}
       <header className="cko-header">
         <Link to="/" className="cko-logo" onClick={onClose}><span>AMORE</span> MEBEL</Link>
         <button className="cko-back" onClick={step > 1 ? () => setStep(s => s-1) : onClose}>
@@ -147,7 +133,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
         </button>
       </header>
 
-      {/* Steps */}
       <div className="cko-steps">
         {[
           { n:1, label: t("cart.step_delivery") },
@@ -169,12 +154,9 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
         ))}
       </div>
 
-      {/* Body */}
       <div className="cko-body">
-        {/* Left: Form */}
         <div className="cko-form-area">
 
-          {/* STEP 1: Delivery */}
           {step === 1 && (
             <>
               <h2 className="cko-section-title">
@@ -232,7 +214,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
             </>
           )}
 
-          {/* STEP 2: Payment */}
           {step === 2 && (
             <>
               <h2 className="cko-section-title">
@@ -240,7 +221,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
                 <em>{t("cart.payment_method").split(" ").slice(1).join(" ")}</em>
               </h2>
 
-              {/* Method cards */}
               <div className="cko-pay-methods">
                 <div
                   className={`cko-pay-card${payMethod==="cash"?" selected":""}`}
@@ -275,8 +255,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
                   </div>
                 </div>
               </div>
-
-              {/* Credit options */}
               {payMethod === "credit" && (
                 <div className="cko-credit-section">
                   <h3 className="cko-credit-title">{t("cart.select_bank")}</h3>
@@ -331,14 +309,12 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
             </>
           )}
 
-          {/* STEP 3: Confirm */}
           {step === 3 && (
             <>
               <h2 className="cko-section-title">
                 <em>{t("cart.confirm_order")}</em>
               </h2>
 
-              {/* Delivery summary */}
               <div style={{ background:"#F7F3EE", padding:"20px 24px", marginBottom:20, borderLeft:"3px solid #7A9E7E" }}>
                 <p className="cko-label" style={{marginBottom:8}}>{t("cart.step_delivery")}</p>
                 <p style={{fontSize:14, color:"#1C1C1C", lineHeight:1.7}}>
@@ -347,7 +323,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
                 </p>
               </div>
 
-              {/* Payment summary */}
               <div style={{ background:"#F7F3EE", padding:"20px 24px", marginBottom:32, borderLeft:"3px solid #C8DBC9" }}>
                 <p className="cko-label" style={{marginBottom:8}}>{t("cart.step_payment")}</p>
                 {payMethod === "cash"
@@ -360,7 +335,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
                 }
               </div>
 
-              {/* Terms */}
               <div
                 className={`cko-terms${agreed?" checked":""}`}
                 onClick={() => setAgreed(a => !a)}
@@ -389,7 +363,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
           )}
         </div>
 
-        {/* Right: Order panel */}
         <aside className="cko-order-panel">
           <h3 className="cko-order-title">{t("cart.order_summary")}</h3>
           <div className="cko-order-items">
@@ -434,9 +407,6 @@ function CheckoutModal({ items, onClose, onSuccess, t }) {
   );
 }
 
-// ──────────────────────────────────────────────────────────
-// CART DRAWER
-// ──────────────────────────────────────────────────────────
 export default function CartDrawer({ isOpen, onClose }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -448,7 +418,6 @@ export default function CartDrawer({ isOpen, onClose }) {
   const [closing,  setClosing]  = useState(false);
   const [checkout, setCheckout] = useState(false);
 
-  // Fetch cart when drawer opens
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
@@ -458,7 +427,6 @@ export default function CartDrawer({ isOpen, onClose }) {
       .finally(() => setLoading(false));
   }, [isOpen, t]);
 
-  // Lock body scroll when open
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -506,7 +474,6 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // Full-screen checkout
   if (checkout) return (
     <CheckoutModal
       items={items}
@@ -518,16 +485,13 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`cd-overlay${closing?" closing":""}`}
         onClick={handleClose}
       />
 
-      {/* Drawer */}
       <div className={`cd${closing?" closing":""}`} role="dialog" aria-modal="true">
 
-        {/* Header */}
         <header className="cd-header">
           <div className="cd-header-left">
             <p className="cd-eyebrow">{t("nav.cart")}</p>
@@ -546,10 +510,8 @@ export default function CartDrawer({ isOpen, onClose }) {
           </button>
         </header>
 
-        {/* Body */}
         <div className="cd-body">
 
-          {/* Loading */}
           {loading && (
             <div className="cd-loading">
               <div className="cd-spinner" />
@@ -557,7 +519,6 @@ export default function CartDrawer({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Empty */}
           {!loading && items.length === 0 && (
             <div className="cd-empty">
               <div className="cd-empty-icon">
@@ -576,10 +537,8 @@ export default function CartDrawer({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Items column */}
           {!loading && items.length > 0 && (
             <div className="cd-items-col">
-              {/* Col header */}
               <div className="cd-col-head">
                 <span>{t("featured_products.tabs.all")}</span>
                 <span>{t("cart.title")}</span>
@@ -595,7 +554,6 @@ export default function CartDrawer({ isOpen, onClose }) {
                 const isUpd    = updating.has(item.id);
                 return (
                   <div key={item.id ?? idx} className={`cd-item${isUpd?" updating":""}`}>
-                    {/* Image */}
                     {image
                       ? <img src={image} alt={name} className="cd-item-img"/>
                       : <div className="cd-item-img-placeholder">
@@ -606,12 +564,10 @@ export default function CartDrawer({ isOpen, onClose }) {
                         </div>
                     }
 
-                    {/* Info */}
                     <div className="cd-item-info">
                       <p className="cd-item-name">{name}</p>
                       {item.selectedColor && <p className="cd-item-cat">{item.selectedColor}</p>}
                       <p className="cd-item-unit-price">₼{price.toFixed(2)} / {t("cart.price_each")}</p>
-                      {/* Qty (shown inline on mobile) */}
                       <div style={{marginTop:10}}>
                         <div className="cd-qty">
                           <button className="cd-qty-btn" onClick={() => handleUpdate(item.id, item.quantity-1)} disabled={item.quantity<=1||isUpd}>−</button>
@@ -621,10 +577,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                       </div>
                     </div>
 
-                    {/* Line price */}
                     <span className="cd-item-line-price">₼{(price*item.quantity).toFixed(2)}</span>
 
-                    {/* Remove */}
                     <button
                       className="cd-item-remove"
                       onClick={() => handleRemove(item.id)}
@@ -638,7 +592,6 @@ export default function CartDrawer({ isOpen, onClose }) {
                 );
               })}
 
-              {/* Clear */}
               {items.length > 0 && (
                 <button className="cd-clear-btn" onClick={handleClear}>
                   <svg viewBox="0 0 20 20" fill="none" width="13" height="13">
@@ -650,7 +603,6 @@ export default function CartDrawer({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* Summary column */}
           {!loading && items.length > 0 && (
             <div className="cd-summary-col">
               <div className="cd-summary-inner">

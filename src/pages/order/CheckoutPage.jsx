@@ -1,30 +1,21 @@
-// src/pages/order/CheckoutPage.jsx
-// ─────────────────────────────────────────────────────────────
-// Tam professional checkout — 4 addım
-// Real API: POST /addresses (opsional), POST /orders
-// Redux cart-dan məhsullar, auth-dan user info
-// Tam validation: ünvan + kart + kredit
-// ─────────────────────────────────────────────────────────────
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { clearCart } from "../../store/slices/cartSlice";
 import orderApi from "../../api/orderApi";
+import paymentApi from "../../api/paymentApi";
 import Navbar from "../../components/common/Navbar";
 import CreditCalculator from "../../components/credit/CreditCalculator";
 
-// ── Helpers ────────────────────────────────────────────────
 const fmt   = n => `₼${Number(n).toLocaleString("az-AZ",{minimumFractionDigits:2})}`;
 const fmtN  = v => v.replace(/\D/g,"").replace(/(.{4})/g,"$1 ").trim().slice(0,19);
 const fmtE  = v => v.replace(/\D/g,"").replace(/(\d{2})(\d)/,"$1/$2").slice(0,5);
 const FREE_SHIPPING = 500;
 
-// Enums — backend ilə uyğun
 const PaymentMethod = { Card: 2, CashOnDelivery: 1, BankTransfer: 3 };
 const OrderType     = { Standard: 0, Custom: 1 };
 const DeliveryType  = { DoorDelivery: 1, RoomDelivery: 2, AssemblyIncluded: 3 };
 
-// Bakı rayonları
 const BAKU_DISTRICTS = [
   "Binəqədi","Nəsimi","Nizami","Pirəkəşkül","Sabunçu","Suraxanı",
   "Xətai","Yeni Günəşli","Lökbatan","Balaxanı","Zabrat","Ramana",
@@ -34,7 +25,6 @@ const BAKU_DISTRICTS = [
 const CITIES = ["Bakı","Gəncə","Sumqayıt","Lənkəran","Naxçıvan","Şirvan","Mingəçevir","Quba","Şəki","Zaqatala"];
 const TIME_SLOTS = ["09:00-12:00","12:00-15:00","15:00-18:00","18:00-21:00"];
 
-// ── CSS ────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 @keyframes ckFU    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
@@ -45,7 +35,6 @@ const CSS = `
 *,*::before,*::after{box-sizing:border-box}
 .ck{font-family:'DM Sans',sans-serif;color:#1C1C1C;background:#F7F3EE;min-height:100vh;padding-top:80px}
 
-/* Progress */
 .ck-prog{background:#fff;border-bottom:1px solid #E5DDD4;padding:0 60px;display:flex;overflow-x:auto;position:sticky;top:80px;z-index:10;scrollbar-width:none}
 .ck-prog::-webkit-scrollbar{display:none}
 .ck-st{display:flex;align-items:center;gap:10px;padding:20px 0;white-space:nowrap}
@@ -58,19 +47,16 @@ const CSS = `
 .ck-st.done .ck-stl{color:#7A9E7E}
 @media(max-width:700px){.ck-prog{padding:0 16px}.ck-stl{display:none}.ck-st:not(:last-child)::after{margin:0 8px}}
 
-/* Layout */
 .ck-body{max-width:1200px;margin:0 auto;padding:48px 60px;display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:start}
 @media(max-width:1000px){.ck-body{grid-template-columns:1fr;padding:32px 24px}}
 @media(max-width:600px){.ck-body{padding:20px 16px}}
 
-/* Cards */
 .ck-card{background:#fff;border:1px solid #E5DDD4;padding:36px;animation:ckFU .4s ease}
 .ck-card+.ck-card{margin-top:16px}
 .ck-card-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin:0 0 28px}
 .ck-card-title em{font-style:italic;color:#7A9E7E}
 .ck-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#7A9E7E;margin-bottom:8px;display:block}
 
-/* Form */
 .ck-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .ck-grid.cols1{grid-template-columns:1fr}
 @media(max-width:600px){.ck-grid{grid-template-columns:1fr}}
@@ -86,7 +72,6 @@ const CSS = `
   background:#F7F3EE url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%236B6B6B' fill='none' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 14px center;
   background-size:12px;padding-right:40px;cursor:pointer}
 
-/* Delivery type */
 .ck-dtype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:500px){.ck-dtype-grid{grid-template-columns:1fr}}
 .ck-dtype{border:1.5px solid #E5DDD4;padding:14px 12px;cursor:pointer;text-align:center;transition:all .2s;background:#fff}
@@ -95,7 +80,6 @@ const CSS = `
 .ck-dtype-name{font-size:12px;font-weight:500;color:#1C1C1C;margin-top:4px}
 .ck-dtype-desc{font-size:10px;color:#6B6B6B;line-height:1.4;margin-top:3px}
 
-/* Payment method */
 .ck-pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
 @media(max-width:600px){.ck-pay-grid{grid-template-columns:1fr}}
 .ck-pay{border:1.5px solid #E5DDD4;padding:18px 12px;cursor:pointer;transition:all .25s;background:#fff;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative}
@@ -107,7 +91,6 @@ const CSS = `
 .ck-pay-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300}
 .ck-pay-desc{font-size:10px;color:#6B6B6B;line-height:1.5}
 
-/* Card preview */
 .ck-card-prev{background:linear-gradient(135deg,#1C1C1C 0%,#2D3A2E 100%);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
 .ck-card-prev::before{content:'';position:absolute;top:-40%;right:-10%;width:180px;height:180px;border-radius:50%;background:rgba(122,158,126,.08);pointer-events:none}
 .ck-card-chip{width:32px;height:24px;background:linear-gradient(135deg,#C8A47A,#E5C89A);border-radius:4px;margin-bottom:20px}
@@ -117,26 +100,22 @@ const CSS = `
 .ck-card-val{font-size:12px;color:rgba(255,255,255,.7)}
 .ck-card-brand{position:absolute;top:18px;right:20px;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:rgba(255,255,255,.12)}
 
-/* Install bar */
 .ck-ibar{background:linear-gradient(135deg,#1C1C1C,#2D3A2E);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px}
 .ck-ibar-i{text-align:center}
 .ck-ibar-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:3px}
 .ck-ibar-v{font-family:'Cormorant Garamond',serif;font-size:18px;color:#fff;font-weight:300}
 .ck-ibar-v.g{color:#7A9E7E}
 
-/* Confirm blocks */
 .ck-conf{border:1px solid #E5DDD4;padding:18px 22px;margin-bottom:12px;background:#FDFAF7}
 .ck-conf-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#7A9E7E;margin-bottom:6px}
 .ck-conf-val{font-size:14px;color:#1C1C1C;line-height:1.7}
 
-/* Terms */
 .ck-terms{display:flex;align-items:flex-start;gap:12px;margin-top:20px;cursor:pointer}
 .ck-terms-box{width:18px;height:18px;border:1.5px solid #E5DDD4;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .2s}
 .ck-terms-box.on{background:#7A9E7E;border-color:#7A9E7E}
 .ck-terms-box.on::after{content:'✓';font-size:10px;color:#fff}
 .ck-terms-txt{font-size:12px;color:#6B6B6B;line-height:1.6}
 
-/* Buttons */
 .ck-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 28px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:500;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .3s;border-radius:0}
 .ck-btn-p{background:#1C1C1C;color:#fff;width:100%;margin-top:20px}
 .ck-btn-p:hover:not(:disabled){background:#7A9E7E;transform:translateY(-2px);box-shadow:0 8px 20px rgba(122,158,126,.3)}
@@ -146,7 +125,6 @@ const CSS = `
 .ck-actions{display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #E5DDD4;align-items:center}
 .ck-spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:ckSpin .7s linear infinite;display:inline-block;flex-shrink:0}
 
-/* Summary */
 .ck-sum{background:#fff;border:1px solid #E5DDD4;position:sticky;top:140px;animation:ckFU .4s ease}
 .ck-sum-hd{background:#1C1C1C;padding:20px 24px}
 .ck-sum-hd-t{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:#fff}
@@ -167,7 +145,6 @@ const CSS = `
 .ck-sum-tot-l{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300}
 .ck-sum-tot-v{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300}
 
-/* Success */
 .ck-succ{display:flex;flex-direction:column;align-items:center;padding:100px 40px;text-align:center;min-height:60vh;animation:ckSucc .6s ease}
 .ck-succ-ring{width:88px;height:88px;border-radius:50%;background:#EAF3EB;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
 .ck-succ-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5vw,56px);font-weight:300;margin:0 0 14px;line-height:1.1}
@@ -176,15 +153,12 @@ const CSS = `
 .ck-succ-box{background:#F7F3EE;border:1px solid #E5DDD4;padding:14px 28px;font-size:13px;color:#1C1C1C;margin-bottom:32px}
 .ck-succ-box strong{font-family:'Cormorant Garamond',serif;font-size:18px}
 
-/* Error alert */
 .ck-alert{background:#FDF0EF;border:1px solid #F5C6C4;padding:14px 18px;margin-top:16px;display:flex;align-items:flex-start;gap:10px}
 .ck-alert-txt{font-size:13px;color:#C0392B;line-height:1.5}
 
-/* Info box */
 .ck-info{background:#EAF3EB;border:1px solid #C8DBC9;padding:14px 18px;display:flex;align-items:center;gap:10px;margin-top:0}
 .ck-info-txt{font-size:13px;color:#2E6B32;line-height:1.5}
 
-/* Floor/elevator row */
 .ck-inline{display:flex;align-items:center;gap:8px}
 .ck-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
 .ck-toggle-box{width:36px;height:20px;border-radius:10px;background:#E5DDD4;position:relative;transition:background .2s;flex-shrink:0}
@@ -194,7 +168,6 @@ const CSS = `
 .ck-toggle-lbl{font-size:12px;color:#6B6B6B}
 `;
 
-// ── OrderSummary ───────────────────────────────────────────
 function OrderSummary({ cartItems, payMethod, creditSel }) {
   const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
   const shipping  = subtotal >= FREE_SHIPPING ? 0 : 15;
@@ -252,7 +225,6 @@ function OrderSummary({ cartItems, payMethod, creditSel }) {
   );
 }
 
-// ── Toggle switch ──────────────────────────────────────────
 function Toggle({ on, onChange, label }) {
   return (
     <label className="ck-toggle" onClick={()=>onChange(!on)}>
@@ -262,7 +234,6 @@ function Toggle({ on, onChange, label }) {
   );
 }
 
-// ── STEP 1: User info ──────────────────────────────────────
 function StepUser({ data, errors, onChange, onNext, user }) {
   return (
     <div className="ck-card">
@@ -288,7 +259,6 @@ function StepUser({ data, errors, onChange, onNext, user }) {
   );
 }
 
-// ── STEP 2: Address + Delivery info ───────────────────────
 function StepAddress({ data, errors, onChange, onNext, onBack }) {
   const isB = data.city === "Bakı";
 
@@ -297,7 +267,6 @@ function StepAddress({ data, errors, onChange, onNext, onBack }) {
       <span className="ck-eyebrow">Addım 2</span>
       <h2 className="ck-card-title">Çatdırılma <em>ünvanı</em></h2>
 
-      {/* Şəhər + Rayon */}
       <div className="ck-grid" style={{marginBottom:16}}>
         <div className="ck-field">
           <label className="ck-label">Şəhər <span className="req">*</span></label>
@@ -327,14 +296,12 @@ function StepAddress({ data, errors, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Küçə + Ev + Mənzil */}
       <div className="ck-grid" style={{marginBottom:16}}>
         <Field label="Küçə" req name="street" value={data.street} onChange={onChange} error={errors.street} placeholder="Küçə adı" className="span2"/>
         <Field label="Ev nömrəsi" name="house" value={data.house} onChange={onChange} placeholder="12"/>
         <Field label="Mənzil" name="apartment" value={data.apartment} onChange={onChange} placeholder="5"/>
       </div>
 
-      {/* Mərtəbə + Lift */}
       <div className="ck-grid" style={{marginBottom:20}}>
         <div className="ck-field">
           <label className="ck-label">Mərtəbə</label>
@@ -349,7 +316,6 @@ function StepAddress({ data, errors, onChange, onNext, onBack }) {
         </div>
       </div>
 
-      {/* Çatdırılma növü */}
       <div className="ck-field" style={{marginBottom:20}}>
         <label className="ck-label">Çatdırılma növü <span className="req">*</span></label>
         <div className="ck-dtype-grid">
@@ -368,7 +334,6 @@ function StepAddress({ data, errors, onChange, onNext, onBack }) {
         {errors.deliveryType&&<span className="ck-err">{errors.deliveryType}</span>}
       </div>
 
-      {/* Çatdırılma tarixi + zaman */}
       <div className="ck-grid" style={{marginBottom:16}}>
         <div className="ck-field">
           <label className="ck-label">Çatdırılma tarixi <span className="req">*</span></label>
@@ -405,10 +370,9 @@ function StepAddress({ data, errors, onChange, onNext, onBack }) {
   );
 }
 
-// ── STEP 3: Payment ────────────────────────────────────────
 function StepPayment({ subtotal, payMethod, setPayMethod, card, onCard, creditSel, setCreditSel, errors, onNext, onBack }) {
   const METHODS = [
-    { id:"card",   name:"Kart",     desc:"Visa / Mastercard",
+    { id:"card",   name:"Kart",     desc:"Visa / Mastercard / VISA Electron",
       icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4" strokeLinecap="round"/></svg> },
     { id:"cash",   name:"Nağd",     desc:"Çatdırılmada ödəyin",
       icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> },
@@ -432,38 +396,28 @@ function StepPayment({ subtotal, payMethod, setPayMethod, card, onCard, creditSe
           ))}
         </div>
 
-        {/* Kart */}
         {payMethod==="card" && (
-          <div style={{animation:"ckFU .3s ease"}}>
-            <div className="ck-card-prev">
-              <div className="ck-card-chip"/>
-              <div className="ck-card-num">
-                {card.number ? card.number.replace(/\d(?=(?:\D*\d){4})/g,"•") : "•••• •••• •••• ••••"}
-              </div>
-              <div className="ck-card-btm">
-                <div>
-                  <p className="ck-card-lbl2">Kart sahibi</p>
-                  <p className="ck-card-val">{card.name||"AD SOYAD"}</p>
-                </div>
-                <div>
-                  <p className="ck-card-lbl2">Bitmə tarixi</p>
-                  <p className="ck-card-val">{card.expiry||"MM/YY"}</p>
-                </div>
-              </div>
-              <div className="ck-card-brand">VISA</div>
+          <div className="ck-info" style={{animation:"ckFU .3s ease",flexDirection:"column",alignItems:"flex-start",gap:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#2E6B32" strokeWidth="1.4"/><path d="M2 8h16" stroke="#2E6B32" strokeWidth="1.3"/></svg>
+              <strong style={{fontSize:13,color:"#1C1C1C"}}>Təhlükəsiz Bank Kartı Ödənişi</strong>
             </div>
-            <div className="ck-grid cols1">
-              <Field label="Kart nömrəsi" req name="number" value={card.number} onChange={(n,v)=>onCard(n,fmtN(v))} error={errors.cardNumber} placeholder="0000 0000 0000 0000" maxLen={19}/>
-              <Field label="Kart üzərindəki ad" req name="name" value={card.name} onChange={(n,v)=>onCard(n,v.toUpperCase())} error={errors.cardName} placeholder="AD SOYAD"/>
-            </div>
-            <div className="ck-grid" style={{marginTop:12}}>
-              <Field label="Bitmə tarixi" req name="expiry" value={card.expiry} onChange={(n,v)=>onCard(n,fmtE(v))} error={errors.cardExpiry} placeholder="MM/YY" maxLen={5}/>
-              <Field label="CVV" req name="cvv" value={card.cvv} onChange={(n,v)=>onCard(n,v.replace(/\D/g,"").slice(0,3))} error={errors.cardCvv} placeholder="•••" type="password" maxLen={3}/>
+            <p className="ck-info-txt" style={{margin:0}}>
+              "Sifarişi ver" düyməsini kliklədikdən sonra <strong>Payriff</strong> ödəniş
+              səhifəsinə yönləndiriləcəksiniz. Kart məlumatlarınızı orada təhlükəsiz şəkildə
+              daxil edəcəksiniz.
+            </p>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:4}}>
+              {["VISA","Mastercard","VISA Electron"].map(b=>(
+                <span key={b} style={{
+                  padding:"4px 10px",background:"#fff",border:"1px solid #E5DDD4",
+                  fontSize:10,letterSpacing:1,color:"#6B6B6B",fontWeight:500
+                }}>{b}</span>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Nağd */}
         {payMethod==="cash" && (
           <div className="ck-info" style={{animation:"ckFU .3s ease"}}>
             <svg viewBox="0 0 20 20" fill="none" width="16" height="16"><path d="M9 12l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.4"/></svg>
@@ -473,7 +427,6 @@ function StepPayment({ subtotal, payMethod, setPayMethod, card, onCard, creditSe
           </div>
         )}
 
-        {/* Kredit */}
         {payMethod==="credit" && (
           <div style={{animation:"ckFU .3s ease"}}>
             <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,fontWeight:300,marginBottom:20}}>
@@ -507,7 +460,6 @@ function StepPayment({ subtotal, payMethod, setPayMethod, card, onCard, creditSe
   );
 }
 
-// ── STEP 4: Confirm ────────────────────────────────────────
 function StepConfirm({ userData, addrData, payMethod, card, creditSel, onPlace, onBack, placing, apiError }) {
   const [agreed, setAgreed] = useState(false);
 
@@ -574,7 +526,6 @@ function StepConfirm({ userData, addrData, payMethod, card, creditSel, onPlace, 
   );
 }
 
-// ── Reusable Field ─────────────────────────────────────────
 function Field({ label, req, name, value, onChange, error, type="text", placeholder, className="", maxLen }) {
   return (
     <div className={`ck-field${className?` ${className}`:""}`}>
@@ -590,17 +541,12 @@ function Field({ label, req, name, value, onChange, error, type="text", placehol
     </div>
   );
 }
-
-// ══════════════════════════════════════════════════════════
-// MAIN PAGE
-// ══════════════════════════════════════════════════════════
 const STEPS = ["Əlaqə","Ünvan","Ödəniş","Təsdiq"];
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Redux
   const authUser   = useSelector(s => s.auth.user);
   const cartItems  = useSelector(s => s.cart.items);
 
@@ -611,12 +557,10 @@ export default function CheckoutPage() {
   const [apiError, setApiError]= useState(null);
   const [errors,   setErrors]  = useState({});
 
-  // Redirect if cart empty
   useEffect(() => {
     if (cartItems.length === 0 && !done) navigate("/cart");
   }, [cartItems, done, navigate]);
 
-  // Form state — pre-fill from auth
   const [userData, setUserData] = useState({
     name:  authUser ? `${authUser.name||""} ${authUser.surname||""}`.trim() : "",
     phone: authUser?.phoneNumber || "",
@@ -634,7 +578,6 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems.reduce((s,it)=>s+(it.productPrice??it.collectionPrice??0)*it.quantity,0);
 
-  // ── Validators ─────────────────────────────────────────
   const validateUser = () => {
     const e={};
     if(!userData.name.trim())    e.name  = "Ad Soyad tələb olunur";
@@ -661,18 +604,6 @@ export default function CheckoutPage() {
 
   const validatePay = () => {
     const e={};
-    if(payMethod==="card"){
-      const num = card.number.replace(/\s/g,"");
-      if(num.length !== 16)         e.cardNumber = "16 rəqəmli kart nömrəsi daxil edin";
-      if(!card.name.trim())         e.cardName   = "Kart üzərindəki ad tələb olunur";
-      if(!/^\d{2}\/\d{2}$/.test(card.expiry)) e.cardExpiry = "MM/YY formatında daxil edin";
-      else {
-        const [mm,yy]=card.expiry.split("/");
-        const expDate = new Date(2000+parseInt(yy), parseInt(mm)-1, 1);
-        if(expDate < new Date()) e.cardExpiry = "Kartın müddəti bitib";
-      }
-      if(card.cvv.length !== 3) e.cardCvv = "3 rəqəmli CVV daxil edin";
-    }
     if(payMethod==="credit"&&!creditSel) e.payment = "Kredit kalkulyatorunu tamamlayın";
     setErrors(e); return !Object.keys(e).length;
   };
@@ -686,24 +617,21 @@ export default function CheckoutPage() {
     setStep(s=>s+1);
   };
 
-  // ── Place order ────────────────────────────────────────
   const placeOrder = async () => {
     setPlacing(true);
     setApiError(null);
     try {
-      // Map payment method
       const pm = payMethod==="card" ? PaymentMethod.Card
                : payMethod==="cash" ? PaymentMethod.CashOnDelivery
                : PaymentMethod.BankTransfer;
 
-      // Full address in note for rider
       const addrNote = [
         `${addrData.city}, ${addrData.district} r., ${addrData.street}`,
-        addrData.house      ? `ev ${addrData.house}` : null,
-        addrData.apartment  ? `mənzil ${addrData.apartment}` : null,
-        addrData.floor>0    ? `${addrData.floor}-ci mərtəbə` : null,
-        addrData.hasElevator ? "Lift var" : null,
-        addrData.removeOldFurniture ? "Köhnə mebeli aparsınlar" : null,
+        addrData.house             ? `ev ${addrData.house}` : null,
+        addrData.apartment         ? `mənzil ${addrData.apartment}` : null,
+        addrData.floor > 0         ? `${addrData.floor}-ci mərtəbə` : null,
+        addrData.hasElevator       ? "Lift var" : null,
+        addrData.removeOldFurniture? "Köhnə mebeli aparsınlar" : null,
         `Müştəri: ${userData.name} / ${userData.phone}`,
         addrData.note || null,
       ].filter(Boolean).join("; ");
@@ -716,10 +644,10 @@ export default function CheckoutPage() {
           deliveryType:       addrData.deliveryType,
           scheduledDate:      new Date(addrData.scheduledDate).toISOString(),
           timeSlot:           addrData.timeSlot,
-          floor:              parseInt(addrData.floor)||0,
+          floor:              parseInt(addrData.floor) || 0,
           hasElevator:        addrData.hasElevator,
           removeOldFurniture: addrData.removeOldFurniture,
-          deliveryNote:       addrData.note||null,
+          deliveryNote:       addrData.note || null,
         },
         items: cartItems.map(it => ({
           productId:     it.productId    || null,
@@ -731,7 +659,16 @@ export default function CheckoutPage() {
       };
 
       const data = await orderApi.create(payload);
-      const id = data?.id ?? data?.data?.id;
+      const id   = data?.id ?? data?.data?.id;
+
+      if (payMethod === "card") {
+        const res = await paymentApi.initiate(id);
+        const paymentUrl = res?.paymentUrl ?? res;
+        dispatch(clearCart());
+        window.location.href = paymentUrl;
+        return;
+      }
+
       setOrderId(id);
       dispatch(clearCart());
       setDone(true);
@@ -743,7 +680,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Success screen ────────────────────────────────────
   if(done) return (
     <>
       <style>{CSS}</style>
@@ -793,7 +729,6 @@ export default function CheckoutPage() {
       <div className="ck">
         <Navbar/>
 
-        {/* Progress bar */}
         <div className="ck-prog">
           {STEPS.map((s,i) => (
             <div key={i} className={`ck-st${step===i?" active":""}${step>i?" done":""}`}>
@@ -811,7 +746,6 @@ export default function CheckoutPage() {
           ))}
         </div>
 
-        {/* Body */}
         <div className="ck-body">
           <div>
             {step===0 && (

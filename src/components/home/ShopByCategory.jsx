@@ -14,7 +14,6 @@ const ICONS = {
 export default function ShopByCategory({ categories = [], t }) {
   return (
     <section className="sbc-sec hp-sec">
-      {/* Header */}
       <div className="hp-sec-head rv">
         <div>
           <div className="hp-ey">{t("shop_by_cat.eyebrow")}</div>
@@ -28,7 +27,6 @@ export default function ShopByCategory({ categories = [], t }) {
         </Link>
       </div>
 
-      {/* Grid */}
       <div className="sbc-grid">
         {categories.map((cat, i) => (
           <Link
@@ -37,7 +35,6 @@ export default function ShopByCategory({ categories = [], t }) {
             className="sbc-card rv"
             style={{ animationDelay: `${i * 0.07}s`, textDecoration: "none" }}
           >
-            {/* Bg image */}
             <div className="sbc-img-wrap">
               <img src={cat.image} alt={cat.name} className="sbc-img" loading="lazy"/>
               <div className="sbc-img-ov"/>
@@ -59,7 +56,6 @@ export default function ShopByCategory({ categories = [], t }) {
               </div>
             </div>
 
-            {/* Hover number watermark */}
             <span className="sbc-num">0{i + 1}</span>
           </Link>
         ))}

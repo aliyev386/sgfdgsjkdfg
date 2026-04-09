@@ -1,4 +1,3 @@
-// Route: /collection-detail/:id
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -17,7 +16,6 @@ import "../../assets/pagesCss/CollectionDetails.css";
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
 const BADGE_CLR = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C", NEW:"#7A9E7E", HOT:"#D4714A", SALE:"#C9A84C", LIMITED:"#5C8DB8" };
 
-// ── ICON COMPONENTS ─────────────────────────────────────────
 const IconHeart = ({ filled }) => (
   <svg viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" width="20" height="20">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeLinecap="round" strokeLinejoin="round"/>
@@ -44,7 +42,6 @@ const IconReturn = () => (
   </svg>
 );
 
-// ── PRODUCT CARD ────────────────────────────────────────────
 const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wishlisted, t, delay, inCart }) {
   const navigate = useNavigate();
   const isAdding = addingId === product.id;
@@ -72,7 +69,6 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
           </div>
         )}
 
-        {/* Hover overlay */}
         <div className="cd-prod-hover-overlay">
           <button className="cd-prod-hover-btn" onClick={e => { e.stopPropagation(); goDetail(); }}>
             {t("collection_page.view_details")}
@@ -86,7 +82,6 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
           </button>
         </div>
 
-        {/* Heart button on card image */}
         <button
           className={`cd-prod-wish-btn${wishlisted ? " active" : ""}`}
           onClick={e => { e.stopPropagation(); onWish(product); }}
@@ -105,7 +100,6 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
           <span className="cd-prod-price">{fmt(product.price)}</span>
           {hasDisc && <span className="cd-prod-old-price">{fmt(product.old_price)}</span>}
         </div>
-        {/* Səbətə əlavə et button below card */}
         <button
           className={`cd-prod-cart-btn${isAdding ? " adding" : ""}${isInCart ? " in-cart" : ""}${!product.in_stock ? " disabled" : ""}`}
           onClick={e => { e.stopPropagation(); if (!isInCart) onAdd(product); }}
@@ -121,7 +115,6 @@ const ProdCard = memo(function ProdCard({ product, addingId, onAdd, onWish, wish
   );
 });
 
-// ── PAGE ─────────────────────────────────────────────────────
 export default function CollectionDetailPage() {
   const { id: collId } = useParams();
   const { t }          = useTranslation();
@@ -285,7 +278,6 @@ export default function CollectionDetailPage() {
 
       <div className="cd-split">
 
-        {/* LEFT: GALLERY */}
         <div className="cd-gallery">
           <div className="cd-main-img-wrap" onClick={() => coll.gallery.length > 0 && setLbOpen(true)}>
             {coll.gallery.length > 0 ? (
@@ -322,7 +314,6 @@ export default function CollectionDetailPage() {
           )}
         </div>
 
-        {/* RIGHT: INFO PANEL */}
         <div className="cd-info">
           <div className="cd-eyebrow">{t("cdp.collection")}</div>
 
@@ -368,7 +359,6 @@ export default function CollectionDetailPage() {
             </div>
           </div>
 
-          {/* ── PRIMARY CTA: Hamısını səbətə at + Saxla (ürək) ── */}
           <div className="cd-cta-row">
             <button
               className={`cd-btn-primary cd-btn-cart${addingAll ? " adding" : ""}`}
@@ -388,8 +378,7 @@ export default function CollectionDetailPage() {
               <span>{isCollSaved ? "Saxlanıldı" : "Saxla"}</span>
             </button>
           </div>
-
-          {/* ── KREDIT KALKULYATORU ── */}
+          
           {coll.totalPrice > 0 && (
             <div className="cd-credit-section">
               <button className="cd-credit-toggle" onClick={() => setCreditOpen(o => !o)}>

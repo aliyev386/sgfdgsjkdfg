@@ -29,11 +29,9 @@ const productApi = {
   getByPriceRange: (min, max, params = {}) =>
     axiosInstance.get("/products/price-range", { params: { min, max, ...params } }).then(r => r.data),
 
-  // Oxşar məhsullar: eyni kateqoriya + yaxın qiymət aralığı + material
   getSimilar: (productId) =>
     axiosInstance.get(`/products/${productId}/similar`).then(r => r.data?.data ?? r.data),
 
-  // Reviews
   getReviews: (productId, params = {}) =>
     axiosInstance.get(`/reviews/by-product/${productId}`, { params }).then(r => r.data),
 

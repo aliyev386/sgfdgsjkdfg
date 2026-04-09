@@ -10,7 +10,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// ── Yardımçı funksiyalar ───────────────────────────────────
 const getAccessToken  = () => localStorage.getItem("amore_token");
 const getRefreshToken = () => localStorage.getItem("amore_refresh_token");
 const setTokens = (accessToken, refreshToken) => {
@@ -23,7 +22,6 @@ const clearTokens = () => {
   localStorage.removeItem("amore_user");
 };
 
-// Eyni anda bir neçə sorğunun refresh etməsinin qarşısını almaq üçün
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -35,7 +33,6 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// ── Request interceptor ───────────────────────────────────
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -47,15 +44,12 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor — refresh token məntiqi ──────────
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Auth endpointlərinin özü 401 qaytararsa (məs. yanlış şifrə),
-      // refresh cəhdi etmə — sonsuz loop/page reload yaradır
       const isAuthEndpoint = originalRequest.url?.includes("/auth/");
       if (isAuthEndpoint) {
         return Promise.reject(formatError(error));
