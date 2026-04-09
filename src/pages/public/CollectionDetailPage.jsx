@@ -10,6 +10,7 @@ import collectionApi from "../../api/collectionApi";
 import cartApi       from "../../api/cartApi";
 import Navbar        from "../../components/common/Navbar";
 import Footer        from "../../components/common/Footer";
+import { useAuthModal } from "../../hooks/useAuthModal";
 import CreditCalculator from "../../components/credit/CreditCalculator";
 import "../../assets/pagesCss/CollectionDetails.css";
 
@@ -130,6 +131,7 @@ export default function CollectionDetailPage() {
   const wishlist       = useSelector(s => s.wishlist.items);
   const cartItems      = useSelector(s => s.cart.items);
   const isAuthenticated = useSelector(s => s.auth.isAuthenticated);
+  const { openAuthModal } = useAuthModal();
   const inCart         = (id) => cartItems.some(i => i.productId === id);
 
   const [coll,        setColl]       = useState(null);
@@ -225,7 +227,7 @@ export default function CollectionDetailPage() {
 
   const handleSaveCollection = useCallback(() => {
     if (!coll) return;
-    if (!isAuthenticated) { navigate("/login"); return; }
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     dispatch(toggleWishlist({
       id:    `coll_${coll.id}`,
       name:  coll.name,
@@ -233,12 +235,12 @@ export default function CollectionDetailPage() {
       image: coll.gallery[0] || null,
       type:  "collection",
     }));
-  }, [coll, isAuthenticated, navigate, dispatch]);
+  }, [coll, isAuthenticated, openAuthModal, dispatch]);
 
   const handleWish = useCallback((product) => {
-    if (!isAuthenticated) { navigate("/login"); return; }
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image }));
-  }, [isAuthenticated, navigate, dispatch]);
+  }, [isAuthenticated, openAuthModal, dispatch]);
 
   useEffect(() => {
     if (!lbOpen || !coll?.gallery?.length) return;

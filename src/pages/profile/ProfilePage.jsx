@@ -793,7 +793,7 @@ export default function ProfilePage() {
     if (!ok) return;
     await logout();
     dispatch(logoutAction());
-    navigate("/login");
+    navigate("/");
   };
 
   return (

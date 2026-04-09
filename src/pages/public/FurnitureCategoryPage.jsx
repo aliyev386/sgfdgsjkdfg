@@ -2022,7 +2022,7 @@ export default function AdminPanel() {
   const t    = translations[lang] || translations["az"];
 
   const handleLangChange = (l) => { dispatch(setReduxLang(l)); };
-  const handleLogout     = () => { dispatch(logoutAction()); window.location.href = "/login"; };
+  const handleLogout     = () => { dispatch(logoutAction()); window.location.href = "/"; };
 
   const renderPage = () => {
     const props = { t, lang };

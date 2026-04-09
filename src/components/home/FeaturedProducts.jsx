@@ -2,6 +2,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { useAuthModal } from "../../hooks/useAuthModal";
 import cartApi from "../../api/cartApi";
 import { setCart, selectCart } from "../../store/slices/cartSlice";
 import { toggleWishlist } from "../../store/slices/wishlistStore";
@@ -22,6 +23,7 @@ function Stars({ n }) {
 export default function FeaturedProductsSection({ products = [], categories = [], t }) {
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
+  const { openAuthModal } = useAuthModal();
   const wishlist  = useSelector(s => s.wishlist.items);
   const cartItems = useSelector(s => s.cart.items);
   const isAuthenticated = useSelector(s => s.auth.isAuthenticated);
@@ -64,12 +66,12 @@ export default function FeaturedProductsSection({ products = [], categories = []
   }, [addingId, dispatch]);
 
   const handleWishlist = useCallback((product) => {
-    if (!isAuthenticated) { navigate("/login"); return; }
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     dispatch(toggleWishlist({
       id: product.id, name: product.name, price: product.price,
       image: product.images?.[0]?.imageUrl || product.image,
     }));
-  }, [isAuthenticated, navigate, dispatch]);
+  }, [isAuthenticated, openAuthModal, dispatch]);
 
   const isWishlisted = (id) => wishlist.some(w => w.id === id);
 

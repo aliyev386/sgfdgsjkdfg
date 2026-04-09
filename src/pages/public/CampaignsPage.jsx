@@ -8,6 +8,7 @@ import { selectIsAuth } from "../../store/slices/authSlice";
 import { setCart, selectCart } from "../../store/slices/cartSlice";
 import campaignApi from "../../api/campaignApi";
 import productApi from "../../api/productApi";
+import { useAuthModal } from "../../hooks/useAuthModal";
 import collectionApi from "../../api/collectionApi";
 import cartApi from "../../api/cartApi";
 import Navbar from "../../components/common/Navbar";
@@ -239,6 +240,7 @@ export default function CampaignsPage() {
   const inCart = (id) => cartItems.some(i => i.productId === id);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { openAuthModal } = useAuthModal();
 
   const [campaigns, setCampaigns] = useState([]);
   const [products, setProducts] = useState([]);
@@ -285,7 +287,7 @@ export default function CampaignsPage() {
 
   // ── Add to cart ─────────────────────────────────────────
   const handleAddCart = useCallback(async (productId) => {
-    if (!isAuth) { navigate("/login"); return; }
+    if (!isAuth) { openAuthModal("login"); return; }
     if (inCart(productId)) return;
     setAdding(productId);
     try {
@@ -297,7 +299,7 @@ export default function CampaignsPage() {
     } finally {
       setTimeout(() => setAdding(null), 1200);
     }
-  }, [isAuth, navigate, dispatch]);
+  }, [isAuth, openAuthModal, dispatch]);
 
   // ── Filtered / sorted products ──────────────────────────
   const filtered = products.filter(p => {

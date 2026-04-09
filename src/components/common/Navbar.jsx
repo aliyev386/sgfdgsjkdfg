@@ -10,6 +10,7 @@ import CartDrawer from "../cart/CartDrawer";
 import cartApi from "../../api/cartApi";
 import { setCart } from "../../store/slices/cartSlice";
 import "../../assets/pagesCss/Navbar.css";
+import { useAuthModal } from "../../hooks/useAuthModal";
 
 const LANGUAGES = [
   { code: "az", label: "AZ" },
@@ -22,6 +23,7 @@ export default function Navbar() {
   const location    = useLocation();
   const navigate    = useNavigate();
   const dispatch    = useDispatch();
+  const { openAuthModal } = useAuthModal();
 
   const isAuth    = useSelector(selectIsAuth);
   const cartCount = useSelector(selectCartCount);
@@ -51,7 +53,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try { await apiLogout(); } catch { /* backend çatışmasa belə local temizlə */ }
     dispatch(logoutAction());
-    navigate("/login");
+    navigate("/");
   };
 
   const isActive = (path) => location.pathname === path ? "active" : "";
@@ -98,7 +100,7 @@ export default function Navbar() {
                   {t("nav.logout") || "Çıxış"}
                 </button>
               </>
-            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>
+            : <button className="arv-nav-icon" onClick={() => openAuthModal("login")}>
                 {t("nav.login") || "Giriş"}
               </button>
           }
