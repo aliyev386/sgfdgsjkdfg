@@ -385,7 +385,9 @@
     "explore": "Kəşf et",
     "no_collections": "Bu otaq üçün kolleksiya tapılmadı",
     "no_collections_hint": "Digər otaqları yoxlayın",
-    "back_to_rooms": "Bütün otaqlara qayıt"
+    "back_to_rooms": "Bütün otaqlara qayıt",
+    "load_more": "Daha çox göstər",
+    "all_shown": "Hamısı göstərildi"
   },
   "cdp": {
     "collection": "Kolleksiya",

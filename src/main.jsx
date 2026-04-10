@@ -21,13 +21,13 @@ import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import CheckoutPage from "./pages/order/CheckoutPage.jsx";
+import PaymentResultPage from "./pages/order/PaymentResultPage.jsx";
 import ProtectedRoute from "./components/common/ProdtectedRoute.jsx";
 import ResetPasswordPage from "./pages/auth/RePasswordPage.jsx";
 import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 import ContactPage from "./pages/common/Contact.jsx";
 import NotFoundPage from "./pages/common/NotFound.jsx";
 import AboutPage from "./pages/common/About.jsx";
-import PaymentResultPage from "./pages/order/PaymentResultPage.jsx";
 const router = createBrowserRouter([
   {
     element: <App />,
@@ -36,7 +36,7 @@ const router = createBrowserRouter([
       { path: "/categories",element: <CategoryPage /> },
       { path: "/collections",element: <RoomsPage /> },
       { path: "/category",element: <FurnitureCategoryPage /> },
-      { path: "/categories/:id",element: <FurnitureCategoryPage /> },
+      { path: "/category/:id",element: <FurnitureCategoryPage /> },
       { path: "/cart",element: <CartPage /> },
       { path: "/room-collections",element: <RoomCollectionsPage /> },
       { path: "/room-collections/:categoryId", element: <RoomCollectionsPage /> },
@@ -60,17 +60,18 @@ const router = createBrowserRouter([
         path: "/checkout",
         element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>,
       },
+      // Payriff payment result pages
       {
         path: "/payment/success",
-        element: <ProtectedRoute><PaymentResultPage mode="success" /></ProtectedRoute>,
+        element: <ProtectedRoute><PaymentResultPage type="success" /></ProtectedRoute>,
       },
       {
         path: "/payment/cancel",
-        element: <ProtectedRoute><PaymentResultPage mode="cancel" /></ProtectedRoute>,
+        element: <ProtectedRoute><PaymentResultPage type="cancel" /></ProtectedRoute>,
       },
       {
         path: "/payment/failed",
-        element: <ProtectedRoute><PaymentResultPage mode="failed" /></ProtectedRoute>,
+        element: <ProtectedRoute><PaymentResultPage type="failed" /></ProtectedRoute>,
       },
       {
         path: "/admin",

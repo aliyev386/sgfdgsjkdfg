@@ -181,6 +181,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const overlayRef = useRef(null);
+  const googleLoginBtnRef = useRef(null);
+  const googleRegBtnRef = useRef(null);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginErrors, setLoginErrors] = useState({});
@@ -230,27 +232,41 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
     }
   }, [dispatch, onClose, onSuccess, t, tab]);
 
+  const renderGoogleButtons = useCallback(() => {
+    if (!GOOGLE_CLIENT_ID || !window.google?.accounts) return;
+    window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
+    [googleLoginBtnRef.current, googleRegBtnRef.current].forEach(el => {
+      if (el) {
+        el.innerHTML = "";
+        window.google.accounts.id.renderButton(el, {
+          theme: "outline", size: "large", width: el.offsetWidth || 340, text: "continue_with",
+        });
+      }
+    });
+  }, [handleGoogleResponse]);
+
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || !isOpen) return;
     const existing = document.getElementById("google-gsi-script");
-    if (existing) {
-      window.google?.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
+    if (existing && window.google?.accounts) {
+      setTimeout(renderGoogleButtons, 50);
       return;
     }
+    if (existing) return;
     const script = document.createElement("script");
     script.id = "google-gsi-script";
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true; script.defer = true;
-    script.onload = () => {
-      window.google?.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
-    };
+    script.onload = () => setTimeout(renderGoogleButtons, 50);
     document.head.appendChild(script);
-  }, [isOpen, handleGoogleResponse]);
+  }, [isOpen, renderGoogleButtons]);
 
-  const triggerGoogle = () => {
-    if (!GOOGLE_CLIENT_ID) { setAlert({ type: "error", msg: "Google Client ID konfiqurasiya edilməyib" }); return; }
-    window.google?.accounts.id.prompt();
-  };
+  // Re-render button when tab changes (refs may have changed)
+  useEffect(() => {
+    if (isOpen && GOOGLE_CLIENT_ID) {
+      setTimeout(renderGoogleButtons, 80);
+    }
+  }, [tab, isOpen, renderGoogleButtons]);
 
   const validateLogin = () => {
     const errs = {};
@@ -427,12 +443,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
 
             <div className="am-divider"><span>{t.or}</span></div>
 
-            <button type="button" className="am-btn-google" onClick={triggerGoogle} disabled={googleLoading}>
-              {googleLoading
-                ? <><span className="am-spinner am-spinner-dark" />{t.googleLogin}</>
-                : <><GoogleIcon />{t.googleLogin}</>
-              }
-            </button>
+            <div
+              ref={googleLoginBtnRef}
+              style={{ width: "100%", minHeight: "44px", display: "flex", justifyContent: "center" }}
+            />
 
             <p className="am-switch-text">
               {t.noAccount}{" "}
@@ -556,12 +570,10 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
 
             <div className="am-divider"><span>{t.or}</span></div>
 
-            <button type="button" className="am-btn-google" onClick={triggerGoogle} disabled={googleLoading}>
-              {googleLoading
-                ? <><span className="am-spinner am-spinner-dark" />{t.googleRegister}</>
-                : <><GoogleIcon />{t.googleRegister}</>
-              }
-            </button>
+            <div
+              ref={googleRegBtnRef}
+              style={{ width: "100%", minHeight: "44px", display: "flex", justifyContent: "center" }}
+            />
 
             <p className="am-switch-text">
               {t.hasAccount}{" "}

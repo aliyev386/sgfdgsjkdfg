@@ -385,7 +385,9 @@
     "explore": "Explore",
     "no_collections": "No collections found for this room",
     "no_collections_hint": "Check out other room types",
-    "back_to_rooms": "Back to All Rooms"
+    "back_to_rooms": "Back to All Rooms",
+    "load_more": "Load more",
+    "all_shown": "All shown"
   },
   "cdp": {
     "collection": "Collection",
