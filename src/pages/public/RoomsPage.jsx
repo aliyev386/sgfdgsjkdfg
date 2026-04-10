@@ -129,7 +129,6 @@ export default function RoomsPage() {
 
         {!loading && !error && visibleRooms.length > 0 && (
           <>
-            {/* INLINE STYLE — CSS conflict-dan qorunur */}
             <div style={GRID_STYLE}>
               {visibleRooms.map((room, i) => (
                 <Link

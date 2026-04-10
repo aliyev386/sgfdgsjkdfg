@@ -1,6 +1,6 @@
 {
   "nav": {
-    "collections": "Collections",
+    "collections": "Rooms",
     "shop": "CATEGORIES",
     "story": "Our Story",
     "contact": "Contact",
@@ -36,11 +36,11 @@
     }
   },
   "categories": {
-    "eyebrow": "Shop by Room",
+    "eyebrow": "Shop by category",
     "title": "Curated",
-    "title_em": "Collections",
-    "view_all": "View All Rooms",
-    "explore": "Explore Collection"
+    "title_em": "Categories",
+    "view_all": "View All categories",
+    "explore": "Explore categories"
   },
   "collections": {
     "eyebrow": "Featured Collections",

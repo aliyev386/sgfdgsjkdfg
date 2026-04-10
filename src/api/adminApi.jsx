@@ -225,8 +225,21 @@ export const orderApi = {
   getById: (id) =>
     axiosInstance.get(`/orders/${id}`).then(unwrap),
 
-  updateStatus: (id, status) =>
-    axiosInstance.put(`/orders/admin/${id}/status`, { status }).then(unwrap),
+  updateStatus: (id, status, adminNote, estimatedDeliveryDate) =>
+    axiosInstance.put(`/orders/admin/${id}/status`, {
+      status,
+      adminNote: adminNote || null,
+      estimatedDeliveryDate: estimatedDeliveryDate || null,
+    }).then(unwrap),
+
+  getByStatus: (status, params = {}) =>
+    axiosInstance.get("/orders/admin/by-status", {
+      params: { status, page: params.page || 1, pageSize: params.pageSize || 20 }
+    }).then(r => {
+      const d = r.data?.data ?? r.data;
+      const arr = Array.isArray(d) ? d : [];
+      return { data: arr, total: r.data?.pagination?.totalCount ?? arr.length };
+    }),
 };
 
 export const heroApi = {

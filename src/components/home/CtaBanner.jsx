@@ -86,40 +86,6 @@ function RestorationSection({ t }) {
     <section className="rst-wrap" ref={ref}>
       <div className="rst-badge">{t("restoration.badge")}</div>
       <div className="rst-inner">
-        <div className={`rst-visual ${visible ? "rst-anim-l" : ""}`}>
-          <div className="rst-card rst-card-old">
-            <div className="rst-card-label">{t("restoration.before_label")}</div>
-            <svg className="rst-chair-svg" viewBox="0 0 120 140" fill="none">
-              <rect x="20" y="10" width="80" height="60" rx="6" fill="#C4A882" opacity="0.5" stroke="#A08060" strokeWidth="2" strokeDasharray="5 3"/>
-              <rect x="30" y="70" width="12" height="60" rx="4" fill="#A08060" opacity="0.6"/>
-              <rect x="78" y="70" width="12" height="60" rx="4" fill="#A08060" opacity="0.6"/>
-              <line x1="30" y1="95" x2="90" y2="95" stroke="#A08060" strokeWidth="2" strokeDasharray="4 3"/>
-              <path d="M40 35 Q60 25 80 35" stroke="#8B6840" strokeWidth="1.5" strokeDasharray="3 2" fill="none"/>
-            </svg>
-            <div className="rst-card-cracks"><span/><span/><span/></div>
-          </div>
-
-          <div className="rst-arrow-anim">
-            <svg viewBox="0 0 60 24" fill="none">
-              <path d="M0 12h52M44 4l12 8-12 8" stroke="#7A9E7E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-
-          <div className="rst-card rst-card-new">
-            <div className="rst-card-label rst-card-label-new">{t("restoration.after_label")}</div>
-            <svg className="rst-chair-svg" viewBox="0 0 120 140" fill="none">
-              <rect x="20" y="10" width="80" height="60" rx="6" fill="#7A9E7E" opacity="0.2"/>
-              <rect x="20" y="10" width="80" height="60" rx="6" stroke="#7A9E7E" strokeWidth="2"/>
-              <rect x="30" y="70" width="12" height="60" rx="4" fill="#5C7D5F"/>
-              <rect x="78" y="70" width="12" height="60" rx="4" fill="#5C7D5F"/>
-              <line x1="30" y1="95" x2="90" y2="95" stroke="#5C7D5F" strokeWidth="2"/>
-              <path d="M40 35 Q60 25 80 35" stroke="#7A9E7E" strokeWidth="2" fill="none"/>
-              <circle cx="60" cy="42" r="5" fill="#7A9E7E" opacity="0.35"/>
-            </svg>
-            <div className="rst-shine" aria-hidden="true"/>
-          </div>
-        </div>
-
         <div className={`rst-content ${visible ? "rst-anim-r" : ""}`}>
           <span className="rst-eyebrow">{t("restoration.eyebrow")}</span>
           <h2 className="rst-h">
@@ -140,6 +106,9 @@ function RestorationSection({ t }) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </Link>
           <p className="rst-note">{t("restoration.note")}</p>
+        </div>
+        <div>
+          <div><img src="" alt="" /></div>
         </div>
       </div>
 

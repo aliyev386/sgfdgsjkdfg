@@ -35,8 +35,8 @@ const productApi = {
   getReviews: (productId, params = {}) =>
     axiosInstance.get(`/reviews/by-product/${productId}`, { params }).then(r => r.data),
 
-  addReview: (dto) =>
-    axiosInstance.post("/reviews", dto).then(r => r.data?.data ?? r.data),
+  addReview: ({ productId, rating, comment }) =>
+    axiosInstance.post("/reviews", { productId, rating, comment }).then(r => r.data?.data ?? r.data),
 };
 
 export default productApi;

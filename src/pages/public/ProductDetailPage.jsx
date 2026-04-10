@@ -53,7 +53,7 @@ const RelCard = memo(function RelCard({ item, t }) {
       </div>
       <div className="pdp-rel-body">
         <h4 className="pdp-rel-name">{item.name}</h4>
-        <Stars n={item.rating} />
+        {item.rating > 0 && <Stars n={item.rating} />}
         <div className="pdp-rel-prices">
           <span className="pdp-rel-price">{fmt(item.price)}</span>
           {item.old_price && <span className="pdp-rel-old">{fmt(item.old_price)}</span>}
@@ -94,27 +94,29 @@ const IconReturn = () => (
   </svg>
 );
 
-function ReviewForm({ productId, t, onSuccess }) {
-  const [name,    setName]    = useState("");
-  const [email,   setEmail]   = useState("");
+function ReviewForm({ productId, t, onSuccess, authUser }) {
   const [rating,  setRating]  = useState(0);
   const [comment, setComment] = useState("");
   const [sending, setSending] = useState(false);
   const [err,     setErr]     = useState("");
 
+  const authorDisplay = authUser
+    ? `${authUser.name || ""} ${authUser.surname || ""}`.trim() || authUser.email
+    : "";
+
   const handleSubmit = async () => {
-    if (!name.trim() || !comment.trim() || rating < 1) {
-      setErr("Ad, reytinq və rəy mütləqdir.");
+    if (!comment.trim() || rating < 1) {
+      setErr(t("pdp.review_error_req") || "Reytinq və rəy mütləqdir.");
       return;
     }
     setSending(true);
     setErr("");
     try {
-      await productApi.addReview({ productId, authorName: name.trim(), authorEmail: email.trim() || undefined, rating, comment: comment.trim() });
-      setName(""); setEmail(""); setRating(0); setComment("");
+      await productApi.addReview({ productId, rating, comment: comment.trim() });
+      setRating(0); setComment("");
       onSuccess();
-    } catch {
-      setErr(t("pdp.review_error"));
+    } catch(e) {
+      setErr(e?.userMessage || t("pdp.review_error"));
     }
     setSending(false);
   };
@@ -122,23 +124,14 @@ function ReviewForm({ productId, t, onSuccess }) {
   return (
     <div className="pdp-review-form">
       <h3 className="pdp-review-form-title">{t("pdp.write_review")}</h3>
+      {authorDisplay && (
+        <p style={{ fontSize: 13, color: "#6B6B6B", marginBottom: 12 }}>
+          {t("pdp.reviewing_as") || "Rəy yazan"}: <strong style={{ color: "#1C1C1C" }}>{authorDisplay}</strong>
+        </p>
+      )}
       <div className="pdp-review-form-rating">
         <span className="pdp-review-form-label">{t("pdp.rating_label")}</span>
         <Stars n={rating} size={22} interactive onSet={setRating} />
-      </div>
-      <div className="pdp-review-form-fields">
-        <input
-          className="pdp-review-input"
-          placeholder={t("pdp.review_name")}
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-        <input
-          className="pdp-review-input"
-          placeholder={t("pdp.review_email")}
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
       </div>
       <textarea
         className="pdp-review-textarea"
@@ -146,6 +139,7 @@ function ReviewForm({ productId, t, onSuccess }) {
         value={comment}
         onChange={e => setComment(e.target.value)}
         rows={4}
+        style={{ marginTop: 12 }}
       />
       {err && <p className="pdp-review-err">{err}</p>}
       <button
@@ -168,6 +162,7 @@ export default function ProductDetailPage() {
   const wishlist          = useSelector(s => s.wishlist.items);
   const cartItems         = useSelector(s => s.cart.items);
   const isAuthenticated   = useSelector(s => s.auth.isAuthenticated);
+  const authUser          = useSelector(s => s.auth.user);
   const { openAuthModal } = useAuthModal();
 
   const [product,    setProduct]    = useState(null);
@@ -340,9 +335,8 @@ export default function ProductDetailPage() {
     : avgRating > 0 ? avgRating.toFixed(1) : "—";
 
   const tabs = [
-    { key: "description",    label: t("pdp.tab_description") },
-    { key: "specifications", label: t("pdp.tab_specs") },
-    { key: "reviews",        label: `${t("pdp.tab_reviews")} (${reviewsTotal})` },
+    { key: "description", label: t("pdp.tab_description") },
+    { key: "reviews",     label: `${t("pdp.tab_reviews")} (${reviewsTotal})` },
   ];
 
   const hasMoreReviews = reviews.length < reviewsTotal;
@@ -472,17 +466,34 @@ export default function ProductDetailPage() {
             <div className="pdp-opt-block">
               <p className="pdp-opt-label">
                 {t("pdp.color")}:&nbsp;
-                <span>{selColor ? product.colors.find(c => c.value === selColor)?.label : t("pdp.select")}</span>
+                <span style={{ color: "#1C1C1C", fontWeight: 500 }}>
+                  {selColor ? product.colors.find(c => c.value === selColor)?.label : t("pdp.select")}
+                </span>
               </p>
-              <div className="pdp-colors">
+              <div className="pdp-colors" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {product.colors.map(c => (
                   <button
                     key={c.value}
-                    className={`pdp-color-swatch${selColor === c.value ? " active" : ""}`}
-                    style={{ background: c.hex }}
                     onClick={() => setSelColor(c.value)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 7,
+                      padding: "5px 12px 5px 5px",
+                      border: selColor === c.value ? "1.5px solid #7A9E7E" : "1.5px solid #E5DDD4",
+                      background: selColor === c.value ? "#F0F7F1" : "#fff",
+                      borderRadius: 40, cursor: "pointer",
+                      transition: "all .2s",
+                    }}
                     title={c.label}
-                  />
+                  >
+                    <span style={{
+                      width: 20, height: 20, borderRadius: "50%",
+                      background: c.hex, border: "1px solid rgba(0,0,0,.1)",
+                      flexShrink: 0, display: "inline-block"
+                    }} />
+                    <span style={{ fontSize: 12, color: "#3C3C3C", fontFamily: "'DM Sans',sans-serif" }}>
+                      {c.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -610,118 +621,46 @@ export default function ProductDetailPage() {
 
         {activeTab === "description" && (
           <div className="pdp-tab-panel">
-            <div className="pdp-desc-layout">
-              <div className="pdp-desc-main">
-                <p className="pdp-desc">{product.description || t("pdp.no_description")}</p>
-                {product.material && (
-                  <div className="pdp-desc-block">
-                    <h4 className="pdp-desc-block-title">{t("pdp.material_label")}</h4>
-                    <div className="pdp-mat-chips">
-                      <span className="pdp-mat-chip">{product.material}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Description */}
+            <p className="pdp-desc" style={{ fontSize: 15, lineHeight: 1.8, color: "#3C3C3C", marginBottom: hasSpecs ? 32 : 0 }}>
+              {product.description || t("pdp.no_description")}
+            </p>
 
-              {(product.width || product.height || product.depth || product.weight) && (
-                <div className="pdp-dim-card">
-                  <h4 className="pdp-dim-title">{t("pdp.dimensions")}</h4>
-                  <div className="pdp-dim-visual">
-                    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" width="160" height="140">
-                      <rect x="30" y="40" width="100" height="70" rx="2" stroke="#7A9E7E" strokeWidth="1.5" fill="#F7F3EE"/>
-                      <line x1="30" y1="125" x2="130" y2="125" stroke="#D4CCC5" strokeWidth="1" strokeDasharray="3 3"/>
-                      <line x1="20" y1="40" x2="20" y2="110" stroke="#D4CCC5" strokeWidth="1" strokeDasharray="3 3"/>
-                      <text x="80" y="136" textAnchor="middle" fontSize="9" fill="#A8A09A" fontFamily="DM Sans">W</text>
-                      <text x="10" y="78" textAnchor="middle" fontSize="9" fill="#A8A09A" fontFamily="DM Sans">H</text>
-                    </svg>
-                  </div>
-                  <div className="pdp-dim-rows">
-                    {product.width && (
-                      <div className="pdp-dim-row">
-                        <span className="pdp-dim-label">{t("pdp.width")}</span>
-                        <span className="pdp-dim-val">{product.width} <small>{t("pdp.cm")}</small></span>
-                      </div>
-                    )}
-                    {product.height && (
-                      <div className="pdp-dim-row">
-                        <span className="pdp-dim-label">{t("pdp.height")}</span>
-                        <span className="pdp-dim-val">{product.height} <small>{t("pdp.cm")}</small></span>
-                      </div>
-                    )}
-                    {product.depth && (
-                      <div className="pdp-dim-row">
-                        <span className="pdp-dim-label">{t("pdp.depth")}</span>
-                        <span className="pdp-dim-val">{product.depth} <small>{t("pdp.cm")}</small></span>
-                      </div>
-                    )}
-                    {product.weight && (
-                      <div className="pdp-dim-row">
-                        <span className="pdp-dim-label">{t("pdp.weight")}</span>
-                        <span className="pdp-dim-val">{product.weight} <small>{t("pdp.kg")}</small></span>
-                      </div>
-                    )}
+            {/* Dimensions & Specs — description ilə birlikdə */}
+            {hasSpecs && (
+              <div style={{ borderTop: "1px solid #E5DDD4", paddingTop: 28 }}>
+                <h4 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, marginBottom: 20, color: "#1C1C1C" }}>
+                  {t("pdp.tab_specs")}
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+                  {product.category?.name && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_category")}</span><span className="pdp-spec-val">{product.category.name}</span></div>
+                  )}
+                  {product.material && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_material")}</span><span className="pdp-spec-val">{product.material}</span></div>
+                  )}
+                  {product.width && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_width")}</span><span className="pdp-spec-val">{product.width} {t("pdp.cm")}</span></div>
+                  )}
+                  {product.height && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_height")}</span><span className="pdp-spec-val">{product.height} {t("pdp.cm")}</span></div>
+                  )}
+                  {product.depth && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_depth")}</span><span className="pdp-spec-val">{product.depth} {t("pdp.cm")}</span></div>
+                  )}
+                  {product.weight && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_weight")}</span><span className="pdp-spec-val">{product.weight} {t("pdp.kg")}</span></div>
+                  )}
+                  {product.sku && (
+                    <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_sku")}</span><span className="pdp-spec-val">{product.sku}</span></div>
+                  )}
+                  <div className="pdp-spec-row">
+                    <span className="pdp-spec-label">{t("pdp.spec_stock")}</span>
+                    <span className="pdp-spec-val" style={{ color: product.in_stock ? "#4A8A50" : "#C94B4B" }}>
+                      {product.in_stock ? `${product.stock_qty} ədəd` : t("common.out_of_stock")}
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "specifications" && (
-          <div className="pdp-tab-panel">
-            {hasSpecs ? (
-              <div className="pdp-specs-grid">
-                {product.category.name && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_category")}</span>
-                    <span className="pdp-spec-val">{product.category.name}</span>
-                  </div>
-                )}
-                {product.material && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_material")}</span>
-                    <span className="pdp-spec-val">{product.material}</span>
-                  </div>
-                )}
-                {product.width && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_width")}</span>
-                    <span className="pdp-spec-val">{product.width} {t("pdp.cm")}</span>
-                  </div>
-                )}
-                {product.height && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_height")}</span>
-                    <span className="pdp-spec-val">{product.height} {t("pdp.cm")}</span>
-                  </div>
-                )}
-                {product.depth && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_depth")}</span>
-                    <span className="pdp-spec-val">{product.depth} {t("pdp.cm")}</span>
-                  </div>
-                )}
-                {product.weight && (
-                  <div className="pdp-spec-row">
-                    <span className="pdp-spec-label">{t("pdp.spec_weight")}</span>
-                    <span className="pdp-spec-val">{product.weight} {t("pdp.kg")}</span>
-                  </div>
-                )}
-                <div className="pdp-spec-row">
-                  <span className="pdp-spec-label">{t("pdp.spec_sku")}</span>
-                  <span className="pdp-spec-val">{product.sku}</span>
-                </div>
-                <div className="pdp-spec-row">
-                  <span className="pdp-spec-label">{t("pdp.spec_stock")}</span>
-                  <span className="pdp-spec-val" style={{ color: product.in_stock ? "#4A8A50" : "#C94B4B" }}>
-                    {product.in_stock ? `${product.stock_qty} ədəd` : t("common.out_of_stock")}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="pdp-empty-tab">
-                <span className="pdp-empty-ic">📋</span>
-                <p>{t("pdp.no_specs")}</p>
               </div>
             )}
           </div>
@@ -743,11 +682,28 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <ReviewForm
-              productId={parseInt(productId)}
-              t={t}
-              onSuccess={handleReviewSuccess}
-            />
+            {isAuthenticated ? (
+              <ReviewForm
+                productId={parseInt(productId)}
+                t={t}
+                onSuccess={handleReviewSuccess}
+                authUser={authUser}
+              />
+            ) : (
+              <div style={{
+                background: "#F7F3EE", border: "1px solid #E5DDD4",
+                padding: "20px 24px", textAlign: "center",
+                fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: "#6B6B6B"
+              }}>
+                <span>{t("pdp.login_to_review") || "Rəy bildirmək üçün"} </span>
+                <button
+                  onClick={() => openAuthModal("login")}
+                  style={{ color: "#7A9E7E", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontSize: 14 }}
+                >
+                  {t("pdp.login_link") || "daxil olun"}
+                </button>
+              </div>
+            )}
 
             {reviewsLoading && reviews.length === 0 ? (
               <div className="pdp-empty-tab">

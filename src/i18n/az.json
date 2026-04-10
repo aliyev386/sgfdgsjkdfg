@@ -1,6 +1,6 @@
 {
   "nav": {
-    "collections": "Kolleksiyalar",
+    "collections": "Otaqlar",
     "shop": "KATEQORİYALAR",
     "story": "Haqqımızda",
     "contact": "Əlaqə",
@@ -36,11 +36,11 @@
     }
   },
   "categories": {
-    "eyebrow": "Otağa görə seç",
+    "eyebrow": "Kategoriyaya görə seç",
     "title": "Seçilmiş",
-    "title_em": "Kolleksiyalar",
-    "view_all": "Bütün otaqlara bax",
-    "explore": "Kolleksiyaya bax"
+    "title_em": "Kategoriyalar",
+    "view_all": "Bütün kategoriyalara bax",
+    "explore": "Kategoriyalara bax"
   },
   "collections": {
     "eyebrow": "Seçilmiş kolleksiyalar",

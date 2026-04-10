@@ -1350,42 +1350,111 @@ const CollectionCategories = ({ t, lang }) => {
   );
 };
 
+const ORDER_STATUS_ENUM = {
+  Pending: 0, Confirmed: 1, InProgress: 2, Delivered: 3, Cancelled: 4,
+  0: "Pending", 1: "Confirmed", 2: "InProgress", 3: "Delivered", 4: "Cancelled",
+};
+const ORDER_STATUS_LABELS = {
+  Pending: "Gözlənilir", Confirmed: "Təsdiqləndi", InProgress: "Hazırlanır",
+  Delivered: "Çatdırıldı", Cancelled: "Ləğv edildi",
+  0: "Gözlənilir", 1: "Təsdiqləndi", 2: "Hazırlanır", 3: "Çatdırıldı", 4: "Ləğv edildi",
+};
+const ORDER_STATUS_COLORS = {
+  Pending: "bg-amber-100 text-amber-700 border-amber-200",
+  Confirmed: "bg-blue-100 text-blue-700 border-blue-200",
+  InProgress: "bg-purple-100 text-purple-700 border-purple-200",
+  Delivered: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  Cancelled: "bg-red-100 text-red-700 border-red-200",
+  0: "bg-amber-100 text-amber-700 border-amber-200",
+  1: "bg-blue-100 text-blue-700 border-blue-200",
+  2: "bg-purple-100 text-purple-700 border-purple-200",
+  3: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  4: "bg-red-100 text-red-700 border-red-200",
+};
+const ORDER_STATUS_FLOW = [0, 1, 2, 3]; // Pending → Confirmed → InProgress → Delivered
+
 const Orders = ({ t, lang }) => {
   const [page, setPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterDate, setFilterDate] = useState("");
   const [detail, setDetail] = useState(null);
   const [advancing, setAdvancing] = useState(null);
   const [toast, setToast] = useState(null);
+  const [adminNote, setAdminNote] = useState("");
+  const [estimatedDate, setEstimatedDate] = useState("");
+  const [saving, setSaving] = useState(false);
   const PER_PAGE = 8;
-  const STATUS_FLOW = ["pending", "confirmed", "shipped", "delivered"];
 
   const { data: orders, total, loading, reload } = useAdminData(
     (params) => orderApi.getAll(params), []
   );
 
   useEffect(() => {
-    reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus, date: filterDate || undefined });
-  }, [page, filterStatus, filterDate]);
+    reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
+  }, [page, filterStatus]);
 
-  const advanceStatus = async (order) => {
-    const idx = STATUS_FLOW.indexOf(order.status);
-    if (idx >= STATUS_FLOW.length - 1) return;
-    const next = STATUS_FLOW[idx + 1];
-    setAdvancing(order.id);
+  // Status int-dən stringe çevir
+  const statusStr = (s) => typeof s === "string" ? s : (ORDER_STATUS_ENUM[s] ?? "Pending");
+  const statusIdx = (s) => typeof s === "number" ? s : (ORDER_STATUS_ENUM[s] ?? 0);
+
+  const openDetail = async (row) => {
     try {
-      await orderApi.updateStatus(order.id, next);
-      setToast({ message: t.successSaved, type: "success" });
-      if (detail?.id === order.id) setDetail(d => ({ ...d, status: next }));
+      const full = await orderApi.getById(row.id);
+      setDetail(full);
+      setAdminNote(full.adminNote || "");
+      setEstimatedDate(full.estimatedDeliveryDate ? full.estimatedDeliveryDate.split("T")[0] : "");
+    } catch {
+      setDetail(row);
+      setAdminNote(row.adminNote || "");
+      setEstimatedDate(row.estimatedDeliveryDate ? row.estimatedDeliveryDate.split("T")[0] : "");
+    }
+  };
+
+  const changeStatus = async (orderId, newStatus, note, estDate) => {
+    setAdvancing(orderId);
+    try {
+      await orderApi.updateStatus(
+        orderId,
+        newStatus,
+        note || null,
+        estDate ? new Date(estDate).toISOString() : null
+      );
+      setToast({ message: "Status uğurla yeniləndi", type: "success" });
+      if (detail?.id === orderId) {
+        setDetail(d => ({ ...d, status: newStatus, adminNote: note, estimatedDeliveryDate: estDate }));
+      }
       reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
     } catch (err) {
       setToast({ message: err?.userMessage || t.error, type: "error" });
     } finally { setAdvancing(null); }
   };
 
+  const advanceStatus = (order) => {
+    const cur = statusIdx(order.status);
+    const nextIdx = ORDER_STATUS_FLOW.indexOf(cur);
+    if (nextIdx === -1 || nextIdx >= ORDER_STATUS_FLOW.length - 1) return;
+    const next = ORDER_STATUS_FLOW[nextIdx + 1];
+    changeStatus(order.id, next, null, null);
+  };
+
+  const saveAdminInfo = async () => {
+    if (!detail) return;
+    setSaving(true);
+    await changeStatus(detail.id, statusIdx(detail.status), adminNote, estimatedDate);
+    setSaving(false);
+  };
+
   const getUserName = (r) => {
-    if (typeof r.user === "object") return `${r.user?.firstName || ""} ${r.user?.lastName || ""}`.trim() || r.user?.email || "—";
+    if (r.userFullName) return r.userFullName;
+    if (typeof r.user === "object") return `${r.user?.name || r.user?.firstName || ""} ${r.user?.surname || r.user?.lastName || ""}`.trim() || r.user?.email || "—";
     return r.user || "—";
+  };
+
+  const getPayLabel = (pm) => {
+    const map = {
+      1: "Nağd", 2: "Kart", 3: "Bank köçürməsi", 4: "Kredit", 5: "İlkin ödəniş",
+      CashOnDelivery: "Nağd", Card: "Kart", BankTransfer: "Bank", Installment: "Kredit", PartialCard: "İlkin ödəniş",
+    };
+    return map[pm] ?? pm ?? "—";
   };
 
   return (
@@ -1393,105 +1462,253 @@ const Orders = ({ t, lang }) => {
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">{t.orders}</h1>
-        <span className="text-sm text-gray-500">{total} total</span>
+        <span className="text-sm text-gray-500">{total} sifariş</span>
       </div>
 
+      {/* Filter */}
       <Card className="p-4 flex flex-wrap items-center gap-3">
         <Select value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1); }}
-          options={[{ value: "all", label: "All Statuses" }, ...STATUS_FLOW.map(s => ({ value: s, label: t[s] }))]} />
-        <Input type="date" value={filterDate} onChange={v => { setFilterDate(v); setPage(1); }} className="w-44" />
-        {(filterStatus !== "all" || filterDate) && (
-          <Btn variant="ghost" size="sm" onClick={() => { setFilterStatus("all"); setFilterDate(""); }}>
-            <Icons.X /> Clear
+          options={[
+            { value: "all", label: "Bütün statuslar" },
+            { value: "0", label: "Gözlənilir" },
+            { value: "1", label: "Təsdiqləndi" },
+            { value: "2", label: "Hazırlanır" },
+            { value: "3", label: "Çatdırıldı" },
+            { value: "4", label: "Ləğv edildi" },
+          ]}
+        />
+        {filterStatus !== "all" && (
+          <Btn variant="ghost" size="sm" onClick={() => { setFilterStatus("all"); }}>
+            <Icons.X /> Sıfırla
           </Btn>
         )}
       </Card>
 
+      {/* Table */}
       <Card>
         <Table
           loading={loading}
           columns={[
-            { key: "id", label: "Order ID", render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
-            { key: "user", label: t.user, render: r => (
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold">{getUserName(r)[0] || "?"}</div>
-                <span className="font-medium text-gray-800 text-sm">{getUserName(r)}</span>
+            { key: "id", label: "Sifariş", render: r => (
+              <div>
+                <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span>
+                {(r.isCustomOrder || r.type === 1) && (
+                  <span className="ml-1.5 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">✦ XÜSUSİ</span>
+                )}
               </div>
             )},
-            { key: "total", label: "Total", render: r => <span className="font-bold text-gray-800">${Number(r.total).toLocaleString()}</span> },
-            { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
-            { key: "date", label: t.date, render: r => <span className="text-gray-500 text-xs">{r.date || r.createdAt?.split("T")[0]}</span> },
+            { key: "user", label: "Müştəri", render: r => (
+              <div>
+                <p className="font-semibold text-gray-800 text-sm">{getUserName(r)}</p>
+                {r.userPhone && <p className="text-xs text-emerald-600 font-medium">📞 {r.userPhone}</p>}
+                {r.userEmail && <p className="text-xs text-gray-400">{r.userEmail}</p>}
+              </div>
+            )},
+            { key: "note", label: "Ünvan", render: r => (
+              <p className="text-xs text-gray-500 max-w-xs truncate" title={r.note}>{r.note || "—"}</p>
+            )},
+            { key: "totalPrice", label: "Məbləğ", render: r => (
+              <div>
+                <p className="font-bold text-gray-800">₼{Number(r.totalPrice ?? r.total ?? 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400">{getPayLabel(r.paymentMethod)}</p>
+                {r.paidAmount && <p className="text-xs text-blue-600">İlkin: ₼{r.paidAmount}</p>}
+              </div>
+            )},
+            { key: "status", label: "Status", render: r => (
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${ORDER_STATUS_COLORS[r.status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                {ORDER_STATUS_LABELS[r.status] ?? r.status}
+              </span>
+            )},
+            { key: "createdAt", label: "Tarix", render: r => (
+              <span className="text-gray-500 text-xs">{r.createdAt ? new Date(r.createdAt).toLocaleDateString("az-AZ") : "—"}</span>
+            )},
           ]}
           data={orders}
-          onView={async (row) => {
-            try { const full = await orderApi.getById(row.id); setDetail(full); }
-            catch { setDetail(row); }
-          }}
-          extraActions={(row) => (
-            row.status !== "delivered" && (
+          onView={openDetail}
+          extraActions={(row) => {
+            const cur = statusIdx(row.status);
+            const nextIdx = ORDER_STATUS_FLOW.indexOf(cur);
+            const canAdvance = nextIdx !== -1 && nextIdx < ORDER_STATUS_FLOW.length - 1;
+            const nextStatus = canAdvance ? ORDER_STATUS_FLOW[nextIdx + 1] : null;
+            return canAdvance ? (
               <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
-                {advancing === row.id ? <div className="w-3 h-3 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" /> : <Icons.ChevronRight />}
-                Advance
+                {advancing === row.id
+                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Icons.ChevronRight />}
+                {ORDER_STATUS_LABELS[nextStatus]}
               </Btn>
-            )
-          )}
+            ) : null;
+          }}
         />
         <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 
-      <Modal open={!!detail} onClose={() => setDetail(null)} title={`${t.orderDetail} #${detail?.id}`}>
+      {/* Detail Modal */}
+      <Modal open={!!detail} onClose={() => setDetail(null)} title={`Sifariş #${detail?.id}`} width="max-w-2xl">
         {detail && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">{t.user}</p>
-                <p className="font-semibold text-gray-800">{getUserName(detail)}</p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-500 mb-1">{t.status}</p>
-                <Badge status={detail.status} label={t[detail.status]} />
-              </div>
-              <div className="bg-gray-50 rounded-xl p-3 col-span-2">
-                <p className="text-xs text-gray-500 mb-1">{t.address}</p>
-                <p className="font-medium text-gray-800 text-sm">{typeof detail.address === "object" ? `${detail.address?.street || ""}, ${detail.address?.city || ""}` : detail.address}</p>
+
+            {/* Müştəri məlumatları */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📋 Müştəri Məlumatları</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-400">Ad Soyad</p>
+                  <p className="font-semibold text-gray-800">{getUserName(detail)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Telefon</p>
+                  <a href={`tel:${detail.userPhone}`} className="font-semibold text-emerald-600 hover:underline flex items-center gap-1">
+                    📞 {detail.userPhone || "—"}
+                  </a>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-400">E-poçt</p>
+                  <p className="font-medium text-gray-700">{detail.userEmail || "—"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-400">Çatdırılma ünvanı</p>
+                  <p className="font-medium text-gray-700 text-sm">{detail.note || "—"}</p>
+                </div>
               </div>
             </div>
-            {detail.products && (
+
+            {/* Xüsusi sifariş */}
+            {(detail.isCustomOrder || detail.type === 1) && (
+              <div className="border border-amber-300 bg-amber-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">✦ Xüsusi Sifariş Tələbi</p>
+                <p className="text-sm text-gray-700">{detail.customDescription || "Müştəri xüsusi dəyişiklik istəyib. Zəng edib razılaşın."}</p>
+              </div>
+            )}
+
+            {/* Ödəniş */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💳 Ödəniş</p>
+              <div className="flex flex-wrap gap-4">
+                <div>
+                  <p className="text-xs text-gray-400">Ödəniş üsulu</p>
+                  <p className="font-semibold text-gray-800">{getPayLabel(detail.paymentMethod)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Ümumi məbləğ</p>
+                  <p className="font-bold text-emerald-700 text-lg">₼{Number(detail.totalPrice ?? 0).toFixed(2)}</p>
+                </div>
+                {detail.paidAmount && (
+                  <div>
+                    <p className="text-xs text-gray-400">İlkin ödəniş</p>
+                    <p className="font-semibold text-blue-600">₼{Number(detail.paidAmount).toFixed(2)}</p>
+                  </div>
+                )}
+                {detail.installmentMonths && (
+                  <div>
+                    <p className="text-xs text-gray-400">Kredit müddəti</p>
+                    <p className="font-semibold text-gray-800">{detail.installmentMonths} ay</p>
+                    {detail.monthlyPayment && <p className="text-xs text-emerald-600">Aylıq: ₼{Number(detail.monthlyPayment).toFixed(2)}</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Məhsullar */}
+            {detail.items && detail.items.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">{t.products}</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">📦 Məhsullar</p>
                 <div className="space-y-2">
-                  {detail.products.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg p-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center"><Icons.Package /></div>
-                        <span className="font-medium text-gray-800">{typeof p.name === "object" ? p.name[lang] : p.name}</span>
-                        <span className="text-gray-400 text-xs">×{p.qty || p.quantity}</span>
+                  {detail.items.map((it, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+                      {it.productImage
+                        ? <img src={it.productImage} alt="" className="w-10 h-10 object-cover rounded-lg" />
+                        : <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"><Icons.Package /></div>
+                      }
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-800 text-sm truncate">{it.productName || it.collectionName || "Məhsul"}</p>
+                        <div className="flex gap-2 flex-wrap">
+                          {it.selectedColor && <span className="text-xs text-gray-500">🎨 {it.selectedColor}</span>}
+                          {it.selectedSize && <span className="text-xs text-gray-500">📐 {it.selectedSize}</span>}
+                          <span className="text-xs text-gray-400">×{it.quantity}</span>
+                        </div>
                       </div>
-                      <span className="font-bold text-emerald-700">${Number(p.price).toLocaleString()}</span>
+                      <span className="font-bold text-emerald-700 text-sm">₼{Number(it.unitPrice ?? 0).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            <div className="flex items-center justify-between bg-emerald-50 rounded-xl p-4">
-              <span className="font-semibold text-gray-700">Total</span>
-              <span className="text-xl font-bold text-emerald-700">${Number(detail.total).toLocaleString()}</span>
-            </div>
-            {detail.status !== "delivered" && (
+
+            {/* Status idarəsi */}
+            <div className="border border-gray-200 rounded-xl p-4 space-y-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">⚙️ Status İdarəsi</p>
+
+              {/* Cari status */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`text-sm font-semibold px-3 py-1.5 rounded-full border ${ORDER_STATUS_COLORS[detail.status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                  Cari: {ORDER_STATUS_LABELS[detail.status] ?? detail.status}
+                </span>
+
+                {/* Status dəyişdirmə düymələri */}
+                <div className="flex gap-2 flex-wrap">
+                  {ORDER_STATUS_FLOW.filter(s => s !== statusIdx(detail.status)).map(s => (
+                    <button key={s}
+                      onClick={() => changeStatus(detail.id, s, adminNote, estimatedDate)}
+                      disabled={advancing === detail.id}
+                      className={`text-xs font-semibold px-3 py-1.5 border rounded-full transition-colors cursor-pointer
+                        ${ORDER_STATUS_COLORS[s]} hover:opacity-80 disabled:opacity-50`}>
+                      → {ORDER_STATUS_LABELS[s]}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => changeStatus(detail.id, 4, adminNote, estimatedDate)}
+                    disabled={advancing === detail.id || statusIdx(detail.status) === 4}
+                    className="text-xs font-semibold px-3 py-1.5 border rounded-full bg-red-50 text-red-600 border-red-200 hover:bg-red-100 disabled:opacity-40 cursor-pointer">
+                    ✕ Ləğv et
+                  </button>
+                </div>
+              </div>
+
+              {/* Admin qeydi */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                  Admin Qeydi (müştəriyə göstərilir)
+                </label>
+                <textarea
+                  value={adminNote}
+                  onChange={e => setAdminNote(e.target.value)}
+                  placeholder="məs: Çatdırılma 14:00-da olacaq, sizi əvvəlcədən zəng edəcəyik..."
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
+                  rows={2}
+                />
+              </div>
+
+              {/* Çatdırılma tarixi */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
+                  Razılaşdırılmış Çatdırılma Tarixi
+                </label>
+                <input
+                  type="date"
+                  value={estimatedDate}
+                  onChange={e => setEstimatedDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+              </div>
+
+              {/* Saxla */}
               <div className="flex justify-end">
-                <Btn onClick={() => advanceStatus(detail)} disabled={advancing === detail.id}>
-                  {advancing === detail.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Icons.ChevronRight />}
-                  {t.updateStatus}: {t[STATUS_FLOW[STATUS_FLOW.indexOf(detail.status) + 1]]}
+                <Btn onClick={saveAdminInfo} disabled={saving}>
+                  {saving
+                    ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saxlanılır...</>
+                    : <><Icons.Check /> Qeydi & Tarixi Saxla</>
+                  }
                 </Btn>
               </div>
-            )}
+            </div>
           </div>
         )}
       </Modal>
     </div>
   );
 };
-
 const HeroSections = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);

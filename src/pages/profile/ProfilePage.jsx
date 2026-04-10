@@ -468,11 +468,22 @@ function SecurityTab({ showToast, t }) {
 /* ─── TAB: PAYMENTS (lokal — backend endpoint yoxdur) ───── */
 function PaymentsTab({ showToast, t }) {
   const { confirm, Modal } = useConfirm();
-  // Lokal state — backend saxlamır, kart məlumatları həssasdır
   const [cards,   setCards]   = useState([]);
   const [addOpen, setAddOpen] = useState(false);
   const [selBank, setSelBank] = useState(null);
   const [newCard, setNewCard] = useState({number:"",name:"",expiry:"",cvv:""});
+  const [cardErrors, setCardErrors] = useState({});
+
+  const validateCard = () => {
+    const e = {};
+    const num = newCard.number.replace(/\s/g,"");
+    if(!num || num.length < 16) e.number = "Kart nömrəsi düzgün deyil";
+    if(!newCard.name.trim()) e.name = "Ad Soyad daxil edin";
+    if(!newCard.expiry || newCard.expiry.length < 5) e.expiry = "Bitmə tarixi düzgün deyil";
+    if(!newCard.cvv || newCard.cvv.length < 3) e.cvv = "CVV daxil edin";
+    setCardErrors(e);
+    return !Object.keys(e).length;
+  };
 
   const deleteCard = async (id) => {
     const ok = await confirm({
@@ -482,8 +493,9 @@ function PaymentsTab({ showToast, t }) {
     });
     if(ok){ setCards(p=>p.filter(x=>x.id!==id)); showToast(t("profile.card_deleted"),true); }
   };
+
   const addCard = async () => {
-    if(!newCard.number||!newCard.name||!newCard.expiry) return;
+    if(!validateCard()) return;
     const bank = AZ_BANKS.find(b=>b.id===selBank);
     const ok = await confirm({
       title: t("profile.confirm_add_card_title"),
@@ -496,7 +508,7 @@ function PaymentsTab({ showToast, t }) {
       name:newCard.name||"KART SAHİBİ", expiry:newCard.expiry||"--/--",
       type:"VISA", bank:bank?.name||"—", bankColor:bank?.color||"#6B7280",
     }]);
-    setNewCard({number:"",name:"",expiry:"",cvv:""}); setSelBank(null); setAddOpen(false);
+    setNewCard({number:"",name:"",expiry:"",cvv:""}); setSelBank(null); setAddOpen(false); setCardErrors({});
     showToast(t("profile.card_added"),true);
   };
 
@@ -549,10 +561,26 @@ function PaymentsTab({ showToast, t }) {
               ))}
             </div>
             <div className="pr-fg">
-              <div className="pr-field pr-fcol2"><label className="pr-label">{t("profile.card_number")}</label><input className="pr-input pr-mono" placeholder="0000 0000 0000 0000" maxLength={19} value={newCard.number} onChange={e=>setNewCard(p=>({...p,number:fmt4(e.target.value)}))}/></div>
-              <div className="pr-field pr-fcol2"><label className="pr-label">{t("profile.card_name")}</label><input className="pr-input pr-mono" placeholder="AD SOYAD" value={newCard.name} onChange={e=>setNewCard(p=>({...p,name:e.target.value.toUpperCase()}))}/></div>
-              <div className="pr-field"><label className="pr-label">{t("profile.expiry")}</label><input className="pr-input pr-mono" placeholder="MM/YY" maxLength={5} value={newCard.expiry} onChange={e=>setNewCard(p=>({...p,expiry:fmtE(e.target.value)}))}/></div>
-              <div className="pr-field"><label className="pr-label">CVV</label><input className="pr-input pr-mono" placeholder="•••" maxLength={3} type="password" value={newCard.cvv} onChange={e=>setNewCard(p=>({...p,cvv:e.target.value.replace(/\D/g,"").slice(0,3)}))}/></div>
+              <div className="pr-field pr-fcol2">
+                <label className="pr-label">{t("profile.card_number")}</label>
+                <input className={`pr-input pr-mono${cardErrors.number?" pr-input-err":""}`} placeholder="0000 0000 0000 0000" maxLength={19} value={newCard.number} onChange={e=>setNewCard(p=>({...p,number:fmt4(e.target.value)}))}/>
+                {cardErrors.number && <span className="pr-field-err">{cardErrors.number}</span>}
+              </div>
+              <div className="pr-field pr-fcol2">
+                <label className="pr-label">{t("profile.card_name")}</label>
+                <input className={`pr-input pr-mono${cardErrors.name?" pr-input-err":""}`} placeholder="AD SOYAD" value={newCard.name} onChange={e=>setNewCard(p=>({...p,name:e.target.value.toUpperCase()}))}/>
+                {cardErrors.name && <span className="pr-field-err">{cardErrors.name}</span>}
+              </div>
+              <div className="pr-field">
+                <label className="pr-label">{t("profile.expiry")}</label>
+                <input className={`pr-input pr-mono${cardErrors.expiry?" pr-input-err":""}`} placeholder="MM/YY" maxLength={5} value={newCard.expiry} onChange={e=>setNewCard(p=>({...p,expiry:fmtE(e.target.value)}))}/>
+                {cardErrors.expiry && <span className="pr-field-err">{cardErrors.expiry}</span>}
+              </div>
+              <div className="pr-field">
+                <label className="pr-label">CVV</label>
+                <input className={`pr-input pr-mono${cardErrors.cvv?" pr-input-err":""}`} placeholder="•••" maxLength={3} type="password" value={newCard.cvv} onChange={e=>setNewCard(p=>({...p,cvv:e.target.value.replace(/\D/g,"").slice(0,3)}))}/>
+                {cardErrors.cvv && <span className="pr-field-err">{cardErrors.cvv}</span>}
+              </div>
             </div>
             <div className="pr-ffoot">
               <button className="pr-btn-save" onClick={addCard}>{t("profile.save_card")}</button>
@@ -566,6 +594,90 @@ function PaymentsTab({ showToast, t }) {
 }
 
 /* ─── TAB: ORDERS — GET /orders/my ─────────────────────── */
+/* ─── Status Tracker ────────────────────────────────────── */
+const STATUS_STEPS = [
+  { key: "Pending",    label: "Gözlənilir",  icon: "🕐" },
+  { key: "Confirmed",  label: "Təsdiqləndi", icon: "✅" },
+  { key: "InProgress", label: "Hazırlanır",  icon: "⚙️" },
+  { key: "Delivered",  label: "Çatdırıldı",  icon: "🎉" },
+];
+
+function OrderStatusTracker({ status, estimatedDeliveryDate, adminNote }) {
+  const STATUS_ORDER = { Pending: 0, Confirmed: 1, InProgress: 2, Delivered: 3, Cancelled: -1 };
+  const currentIdx = STATUS_ORDER[status] ?? 0;
+  const isCancelled = status === "Cancelled" || status === 4 || Number(status) === 4;
+
+  return (
+    <div style={{ padding: "16px 0 8px" }}>
+      {isCancelled ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6 }}>
+          <span style={{ fontSize: 18 }}>❌</span>
+          <div>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#DC2626" }}>Sifariş ləğv edildi</p>
+            {adminNote && <p style={{ margin: "3px 0 0", fontSize: 12, color: "#6B7280" }}>{adminNote}</p>}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: "flex", alignItems: "center", position: "relative", marginBottom: 8 }}>
+            {STATUS_STEPS.map((st, idx) => {
+              const done = idx <= currentIdx;
+              const active = idx === currentIdx;
+              return (
+                <div key={st.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: 1 }}>
+                  {/* Connector line */}
+                  {idx < STATUS_STEPS.length - 1 && (
+                    <div style={{
+                      position: "absolute", top: 14, left: "50%", right: "-50%",
+                      height: 2, background: idx < currentIdx ? "#7A9E7E" : "#E5DDD4",
+                      transition: "background .4s", zIndex: 0,
+                    }} />
+                  )}
+                  {/* Circle */}
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: done ? "#7A9E7E" : "#F0EDE8",
+                    border: `2px solid ${active ? "#7A9E7E" : done ? "#7A9E7E" : "#E5DDD4"}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 11, color: done ? "#fff" : "#9CA3AF",
+                    fontWeight: 700, position: "relative", zIndex: 2,
+                    boxShadow: active ? "0 0 0 3px rgba(122,158,126,.2)" : "none",
+                    transition: "all .4s",
+                  }}>
+                    {done ? (idx === currentIdx ? st.icon : "✓") : idx + 1}
+                  </div>
+                  <p style={{
+                    fontSize: 10, marginTop: 6, letterSpacing: 0.5, textAlign: "center",
+                    color: active ? "#1C1C1C" : done ? "#7A9E7E" : "#9CA3AF",
+                    fontWeight: active ? 600 : 400, lineHeight: 1.3,
+                  }}>{st.label}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Admin note / estimated delivery */}
+          {(adminNote || estimatedDeliveryDate) && (
+            <div style={{ background: "#F0F7F1", border: "1px solid #C8DBC9", padding: "10px 14px", marginTop: 8, borderRadius: 4 }}>
+              {estimatedDeliveryDate && (
+                <p style={{ margin: 0, fontSize: 12, color: "#2E6B32" }}>
+                  📅 <strong>Təxmini çatdırılma:</strong>{" "}
+                  {new Date(estimatedDeliveryDate).toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+              )}
+              {adminNote && (
+                <p style={{ margin: estimatedDeliveryDate ? "6px 0 0" : 0, fontSize: 12, color: "#374151" }}>
+                  💬 <em>{adminNote}</em>
+                </p>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function OrdersTab({ orders, loading, error, reload, t }) {
   const [open, setOpen] = useState(null);
 
@@ -587,6 +699,22 @@ function OrdersTab({ orders, loading, error, reload, t }) {
     </div>
   );
 
+  const getStatusLabel = (status) => {
+    const map = { Pending:"Gözlənilir", Confirmed:"Təsdiqləndi", InProgress:"Hazırlanır", Delivered:"Çatdırıldı", Cancelled:"Ləğv edildi",
+                  0:"Gözlənilir", 1:"Təsdiqləndi", 2:"Hazırlanır", 3:"Çatdırıldı", 4:"Ləğv edildi" };
+    return map[status] ?? "Gözlənilir";
+  };
+
+  const getStatusColor = (status) => {
+    const s = typeof status === "string" ? status : { 0:"Pending",1:"Confirmed",2:"InProgress",3:"Delivered",4:"Cancelled" }[status] ?? "Pending";
+    return { Pending:"#C9A84C", Confirmed:"#2980b9", InProgress:"#7A9E7E", Delivered:"#2E6B32", Cancelled:"#EF4444" }[s] ?? "#C9A84C";
+  };
+
+  const getStatusBg = (status) => {
+    const s = typeof status === "string" ? status : { 0:"Pending",1:"Confirmed",2:"InProgress",3:"Delivered",4:"Cancelled" }[status] ?? "Pending";
+    return { Pending:"#FFFBEB", Confirmed:"#EFF6FF", InProgress:"#F0F7F1", Delivered:"#ECFDF5", Cancelled:"#FEF2F2" }[s] ?? "#FFFBEB";
+  };
+
   return (
     <div className="pr-body pr-ani">
       <div className="pr-card pr-card-flush">
@@ -601,10 +729,11 @@ function OrdersTab({ orders, loading, error, reload, t }) {
           </div>
         ) : (
           orders.map((o, i) => {
-            const statusKey = ORDER_STATUS_MAP[o.status] ?? o.status?.toLowerCase?.() ?? "pending";
-            const s   = ST[statusKey] || ST.pending;
             const isOpen = open === o.id;
             const firstImg = o.items?.[0]?.productImage;
+            const statusStr = typeof o.status === "string" ? o.status
+              : { 0:"Pending",1:"Confirmed",2:"InProgress",3:"Delivered",4:"Cancelled" }[o.status] ?? "Pending";
+
             return (
               <div key={o.id} className={`pr-ord-item${isOpen?" open":""}`} style={{animationDelay:`${i*.05}s`}}>
                 <div className="pr-ord-row" onClick={()=>setOpen(p=>p===o.id?null:o.id)}>
@@ -616,18 +745,42 @@ function OrdersTab({ orders, loading, error, reload, t }) {
                     {o.items?.length > 1 && <span className="pr-oimg-more">+{o.items.length - 1}</span>}
                   </div>
                   <div className="pr-ord-info">
-                    <p className="pr-ord-id">#{o.id}</p>
+                    <p className="pr-ord-id">
+                      #{o.id}
+                      {o.isCustomOrder && <span style={{marginLeft:6,fontSize:9,letterSpacing:1,textTransform:"uppercase",color:"#C9A84C",background:"#FFFBEB",border:"1px solid #C9A84C",padding:"1px 5px"}}>XÜSUSİ</span>}
+                    </p>
                     <p className="pr-ord-meta">
                       {new Date(o.createdAt).toLocaleDateString("az-AZ")} ·&nbsp;
-                      {o.paymentMethod === 1 || o.paymentMethod === "CashOnDelivery" ? t("profile.cash") : "Kart"}
+                      {o.paymentMethod === 1 || o.paymentMethod === "CashOnDelivery" ? "Nağd" : "Kart"}
                     </p>
                   </div>
-                  <span className={`pr-st ${s.cl}`}>{t(s.lbl)}</span>
+                  <span style={{
+                    fontSize:11, fontWeight:600, padding:"4px 10px",
+                    background: getStatusBg(o.status), color: getStatusColor(o.status),
+                    border:`1px solid ${getStatusColor(o.status)}33`, whiteSpace:"nowrap",
+                  }}>{getStatusLabel(o.status)}</span>
                   <span className="pr-ord-total">{fmt(o.totalPrice)}</span>
                   <span className={`pr-ord-chev${isOpen?" up":""}`}><Ico n="chevron" s={16}/></span>
                 </div>
+
                 {isOpen && (
                   <div className="pr-ord-detail pr-ani">
+                    {/* Status Tracker */}
+                    <OrderStatusTracker
+                      status={statusStr}
+                      estimatedDeliveryDate={o.estimatedDeliveryDate}
+                      adminNote={o.adminNote}
+                    />
+
+                    {/* Xüsusi sifariş qeydi */}
+                    {o.isCustomOrder && o.customDescription && (
+                      <div style={{background:"#FFFBF2",border:"1px solid #C9A84C",padding:"10px 14px",marginBottom:12,borderRadius:4}}>
+                        <p style={{margin:0,fontSize:11,letterSpacing:1,textTransform:"uppercase",color:"#C9A84C",marginBottom:4}}>✦ Xüsusi Sifariş Tələbi</p>
+                        <p style={{margin:0,fontSize:13,color:"#1C1C1C"}}>{o.customDescription}</p>
+                      </div>
+                    )}
+
+                    {/* Məhsullar */}
                     {(o.items || []).map((it, j) => (
                       <div key={j} className="pr-det-row">
                         {it.productImage
@@ -636,15 +789,27 @@ function OrdersTab({ orders, loading, error, reload, t }) {
                         }
                         <div className="pr-det-info">
                           <p className="pr-det-name">{it.productName || it.collectionName || "Məhsul"}</p>
+                          {it.selectedColor && <p className="pr-det-qty" style={{color:"#6B7280"}}>🎨 {it.selectedColor}</p>}
+                          {it.selectedSize && <p className="pr-det-qty" style={{color:"#6B7280"}}>📐 {it.selectedSize}</p>}
                           <p className="pr-det-qty">×{it.quantity}</p>
                         </div>
                         <span className="pr-det-price">{fmt(it.unitPrice ?? it.totalPrice ?? 0)}</span>
                       </div>
                     ))}
+
                     <div className="pr-det-total">
                       <span>{t("profile.total")}</span>
                       <strong>{fmt(o.totalPrice)}</strong>
                     </div>
+
+                    {/* Ödəniş detalları */}
+                    {(o.paidAmount || o.installmentMonths) && (
+                      <div style={{background:"#F7F3EE",padding:"10px 14px",marginTop:8,borderRadius:4,fontSize:12,color:"#6B7280"}}>
+                        {o.paidAmount && <span>İlkin ödəniş: <strong style={{color:"#1C1C1C"}}>{fmt(o.paidAmount)}</strong> · </span>}
+                        {o.installmentMonths && <span>Kredit: <strong style={{color:"#1C1C1C"}}>{o.installmentMonths} ay</strong></span>}
+                        {o.monthlyPayment && <span> · Aylıq: <strong style={{color:"#7A9E7E"}}>{fmt(o.monthlyPayment)}</strong></span>}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -57,7 +57,7 @@
      gap: 48px;
      flex-wrap: wrap;
    }
-   .cp-hero-left { animation: cpHeroIn .9s cubic-bezier(.25,.46,.45,.94) both; }
+   .cp-hero-left { padding-left:100px; animation: cpHeroIn .9s cubic-bezier(.25,.46,.45,.94) both; }
    
    .cp-hero-eyebrow {
      font-size: 11px;

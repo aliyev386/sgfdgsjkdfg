@@ -128,7 +128,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
                     <span className="hp-price">{fmt(product.discountPrice ?? product.price)}</span>
                     {product.discountPrice && <span className="hp-old-price">{fmt(product.price)}</span>}
                   </div>
-                  <Stars n={product.rating ?? 4} />
+                  {product.rating > 0 && <Stars n={product.rating} />}
                 </div>
               </div>
             </div>
