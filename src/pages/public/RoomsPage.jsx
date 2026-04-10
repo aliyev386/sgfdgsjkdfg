@@ -26,6 +26,9 @@ export default function RoomsPage() {
   const lang   = useSelector(selectLang);
   const [rooms, setRooms]       = useState([]);
   const [loading, setLoading]   = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  const INITIAL_VISIBLE = 8;
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -46,6 +49,14 @@ export default function RoomsPage() {
       .catch(() => setRooms([]))
       .finally(() => setLoading(false));
   }, [lang]);
+
+  const visibleRooms = expanded ? rooms : rooms.slice(0, INITIAL_VISIBLE);
+  const roomsWithSpan = visibleRooms.map((r, i) => ({
+    ...r,
+    span:   SPANS[i % SPANS.length],
+    accent: ACCENTS[i % ACCENTS.length],
+  }));
+  const hiddenCount = rooms.length - INITIAL_VISIBLE;
 
   return (
     <>
@@ -78,31 +89,49 @@ export default function RoomsPage() {
               <div style={{ width:32, height:32, border:"3px solid #C9A84C", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
             </div>
           ) : (
-          <div className="rp-grid">
-            {rooms.map((room, i) => (
-              <Link
-                key={room.slug}
-                to={`/room-collections/${room.slug}`}
-                className="rp-card"
-                data-span={room.span}
-                style={{ animationDelay:`${i * 70}ms` }}
-              >
-                <img className="rp-card-img" src={room.image} alt={room.name} loading="lazy" />
-                <div className="rp-card-ov" />
-                <div className="rp-card-accent" style={{ background: room.accent }} />
+          <>
+            <div className="rp-grid">
+              {roomsWithSpan.map((room, i) => (
+                <Link
+                  key={room.slug}
+                  to={`/room-collections/${room.slug}`}
+                  className="rp-card"
+                  data-span={room.span}
+                  style={{ animationDelay:`${i * 70}ms` }}
+                >
+                  <img className="rp-card-img" src={room.image} alt={room.name} loading="lazy" />
+                  <div className="rp-card-ov" />
+                  <div className="rp-card-accent" style={{ background: room.accent }} />
 
-                <div className="rp-card-body">
-                  <span className="rp-card-tag">{t("rooms_page.shop_room")}</span>
-                  <h2 className="rp-card-name">{room.name}</h2>
+                  <div className="rp-card-body">
+                    <span className="rp-card-tag">{t("rooms_page.shop_room")}</span>
+                    <h2 className="rp-card-name">{room.name}</h2>
 
-                  <div className="rp-card-cta">
-                    <span>{t("rooms_page.explore_room")}</span>
-                    <span className="rp-cta-arrow">→</span>
+                    <div className="rp-card-cta">
+                      <span>{t("rooms_page.explore_room")}</span>
+                      <span className="rp-cta-arrow">→</span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {rooms.length > INITIAL_VISIBLE && (
+              <div className="rp-toggle-wrap">
+                <div className="rp-toggle-line" />
+                <button
+                  className={`rp-toggle-btn${expanded ? " expanded" : ""}`}
+                  onClick={() => setExpanded(prev => !prev)}
+                >
+                  <span className="rp-toggle-icon">▾</span>
+                  {expanded ? t("cat_list.show_less") : t("cat_list.show_more")}
+                  {!expanded && hiddenCount > 0 && (
+                    <span className="rp-toggle-count">+{hiddenCount}</span>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
           )}
         </div>
  

@@ -14,7 +14,7 @@
 ::selection{background:#b5cdb8;color:#1a1a1a}
 img{display:block}
  
-.rp-page{font-family:'Outfit',sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh}
+.rp-page{font-family:'Outfit',sans-serif;background:#faf9f7;color:#1a1a1a;min-height:100vh;overflow-x:hidden}
  
 .rp-hero{background: url("/images/WhatsApp Image 2026-04-03 at 10.14.36.jpeg"); position:relative;overflow:hidden;margin-top:72px;padding:90px 72px 80px}
 .rp-hero-noise{position:absolute;inset:0;opacity:.04;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
@@ -238,3 +238,12 @@ img{display:block}
   .rp-banner{padding:0 20px 60px}
   .rp-banner-inner{padding:36px 28px;flex-direction:column;align-items:flex-start}
 }
+
+/* ── Show More Toggle ── */
+.rp-toggle-wrap{margin-top:48px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.rp-toggle-line{width:100%;height:1px;background:linear-gradient(to right,transparent,#e0d8ce,transparent)}
+.rp-toggle-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 36px;border:1px solid #e0d8ce;border-radius:12px;background:#fff;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#666;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .3s}
+.rp-toggle-btn:hover{border-color:#7a9e7e;color:#7a9e7e}
+.rp-toggle-icon{font-size:14px;transition:transform .35s cubic-bezier(.34,1.56,.64,1);display:inline-block}
+.rp-toggle-btn.expanded .rp-toggle-icon{transform:rotate(180deg)}
+.rp-toggle-count{font-size:10px;color:#a8a8a8;background:#f4f0eb;padding:2px 8px;border-radius:10px}

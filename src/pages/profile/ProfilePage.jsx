@@ -1,3 +1,5 @@
+// src/pages/profile/ProfilePage.jsx
+// Mock data YOX — hamısı real API / Redux store
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -12,6 +14,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/ProfilePage.css";
 
+/* ─── SVG ICONS ──────────────────────────────────────────── */
 const ICONS = {
   overview: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
   user:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
@@ -47,16 +50,18 @@ const Ico = ({ n, s = 17 }) => (
   </span>
 );
 
+/* ─── HELPERS ─────────────────────────────────────────────── */
 const fmt   = n => `₼${Number(n).toLocaleString()}`;
 const fmt4  = v => v.replace(/\D/g,"").replace(/(.{4})/g,"$1 ").trim().slice(0,19);
 const fmtE  = v => v.replace(/\D/g,"").replace(/(\d{2})(\d)/,"$1/$2").slice(0,5);
 
+// OrderStatus enum (backend) → UI key
 const ORDER_STATUS_MAP = {
-  0: "pending",   
-  1: "processing",
-  2: "processing",
-  3: "delivered", 
-  4: "cancelled", 
+  0: "pending",    // Pending
+  1: "processing", // Confirmed
+  2: "processing", // InProgress
+  3: "delivered",  // Delivered
+  4: "cancelled",  // Cancelled
   Pending:    "pending",
   Confirmed:  "processing",
   InProgress: "processing",
@@ -68,7 +73,7 @@ const ST = {
   shipped:    { lbl:"profile.status_shipped",   cl:"st-blue"  },
   processing: { lbl:"profile.status_proc",      cl:"st-amber" },
   cancelled:  { lbl:"profile.status_cancel",    cl:"st-red"   },
-  pending:    { lbl:"profile.status_proc",      cl:"st-amber" },
+  pending:    { lbl:"profile.status_pending",   cl:"st-amber" },
 };
 
 const AZ_BANKS = [
@@ -78,6 +83,7 @@ const AZ_BANKS = [
   {id:"amrah",name:"Amrahbank",color:"#8B0000"},{id:"other",name:"Digər",color:"#6B7280"},
 ];
 
+/* ─── CONFIRM MODAL ─────────────────────────────────────── */
 function ConfirmModal({ title, message, confirmText, cancelText, danger, onConfirm, onCancel }) {
   useEffect(() => {
     const h = e => { if(e.key === "Escape") onCancel(); };
@@ -112,6 +118,7 @@ function useConfirm() {
   return { confirm, Modal };
 }
 
+/* ─── TOAST ─────────────────────────────────────────────── */
 function Toast({ msg, ok, onClose }) {
   useEffect(() => { const id = setTimeout(onClose, 3200); return () => clearTimeout(id); }, [onClose]);
   return (
@@ -137,6 +144,7 @@ function PwStrength({ pw }) {
   );
 }
 
+/* ─── useOrders hook — GET /orders/my ──────────────────── */
 function useOrders() {
   const [orders,  setOrders]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -160,6 +168,7 @@ function useOrders() {
   return { orders, loading, error, reload: load };
 }
 
+/* ─── TAB: OVERVIEW ─────────────────────────────────────── */
 function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
   const spent = orders.filter(o => {
     const st = ORDER_STATUS_MAP[o.status] ?? o.status?.toLowerCase?.();
@@ -188,6 +197,7 @@ function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
         ))}
       </div>
 
+      {/* Recent orders */}
       <div className="pr-card">
         <div className="pr-card-top">
           <h3 className="pr-card-title">{t("profile.recent_orders")}</h3>
@@ -230,6 +240,7 @@ function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
   );
 }
 
+/* ─── TAB: PROFILE EDIT ─────────────────────────────────── */
 function ProfileTab({ user, showToast, t }) {
   const dispatch = useDispatch();
   const { confirm, Modal } = useConfirm();
@@ -298,6 +309,7 @@ function ProfileTab({ user, showToast, t }) {
   return (
     <div className="pr-body pr-ani">
       {Modal}
+      {/* Avatar */}
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.photo_title")}</h3>
         <div
@@ -322,25 +334,30 @@ function ProfileTab({ user, showToast, t }) {
         </div>
       </div>
 
+      {/* Personal info */}
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.personal_info")}</h3>
         <div className="pr-fg">
+          {/* Ad */}
           <div className="pr-field">
             <label className="pr-label">{t("profile.f_name")}</label>
             <input className={`pr-input${errors.name?" pr-ierr":""}`} name="name" type="text" value={form.name} onChange={ch}/>
             {errors.name && <span className="pr-err">{errors.name}</span>}
           </div>
+          {/* Soyad */}
           <div className="pr-field">
             <label className="pr-label">Soyad</label>
             <input className={`pr-input${errors.surname?" pr-ierr":""}`} name="surname" type="text" value={form.surname} onChange={ch}/>
             {errors.surname && <span className="pr-err">{errors.surname}</span>}
           </div>
+          {/* Email — read-only */}
           <div className="pr-field pr-fcol2">
             <label className="pr-label">{t("profile.f_email")}</label>
             <input className="pr-input" name="email" type="email" value={form.email} readOnly
               style={{background:"#F7F3EE",cursor:"not-allowed",color:"#A8A09A"}}/>
             <span className="pr-err" style={{color:"#A8A09A",marginTop:4,display:"block"}}>Email dəyişdirilə bilməz</span>
           </div>
+          {/* Telefon */}
           <div className="pr-field pr-fcol2">
             <label className="pr-label">{t("profile.f_phone")}</label>
             <input className={`pr-input${errors.phone?" pr-ierr":""}`} name="phone" type="tel" value={form.phone} onChange={ch}
@@ -358,6 +375,7 @@ function ProfileTab({ user, showToast, t }) {
   );
 }
 
+/* ─── TAB: SECURITY ─────────────────────────────────────── */
 function SecurityTab({ showToast, t }) {
   const { confirm, Modal } = useConfirm();
   const [form,   setForm]   = useState({current:"",newPw:"",confirmPw:""});
@@ -447,8 +465,10 @@ function SecurityTab({ showToast, t }) {
   );
 }
 
+/* ─── TAB: PAYMENTS (lokal — backend endpoint yoxdur) ───── */
 function PaymentsTab({ showToast, t }) {
   const { confirm, Modal } = useConfirm();
+  // Lokal state — backend saxlamır, kart məlumatları həssasdır
   const [cards,   setCards]   = useState([]);
   const [addOpen, setAddOpen] = useState(false);
   const [selBank, setSelBank] = useState(null);
@@ -545,6 +565,7 @@ function PaymentsTab({ showToast, t }) {
   );
 }
 
+/* ─── TAB: ORDERS — GET /orders/my ─────────────────────── */
 function OrdersTab({ orders, loading, error, reload, t }) {
   const [open, setOpen] = useState(null);
 
@@ -635,11 +656,13 @@ function OrdersTab({ orders, loading, error, reload, t }) {
   );
 }
 
+/* ─── TAB: SAVED — Redux wishlist ───────────────────────── */
 function SavedTab({ showToast, t }) {
   const dispatch  = useDispatch();
   const { confirm, Modal } = useConfirm();
   const [addingId, setAddingId] = useState(null);
 
+  // Redux wishlist
   const items = useSelector(s => s.wishlist.items);
 
   const removeItem = async (item) => {
@@ -721,6 +744,7 @@ function SavedTab({ showToast, t }) {
   );
 }
 
+/* ─── TABS CONFIG ────────────────────────────────────────── */
 const TABS = [
   { id:"overview", ik:"profile.tab_overview", ico:"overview" },
   { id:"profile",  ik:"profile.tab_profile",  ico:"user"     },
@@ -730,18 +754,21 @@ const TABS = [
   { id:"saved",    ik:"profile.tab_saved",    ico:"heart"    },
 ];
 
+/* ─── MAIN PAGE ──────────────────────────────────────────── */
 export default function ProfilePage() {
   const { t }    = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { confirm, Modal } = useConfirm();
-  
+
+  // Redux
   const user     = useSelector(s => s.auth.user);
   const wishlist = useSelector(s => s.wishlist.items);
 
   const [tab,   setTab]   = useState("overview");
   const [toast, setToast] = useState(null);
 
+  // Orders from API
   const { orders, loading: ordersLoading, error: ordersError, reload: reloadOrders } = useOrders();
 
   const showToast = (msg, ok) => setToast({msg, ok});
@@ -775,6 +802,7 @@ export default function ProfilePage() {
       <div className="pr-page">
         {Modal}
 
+        {/* HERO */}
         <div className="pr-hero">
           <div className="pr-hero-inner">
             <div className="pr-av-wrap" onClick={()=>setTab("profile")} title={t("profile.photo_change")}>
@@ -806,6 +834,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* LAYOUT */}
         <div className="pr-layout">
           <aside className="pr-sidebar">
             <div className="pr-sidebar-header">
