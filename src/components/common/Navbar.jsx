@@ -103,7 +103,7 @@ const handleLogout = async () => {
                   {t("nav.logout") || "Çıxış"}
                 </button>
               </>
-            : <button className="arv-nav-icon" onClick={() => openAuthModal("login")}>
+            : <button className="arv-nav-icon" onClick={() => navigate("/login")} style={{fontSize:"12px"}  }>
                 {t("nav.login") || "Giriş"}
               </button>
           }

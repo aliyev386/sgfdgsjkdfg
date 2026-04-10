@@ -35,7 +35,15 @@
   background-position: center;
   transform: scale(1.05);
   transition: transform 1.4s cubic-bezier(.25,.46,.45,.94);
-  filter: brightness(.6) saturate(1.1);
+}
+
+/* Ağ örtük */
+.fcp-banner-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.4); /* buranı dəyişərək effekti tənzimlə */
+  pointer-events: none;
 }
 .fcp-banner.ready .fcp-banner-bg { transform: scale(1); }
 .fcp-banner-overlay {

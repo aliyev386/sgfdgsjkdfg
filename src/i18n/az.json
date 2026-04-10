@@ -36,11 +36,11 @@
     }
   },
   "categories": {
-    "eyebrow": "Kategoriyaya görə seç",
+    "eyebrow": "Otaga görə seç",
     "title": "Seçilmiş",
-    "title_em": "Kategoriyalar",
-    "view_all": "Bütün kategoriyalara bax",
-    "explore": "Kategoriyalara bax"
+    "title_em": "Kolleksiyalar",
+    "view_all": "Bütün otaglara bax",
+    "explore": "kolleksiyalara bax"
   },
   "collections": {
     "eyebrow": "Seçilmiş kolleksiyalar",
@@ -154,7 +154,10 @@
     "no_products": "Bu kolleksiyada hələ məhsul yoxdur."
   },
   "cat_list": {
-    "page_title": "Kolleksiyalar",
+    "title":"Bütün",
+    "title-em":"Kateqoriyalar",
+    "eyebrow":"kategoriyaya gore secin",
+    "page_title": "Kategoriyalar",
     "page_subtitle": "Zövqünüzə uyğun mebel seçin",
     "search_placeholder": "Kateqoriya axtar...",
     "all_rooms": "Bütün otaqlar",

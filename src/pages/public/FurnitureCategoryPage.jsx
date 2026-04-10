@@ -208,7 +208,6 @@ function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, 
   );
 }
 
-/* ── Pagination ── */
 function Pagination({ current, total, onChange }) {
   if (total <= 1) return null;
   const range = [];
@@ -224,7 +223,6 @@ function Pagination({ current, total, onChange }) {
   );
 }
 
-/* ── Main Page ── */
 export default function FurnitureCategoryPage() {
   const { id: routeId }                 = useParams();
   const { t }                           = useTranslation();
@@ -400,14 +398,12 @@ export default function FurnitureCategoryPage() {
         <div className="fcp-banner-content">
           <nav className="fcp-breadcrumb">
             <Link to="/">{t("fcp.home")}</Link>
-            <span className="fcp-bc-sep">/</span>
+            <Link to="/categories" className="fcp-bc-cur"> / category /</Link>
             <span className="fcp-bc-cur">{activeCat.name}</span>
           </nav>
           <div className="fcp-banner-inner">
             <div>
-              <p className="fcp-banner-eyebrow">{t("fcp.collection")}</p>
               <h1 className="fcp-banner-title">{activeCat.name}</h1>
-              <p className="fcp-banner-sub">{t("fcp.banner_sub")}</p>
             </div>
             <div className="fcp-banner-stat">
               <span className="fcp-stat-n">{pagination.total}</span>
@@ -450,10 +446,9 @@ export default function FurnitureCategoryPage() {
             </div>
             <div className="fcp-toolbar-right">
               <div className="fcp-view-btns">
-                {[2,3,4].map(n => (
+                {[3,4].map(n => (
                   <button key={n} className={`fcp-view-btn${gridCols===n?" active":""}`} onClick={() => setGridCols(n)} title={`${n} columns`}>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-                      {n===2 && <><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></>}
                       {n===3 && <><rect x="0" y="0" width="4" height="4" rx="1"/><rect x="5" y="0" width="4" height="4" rx="1"/><rect x="10" y="0" width="4" height="4" rx="1"/><rect x="0" y="5" width="4" height="4" rx="1"/><rect x="5" y="5" width="4" height="4" rx="1"/><rect x="10" y="5" width="4" height="4" rx="1"/><rect x="0" y="10" width="4" height="4" rx="1"/><rect x="5" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/></>}
                       {n===4 && <><rect x="0" y="0" width="3" height="3" rx="1"/><rect x="3.7" y="0" width="3" height="3" rx="1"/><rect x="7.3" y="0" width="3" height="3" rx="1"/><rect x="11" y="0" width="3" height="3" rx="1"/><rect x="0" y="5.5" width="3" height="3" rx="1"/><rect x="3.7" y="5.5" width="3" height="3" rx="1"/><rect x="7.3" y="5.5" width="3" height="3" rx="1"/><rect x="11" y="5.5" width="3" height="3" rx="1"/><rect x="0" y="11" width="3" height="3" rx="1"/><rect x="3.7" y="11" width="3" height="3" rx="1"/><rect x="7.3" y="11" width="3" height="3" rx="1"/><rect x="11" y="11" width="3" height="3" rx="1"/></>}
                     </svg>

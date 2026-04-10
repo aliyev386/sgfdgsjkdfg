@@ -102,10 +102,10 @@ export default function CategoriesPage() {
         <div className="cp-hero-orb cp-hero-orb2" />
         <div className="cp-hero-inner">
           <div className="cp-hero-left">
-            <div className="cp-hero-eyebrow">{t("categories.eyebrow")}</div>
+            <div className="cp-hero-eyebrow">{t("cat_list.eyebrow")}</div>
             <h1 className="cp-hero-title">
-              {t("cat_list.page_title_pre", "Bütün")}<br />
-              <em>{t("cat_list.page_title_em", "Kateqoriyalar")}</em>
+              {t("cat_list.title")}<br />
+              <em>{t("cat_list.title-em")}</em>
             </h1>
             <p className="cp-hero-sub">{t("cat_list.page_subtitle")}</p>
           </div>
@@ -182,7 +182,7 @@ export default function CategoriesPage() {
               {categoriesWithSpan.map((cat, i) => (
                 <Link
                   key={cat.slug}
-                  to={`/categories/${cat.slug}`}
+                  to={`/category/${cat.slug}`}
                   className="cp-card"
                   data-span={cat.span}
                   style={{ animationDelay: `${i * 70}ms` }}
