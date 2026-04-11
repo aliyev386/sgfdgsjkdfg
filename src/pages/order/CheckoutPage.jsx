@@ -8,9 +8,9 @@ import orderApi from "../../api/orderApi";
 import Navbar from "../../components/common/Navbar";
 import CreditCalculator from "../../components/credit/CreditCalculator";
 
-const fmt = n => `\u20BC${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2 })}`;
+const fmt = n => `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2 })}`;
 const FREE_SHIPPING = 500;
-const PaymentMethod = { Card: 2, CashOnDelivery: 1, BankTransfer: 3, Installment: 4, PartialCard: 5 };
+const PaymentMethod = { CashOnDelivery: 1, Installment: 4 };
 const OrderType     = { Standard: 0, Custom: 1 };
 const DeliveryType  = { DoorDelivery: 1, RoomDelivery: 2, AssemblyIncluded: 3 };
 
@@ -192,21 +192,20 @@ function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping }
           </svg>
         </div>
         <h2 className="ck-popup-title">
-          Sifari\u015finiz <em>q\u0259bul edildi!</em>
+          {t("checkout.success_title2")} <em>{t("checkout.success_title2_em")}</em>
         </h2>
         <p className="ck-popup-desc">
-          H\xf6rm\u0259tli <strong>{userName}</strong>, sifari\u015finiz sistemimiz\u0259 daxil oldu.<br />
-          Ən qısa zamanda menecerlərimiz <strong>{userPhone}</strong> n\xf6mr\u0259sin\u0259
-          z\u0259ng ed\u0259r\u0259k \xe7atd\u0131r\u0131lma vaxt\u0131n\u0131 razıla\u015fd\u0131racaq.
+          {t("checkout.success_greeting")} <strong>{userName}</strong>, {t("checkout.success_registered")}<br /><br />
+          {t("checkout.success_manager_call")} <strong>{userPhone}</strong> {t("checkout.success_will_call")}
         </p>
         {orderId && (
           <div className="ck-popup-box">
-            Sifari\u015f n\xf6mr\u0259si: <strong>#{orderId}</strong>
+            {t("checkout.success_order_id")}: <strong>#{orderId}</strong>
           </div>
         )}
         <div className="ck-popup-btns">
-          <button className="ck-popup-btn-p" onClick={onGoOrders}>Sifari\u015fl\u0259rim</button>
-          <button className="ck-popup-btn-s" onClick={onGoShopping}>Al\u0131\u015f-veri\u015f\u0259 davam</button>
+          <button className="ck-popup-btn-p" onClick={onGoOrders}>{t("checkout.go_orders")}</button>
+          <button className="ck-popup-btn-s" onClick={onGoShopping}>{t("checkout.go_shopping")}</button>
         </div>
       </div>
     </>
@@ -363,7 +362,7 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
           <path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <span className="ck-info-txt">
-          <strong>Çatdırılma vaxtı</strong> — Sifarişiniz qəbul edildikdən sonra menecerimiz zəng edərək sizinlə razılaşdıracaq.
+          <strong>{t("checkout.delivery_time_note")}</strong> — {t("checkout.delivery_time_desc")}
         </span>
       </div>
 
@@ -376,10 +375,10 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: data.isCustomOrder ? 0 : 4 }}>
             <div>
               <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, margin: "0 0 3px" }}>
-                ✦ Xüsusi Sifariş
+                {t("checkout.custom_order_label")}
               </p>
               <p style={{ fontSize: 11, color: "#6B6B6B", margin: 0, lineHeight: 1.5 }}>
-                Rəng, ölçü və ya material dəyişikliyi istəyirsiniz?
+                {t("checkout.custom_order_sub")}
               </p>
             </div>
             <Toggle on={data.isCustomOrder} onChange={v => onChange("isCustomOrder", v)} />
@@ -387,21 +386,21 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
 
           {data.isCustomOrder && (
             <div className="ck-custom-panel">
-              <p className="ck-custom-title">Xüsusi Parametrlər</p>
-              <p className="ck-custom-sub">İstədiyiniz dəyişiklikləri qeyd edin. Menecerimiz ətraflı məlumat üçün zəng edəcək.</p>
+              <p className="ck-custom-title">{t("checkout.custom_params_title")}</p>
+              <p className="ck-custom-sub">{t("checkout.custom_params_sub")}</p>
               <div className="ck-custom-grid">
                 <div className="ck-field">
-                  <label className="ck-label">İstədiyiniz Rəng</label>
-                  <input className="ck-input" value={data.customColor || ""} onChange={e => onChange("customColor", e.target.value)} placeholder="məs: Tünd qəhvəyi, Bej, Ağ..." />
+                  <label className="ck-label">{t("checkout.custom_color_label")}</label>
+                  <input className="ck-input" value={data.customColor || ""} onChange={e => onChange("customColor", e.target.value)} placeholder={t("checkout.custom_color_ph")} />
                 </div>
                 <div className="ck-field">
-                  <label className="ck-label">İstədiyiniz Ölçü</label>
-                  <input className="ck-input" value={data.customSize || ""} onChange={e => onChange("customSize", e.target.value)} placeholder="məs: 180x90cm, XL..." />
+                  <label className="ck-label">{t("checkout.custom_size_label")}</label>
+                  <input className="ck-input" value={data.customSize || ""} onChange={e => onChange("customSize", e.target.value)} placeholder={t("checkout.custom_size_ph")} />
                 </div>
               </div>
               <div className="ck-field" style={{ marginTop: 12 }}>
-                <label className="ck-label">Əlavə Qeydlər</label>
-                <textarea className="ck-input" style={{ minHeight: 72, resize: "vertical" }} value={data.customDescription || ""} onChange={e => onChange("customDescription", e.target.value)} placeholder="məs: Dəri üzlük, metal ayaqlar, xüsusi ölçü..." />
+                <label className="ck-label">{t("checkout.custom_note_label")}</label>
+                <textarea className="ck-input" style={{ minHeight: 72, resize: "vertical" }} value={data.customDescription || ""} onChange={e => onChange("customDescription", e.target.value)} placeholder={t("checkout.custom_note_ph")} />
               </div>
               <div className="ck-custom-notice">
                 <svg viewBox="0 0 20 20" fill="none" width="14" height="14" style={{ flexShrink: 0, marginTop: 1 }}>
@@ -409,7 +408,7 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
                   <path d="M10 7v4" stroke="#7A6000" strokeWidth="1.4" strokeLinecap="round" />
                   <circle cx="10" cy="14" r="0.7" fill="#7A6000" />
                 </svg>
-                <span>Xüsusi sifarişlər 0-dan hazırlandığı üçün çatdırılma müddəti uzana bilər. Dəqiq müddət menecer tərəfindən bildiriləcək.</span>
+                <span>{t("checkout.custom_warning")}</span>
               </div>
             </div>
           )}
@@ -426,26 +425,20 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
 
 // STEP 3
 function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSel, errors, onNext, onBack, t }) {
-  const partial30 = Math.round(subtotal * 0.3 * 100) / 100;
-
   const METHODS = [
-    { id: "card",    name: t("checkout.pay_card"),    desc: t("checkout.pay_card_desc"),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20M6 15h4" strokeLinecap="round" /></svg> },
-    { id: "partial", name: t("checkout.pay_partial"), desc: `\u20BC${partial30.toFixed(2)} indi, qalan\u00a0çatdırılmada`,
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20M6 15h2M10 15h2" strokeLinecap="round" /></svg> },
-    { id: "cash",    name: t("checkout.pay_cash"),    desc: t("checkout.pay_cash_desc"),
+    { id: "cash",   name: t("checkout.pay_cash"),   desc: t("checkout.pay_cash_desc"),
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /></svg> },
-    { id: "credit",  name: t("checkout.pay_credit"),  desc: t("checkout.pay_credit_desc"),
+    { id: "credit", name: t("checkout.pay_credit"), desc: t("checkout.pay_credit_desc"),
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg> },
   ];
 
   return (
     <div>
       <div className="ck-card">
-        <span className="ck-eyebrow">Add\u0131m 3</span>
+        <span className="ck-eyebrow">{t("checkout.step3_eyebrow", "Addım 3")}</span>
         <h2 className="ck-card-title">{t("checkout.payment_title")}</h2>
 
-        <div className="ck-pay-grid">
+        <div className="ck-pay-grid" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
           {METHODS.map(m => (
             <div key={m.id} className={`ck-pay${payMethod === m.id ? " sel" : ""}`} onClick={() => setPayMethod(m.id)}>
               <div className="ck-pay-ico">{m.icon}</div>
@@ -454,49 +447,6 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
             </div>
           ))}
         </div>
-
-        {/* Kart ödənişi */}
-        {payMethod === "card" && (
-          <div className="ck-info" style={{ animation: "ckFU .3s ease" }}>
-            <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><rect x="2" y="5" width="16" height="11" rx="2" stroke="#2E6B32" strokeWidth="1.4" /><path d="M2 9h16" stroke="#2E6B32" strokeWidth="1.4" /></svg>
-            <div className="ck-info-txt"><strong>{t("checkout.pay_card")}.</strong> {t("checkout.card_info")}</div>
-          </div>
-        )}
-
-        {/* İlkin ödəniş — kart sahəsi göstər */}
-        {payMethod === "partial" && (
-          <div style={{ animation: "ckFU .3s ease" }}>
-            <div className="ck-info">
-              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><path d="M9 12l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.4" /></svg>
-              <div className="ck-info-txt"><strong>\u20BC{partial30.toFixed(2)} {t("checkout.partial_info")}</strong> {t("checkout.card_info")}</div>
-            </div>
-            <div className="ck-card-field">
-              <p className="ck-card-field-title">İlkin ödəniş üçün kart məlumatları</p>
-              <div className="ck-card-grid">
-                <div className="ck-field" style={{ gridColumn: "1/-1" }}>
-                  <label className="ck-label">Kart nömrəsi</label>
-                  <input className="ck-input" placeholder="0000 0000 0000 0000" maxLength={19} style={{ fontFamily: "monospace, monospace" }} />
-                </div>
-                <div className="ck-field" style={{ gridColumn: "1/-1" }}>
-                  <label className="ck-label">Kart üzərindəki ad</label>
-                  <input className="ck-input" placeholder="AD SOYAD" style={{ textTransform: "uppercase", fontFamily: "monospace, monospace" }} />
-                </div>
-                <div className="ck-field">
-                  <label className="ck-label">Bitmə tarixi</label>
-                  <input className="ck-input" placeholder="MM/YY" maxLength={5} style={{ fontFamily: "monospace, monospace" }} />
-                </div>
-                <div className="ck-field">
-                  <label className="ck-label">CVV</label>
-                  <input className="ck-input" placeholder="•••" maxLength={3} type="password" style={{ fontFamily: "monospace, monospace" }} />
-                </div>
-              </div>
-              <p style={{ fontSize: 11, color: "#6B6B6B", marginTop: 10, display: "flex", alignItems: "center", gap: 5 }}>
-                <svg viewBox="0 0 16 16" fill="none" width="11" height="11"><rect x="2" y="6" width="12" height="9" rx="1.5" stroke="#6B6B6B" strokeWidth="1.3" /><path d="M5 6V4.5a3 3 0 016 0V6" stroke="#6B6B6B" strokeWidth="1.3" /></svg>
-                SSL şifrələmə ilə qorunur
-              </p>
-            </div>
-          </div>
-        )}
 
         {payMethod === "cash" && (
           <div className="ck-info" style={{ animation: "ckFU .3s ease" }}>
@@ -513,10 +463,10 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
             <CreditCalculator price={subtotal} onSelect={sel => setCreditSel(sel)} />
             {creditSel && (
               <div className="ck-ibar">
-                <div className="ck-ibar-i"><p className="ck-ibar-l">Bank</p><p className="ck-ibar-v">{creditSel.bank.name}</p></div>
-                <div className="ck-ibar-i"><p className="ck-ibar-l">İlkin</p><p className="ck-ibar-v">\u20BC{creditSel.result.downAmount.toFixed(2)}</p></div>
-                <div className="ck-ibar-i"><p className="ck-ibar-l">Aylıq</p><p className="ck-ibar-v g">\u20BC{creditSel.result.monthly.toFixed(2)}</p></div>
-                <div className="ck-ibar-i"><p className="ck-ibar-l">Müddət</p><p className="ck-ibar-v">{creditSel.months} ay</p></div>
+                <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_bank")}</p><p className="ck-ibar-v">{creditSel.bank.name}</p></div>
+                <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_down")}</p><p className="ck-ibar-v">₼{creditSel.result.downAmount.toFixed(2)}</p></div>
+                <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_monthly")}</p><p className="ck-ibar-v g">₼{creditSel.result.monthly.toFixed(2)}</p></div>
+                <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
               </div>
             )}
           </div>
@@ -537,18 +487,15 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
     </div>
   );
 }
-
 // STEP 4
 function StepConfirm({ userData, addrData, payMethod, creditSel, subtotal, onPlace, onBack, placing, apiError, t }) {
   const [agreed, setAgreed] = useState(false);
-  const partial30 = Math.round(subtotal * 0.3 * 100) / 100;
 
-  const payLabel = payMethod === "card"    ? `${t("checkout.pay_card")} — Payriff`
-                 : payMethod === "partial" ? `${t("checkout.pay_partial")} (\u20BC${partial30.toFixed(2)}) — Payriff`
-                 : payMethod === "cash"    ? t("checkout.pay_cash")
-                 : creditSel
-                   ? `${creditSel.bank.name} · ${creditSel.months} ay · \u20BC${creditSel.result.monthly.toFixed(2)}/ay`
-                   : t("checkout.pay_credit");
+  const payLabel = payMethod === "cash"
+    ? t("checkout.pay_cash")
+    : creditSel
+      ? `${creditSel.bank.name} · ${creditSel.months} ${t("checkout.credit_month_unit")} · ₼${creditSel.result.monthly.toFixed(2)}/${t("checkout.credit_month_unit")}`
+      : t("checkout.pay_credit");
 
   return (
     <div className="ck-card">
@@ -570,10 +517,10 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, subtotal, onPla
 
       {addrData.isCustomOrder && (
         <div className="ck-conf" style={{ borderColor: "#C9A84C" }}>
-          <p className="ck-conf-lbl" style={{ color: "#C9A84C" }}>✦ Xüsusi Sifariş</p>
+          <p className="ck-conf-lbl" style={{ color: "#C9A84C" }}>{t("checkout.confirm_custom_label")}</p>
           <p className="ck-conf-val">
-            {addrData.customColor && <span>R\u0259ng: {addrData.customColor}<br /></span>}
-            {addrData.customSize && <span>Ölçü: {addrData.customSize}<br /></span>}
+            {addrData.customColor && <span>{t("checkout.confirm_custom_color")} {addrData.customColor}<br /></span>}
+            {addrData.customSize && <span>{t("checkout.confirm_custom_size")} {addrData.customSize}<br /></span>}
             {addrData.customDescription && <em style={{ color: "#6B6B6B" }}>{addrData.customDescription}</em>}
           </p>
         </div>
@@ -584,9 +531,9 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, subtotal, onPla
         <p className="ck-conf-val">{payLabel}</p>
         {payMethod === "credit" && creditSel && (
           <div className="ck-ibar" style={{ marginTop: 12 }}>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">İlkin</p><p className="ck-ibar-v">\u20BC{creditSel.result.downAmount.toFixed(2)}</p></div>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">Aylıq</p><p className="ck-ibar-v g">\u20BC{creditSel.result.monthly.toFixed(2)}</p></div>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">Müddət</p><p className="ck-ibar-v">{creditSel.months} ay</p></div>
+            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_down")}</p><p className="ck-ibar-v">₼{creditSel.result.downAmount.toFixed(2)}</p></div>
+            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_monthly")}</p><p className="ck-ibar-v g">₼{creditSel.result.monthly.toFixed(2)}</p></div>
+            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
           </div>
         )}
       </div>
@@ -597,7 +544,7 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, subtotal, onPla
           <path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
         <span className="ck-info-txt">
-          Sifari\u015finiz q\u0259bul edildikd\u0259n sonra menecerlərimiz <strong>{userData.phone}</strong> n\xf6mr\u0259sin\u0259 z\u0259ng ed\u0259r\u0259k \xe7atd\u0131r\u0131lma vaxt\u0131n\u0131 razılaşdıracaq.
+          {t("checkout.success_manager_call")} <strong>{userData.phone}</strong> {t("checkout.confirm_manager_note")}
         </span>
       </div>
 
@@ -657,7 +604,7 @@ export default function CheckoutPage() {
     deliveryType: DeliveryType.DoorDelivery, note: "",
     isCustomOrder: false, customColor: "", customSize: "", customDescription: "",
   });
-  const [payMethod, setPayMethod] = useState("card");
+  const [payMethod, setPayMethod] = useState("cash");
   const [creditSel, setCreditSel] = useState(null);
   const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
 
@@ -695,10 +642,7 @@ export default function CheckoutPage() {
   const placeOrder = async () => {
     setPlacing(true); setApiError(null);
     try {
-      const pm = payMethod === "card" ? PaymentMethod.Card
-               : payMethod === "cash" ? PaymentMethod.CashOnDelivery
-               : payMethod === "partial" ? PaymentMethod.PartialCard
-               : PaymentMethod.Installment;
+      const pm = payMethod === "cash" ? PaymentMethod.CashOnDelivery : PaymentMethod.Installment;
 
       const customParts = [
         addrData.customColor ? `R\u0259ng: ${addrData.customColor}` : null,
@@ -717,7 +661,6 @@ export default function CheckoutPage() {
         addrData.note || null,
       ].filter(Boolean).join("; ");
 
-      const partialAmount     = payMethod === "partial" ? Math.round(subtotal * 0.3 * 100) / 100 : null;
       const installmentMonths = payMethod === "credit" && creditSel ? creditSel.months : null;
       const monthlyPayment    = payMethod === "credit" && creditSel ? Math.round(creditSel.result.monthly * 100) / 100 : null;
 
@@ -727,7 +670,7 @@ export default function CheckoutPage() {
         note: addrNote,
         isCustomOrder: addrData.isCustomOrder,
         customDescription: customParts.join(" | ") || null,
-        paidAmount: partialAmount,
+        paidAmount: null,
         installmentMonths,
         monthlyPayment,
         deliveryInfo: {
@@ -749,12 +692,6 @@ export default function CheckoutPage() {
       const data = await orderApi.create(payload);
       const id = data?.id ?? data?.data?.id;
       setOrderId(id);
-
-      if ((payMethod === "card" || payMethod === "partial") && id) {
-        const payRes = await orderApi.initiatePayment(id, partialAmount);
-        const payUrl = payRes?.paymentUrl || payRes?.data?.paymentUrl;
-        if (payUrl) { dispatch(clearCart()); window.location.href = payUrl; return; }
-      }
 
       dispatch(clearCart());
       setDone(true);

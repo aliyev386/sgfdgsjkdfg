@@ -21,7 +21,6 @@ import RoomCollectionsPage from "./pages/public/RoomCollectionsPage.jsx";
 import CollectionDetailPage from "./pages/public/CollectionDetailPage.jsx";
 import ProfilePage from "./pages/profile/ProfilePage.jsx";
 import CheckoutPage from "./pages/order/CheckoutPage.jsx";
-import PaymentResultPage from "./pages/order/PaymentResultPage.jsx";
 import ProtectedRoute from "./components/common/ProdtectedRoute.jsx";
 import ResetPasswordPage from "./pages/auth/RePasswordPage.jsx";
 import CampaignsPage from "./pages/public/CampaignsPage.jsx";
@@ -60,19 +59,7 @@ const router = createBrowserRouter([
         path: "/checkout",
         element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>,
       },
-      // Payriff payment result pages
-      {
-        path: "/payment/success",
-        element: <ProtectedRoute><PaymentResultPage type="success" /></ProtectedRoute>,
-      },
-      {
-        path: "/payment/cancel",
-        element: <ProtectedRoute><PaymentResultPage type="cancel" /></ProtectedRoute>,
-      },
-      {
-        path: "/payment/failed",
-        element: <ProtectedRoute><PaymentResultPage type="failed" /></ProtectedRoute>,
-      },
+
       {
         path: "/admin",
         element: <ProtectedRoute requiredRole="Admin"><AdminPanel /></ProtectedRoute>,

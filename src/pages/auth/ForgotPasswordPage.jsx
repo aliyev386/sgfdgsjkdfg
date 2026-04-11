@@ -13,20 +13,8 @@ const LANGS = [
 
 const IconMail = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="4" width="20" height="16" rx="2"/>
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-  </svg>
-);
-
-const DivanLogo = () => (
-  <svg className="auth-logo-mark" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="60" height="60" rx="14" fill="#4b9c52"/>
-    <path d="M12 38 C12 32 16 28 22 28 L38 28 C44 28 48 32 48 38 L48 42 C48 44 46 46 44 46 L16 46 C14 46 12 44 12 42 Z" fill="white" fillOpacity=".95"/>
-    <rect x="10" y="38" width="40" height="5" rx="2.5" fill="white" fillOpacity=".6"/>
-    <rect x="14" y="43" width="6" height="6" rx="2" fill="white" fillOpacity=".85"/>
-    <rect x="40" y="43" width="6" height="6" rx="2" fill="white" fillOpacity=".85"/>
-    <path d="M22 28 C22 22 25 16 30 14 C35 16 38 22 38 28" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".6"/>
-    <circle cx="30" cy="11" r="3" fill="white" fillOpacity=".7"/>
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
 
@@ -107,6 +95,10 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
   const [alert, setAlert] = useState(null);
 
+
+  const changeLang = (code) => {
+    i18n.changeLanguage(code);
+  };
   const validate = () => {
     if (!email.trim()) return t.errEmailEmpty;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t.errEmailFmt;
@@ -131,26 +123,34 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="auth-root">
+      <div className="auth-lang-switcher top-corner">
+        {LANGS.map((l) => (
+          <button
+            key={l.code}
+            className={`auth-lang-btn${lang === l.code ? " active" : ""}`}
+            onClick={() => changeLang(l.code)}>
+            {l.label}
+          </button>
+        ))}
+      </div>
       <div className="auth-right">
         <div className="auth-form-container">
-          <div className="auth-logo">
-            <DivanLogo />
-            <div className="auth-logo-name">DIVAN</div>
-            <div className="auth-logo-tagline">{t.tagline}</div>
+          <div className="auth-form-header">
+            <h1 className="auth-form-title">
+              <img
+                src="/images/couch.png"
+                alt="icon"
+                className="auth-title-icon"
+              />
+              {t.title}
+            </h1>
           </div>
 
-          <div className="auth-lang-switcher">
-            {LANGS.map((l) => (
-              <button key={l.code} className={`auth-lang-btn${lang === l.code ? " active" : ""}`}
-                onClick={() => i18n.changeLanguage(l.code)}>{l.label}</button>
-            ))}
-          </div>
 
           {!sent ? (
             <>
               <Link to="/login" className="auth-back-link">{t.back}</Link>
               <div className="auth-form-header">
-                <h1 className="auth-form-title">{t.title}</h1>
                 <p className="auth-form-subtitle">{t.subtitle}</p>
               </div>
 
@@ -211,3 +211,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+ 

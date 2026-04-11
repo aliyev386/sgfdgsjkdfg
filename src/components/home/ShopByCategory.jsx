@@ -31,7 +31,7 @@ export default function ShopByCategory({ categories = [], t }) {
         {categories.map((cat, i) => (
           <Link
             key={cat.id}
-            to={`/categories/${cat.id || cat.slug}`}
+            to={`/category/${cat.id || cat.slug}`}
             className="sbc-card rv"
             style={{ animationDelay: `${i * 0.07}s`, textDecoration: "none" }}
           >

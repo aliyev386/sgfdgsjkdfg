@@ -1,38 +1,40 @@
-
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "../../assets/pagesCss/Footer.css";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="footer">
       <div className="footer-grid">
         <div>
           <div className="footer-logo"><span>Amore</span> mebel</div>
-          <p className="footer-desc">High quality, stylish and functional furniture designed to elevate your space with comfort and elegance.</p>
+          <p className="footer-desc">{t("footer.desc")}</p>
         </div>
         <div className="footer-col">
-          <h4>Quick Links</h4>
-          <Link to="/">Home</Link>
-          <Link to="/about">About Us</Link>
-          <Link to="/categories">Products</Link>
-          <Link to="/collections">Collections</Link>
-          <Link to="/contact">Contact</Link>
+          <h4>{t("footer.quick_links")}</h4>
+          <Link to="/">{t("footer.home")}</Link>
+          <Link to="/about">{t("footer.about")}</Link>
+          <Link to="/categories">{t("footer.products")}</Link>
+          <Link to="/collections">{t("footer.collections")}</Link>
+          <Link to="/contact">{t("footer.contact")}</Link>
         </div>
         <div className="footer-col">
-          <h4>Explore</h4>
-          <Link to="/campaigns">Campaigns</Link>
-          <Link to="/categories">Categories</Link>
+          <h4>{t("footer.explore")}</h4>
+          <Link to="/campaigns">{t("footer.campaigns")}</Link>
+          <Link to="/categories">{t("footer.categories")}</Link>
         </div>
         <div className="footer-col">
-          <h4>Account</h4>
-          <Link to="/profile">My Profile</Link>
-          <Link to="/cart">Cart</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
+          <h4>{t("footer.account")}</h4>
+          <Link to="/profile">{t("footer.my_profile")}</Link>
+          <Link to="/cart">{t("footer.cart")}</Link>
+          <Link to="/login">{t("footer.login")}</Link>
+          <Link to="/register">{t("footer.register")}</Link>
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© 2025 Amoremebel. All rights reserved.</p>
+        <p>{t("footer.copyright")}</p>
         <div className="socials">
           <a className="social-btn" href="#" aria-label="X (Twitter)">𝕏</a>
           <a className="social-btn" href="#" aria-label="Facebook">f</a>
@@ -43,4 +45,3 @@ export default function Footer() {
     </footer>
   );
 }
- 

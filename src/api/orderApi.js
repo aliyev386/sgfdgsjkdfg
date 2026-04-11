@@ -19,15 +19,6 @@ const orderApi = {
   // PATCH /orders/:id/cancel — sifarişi ləğv et
   cancel: (id) =>
     axiosInstance.patch(`/orders/${id}/cancel`).then(unwrap),
-
-  // POST /payments/initiate — Payriff ödəniş URL-i al
-  // amount null olarsa tam məbləğ, dolu olarsa həmin məbləğ (partial)
-  initiatePayment: (orderId, amount = null) =>
-    axiosInstance.post("/payments/initiate", { orderId, amount }).then(unwrap),
-
-  // POST /payments/verify — Payriff callback-dən sonra ödənişi təsdiqlə
-  verifyPayment: (orderId, payriffOrderId, sessionId) =>
-    axiosInstance.post("/payments/verify", { orderId, payriffOrderId, sessionId }).then(unwrap),
 };
 
 export default orderApi;

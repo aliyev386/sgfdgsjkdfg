@@ -661,7 +661,9 @@ const Products = ({ t, lang }) => {
     depth: "", 
     weight: "", 
     colors: [], 
-    images: [] 
+    images: [],
+    is_featured: false,
+    discount_price: "",
   };  const [form, setForm] = useState(emptyForm);
 
   const { data: products, total, loading, reload } = useAdminData(
@@ -733,8 +735,10 @@ const Products = ({ t, lang }) => {
       height:      p.height ?? "",
       depth:       p.depth ?? "",
       weight:      p.weight ?? "",
-      colors:      clrs,
-      images:      imgUrls,
+      colors:        clrs,
+      images:        imgUrls,
+      is_featured:   p.isFeatured || false,
+      discount_price: p.discountPrice ?? "",
     });
     setErrors({});
     setModal(true);
@@ -760,6 +764,8 @@ const Products = ({ t, lang }) => {
         price: Number(form.price),
         stock: Number(form.stock),
         category_id: Number(form.category_id) || undefined,
+        discount_price: form.discount_price ? Number(form.discount_price) : null,
+        is_featured: form.is_featured || false,
       };
       if (editing) await productApi.update(editing, payload);
       else await productApi.create(payload);
@@ -873,6 +879,22 @@ const Products = ({ t, lang }) => {
           <div className="grid grid-cols-2 gap-4">
             <Input label="Material" value={form.material || ""} onChange={v => setField("material", v)} placeholder="Wood, Fabric..." />
             <Input label="Label" value={form.label || ""} onChange={v => setField("label", v)} placeholder="NEW, HOT, SALE..." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Endirimli qiymət (₼)" value={form.discount_price || ""} onChange={v => setField("discount_price", v)} type="number" placeholder="0.00" />
+            <div className="flex items-center gap-3 pt-5">
+              <input
+                id="is_featured"
+                type="checkbox"
+                checked={form.is_featured || false}
+                onChange={e => setField("is_featured", e.target.checked)}
+                className="w-4 h-4 accent-emerald-600 cursor-pointer"
+              />
+              <label htmlFor="is_featured" className="text-sm font-medium text-gray-700 cursor-pointer">
+                ⭐ Öne çıxarılsın (Featured)
+              </label>
+            </div>
           </div>
 
           <div>
