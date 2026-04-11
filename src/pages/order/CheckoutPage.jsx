@@ -174,7 +174,6 @@ function Field({ label, req, name, value, onChange, error, type = "text", placeh
   );
 }
 
-// ── Success Popup ────────────────────────────────────────
 function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping, t }) {
   return (
     <>
@@ -259,7 +258,6 @@ function OrderSummary({ cartItems, payMethod, creditSel, t }) {
   );
 }
 
-// STEP 1
 function StepUser({ data, errors, onChange, onNext, user, t }) {
   return (
     <div className="ck-card">

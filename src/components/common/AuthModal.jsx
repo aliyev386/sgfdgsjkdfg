@@ -260,7 +260,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
     document.head.appendChild(script);
   }, [isOpen, renderGoogleButtons]);
 
-  // Re-render button when tab changes (refs may have changed)
   useEffect(() => {
     if (isOpen && GOOGLE_CLIENT_ID) {
       setTimeout(renderGoogleButtons, 80);

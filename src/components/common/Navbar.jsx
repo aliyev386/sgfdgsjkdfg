@@ -71,7 +71,7 @@ export default function Navbar() {
     try {
       await apiLogout();
     } catch (error) {
-      console.error(error); // istəyə görə
+      console.error(error);
     }
     dispatch(logoutAction());
     navigate("/");

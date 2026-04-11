@@ -271,7 +271,7 @@ export default function ProductDetailPage() {
       toastTimer.current = setTimeout(() => setToast(null), 2900);
     } catch {}
     setTimeout(() => setBusy(false), 1300);
-  }, [product, qty, selColor, cartAdding, buyAdding, dispatch]);
+  }, [product, qty, cartAdding, buyAdding, dispatch]);
 
   const handleSave = useCallback(() => {
     if (!product) return;
@@ -538,18 +538,8 @@ export default function ProductDetailPage() {
           )}
 
           <div className="pdp-cta-row">
-            <div className="pdp-qty">
-              <button className="pdp-qty-btn" onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
-              <span className="pdp-qty-val">{qty}</span>
-              <button className="pdp-qty-btn" onClick={() => setQty(q => Math.min(product.stock_qty, q + 1))}>+</button>
-            </div>
-            <button
-              className={`pdp-btn-buy${buyAdding ? " adding" : ""}${inCart ? " in-cart" : ""}`}
-              disabled={!product.in_stock || cartAdding || buyAdding || inCart}
-              onClick={() => doCart(setBuyAdding)}
-            >
-              {buyAdding ? `✓ ${t("pdp.added")}` : inCart ? "Səbətdə" : t("pdp.buy_now")}
-            </button>
+            
+            
           </div>
 
           <div className="pdp-secondary-row">

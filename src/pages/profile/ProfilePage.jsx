@@ -1,5 +1,4 @@
-// src/pages/profile/ProfilePage.jsx
-// Mock data YOX — hamısı real API / Redux store
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,7 +13,6 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/ProfilePage.css";
 
-/* ─── SVG ICONS ──────────────────────────────────────────── */
 const ICONS = {
   overview: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
   user:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>,
@@ -50,18 +48,16 @@ const Ico = ({ n, s = 17 }) => (
   </span>
 );
 
-/* ─── HELPERS ─────────────────────────────────────────────── */
 const fmt   = n => `₼${Number(n).toLocaleString()}`;
 const fmt4  = v => v.replace(/\D/g,"").replace(/(.{4})/g,"$1 ").trim().slice(0,19);
 const fmtE  = v => v.replace(/\D/g,"").replace(/(\d{2})(\d)/,"$1/$2").slice(0,5);
 
-// OrderStatus enum (backend) → UI key
 const ORDER_STATUS_MAP = {
-  0: "pending",    // Pending
-  1: "processing", // Confirmed
-  2: "processing", // InProgress
-  3: "delivered",  // Delivered
-  4: "cancelled",  // Cancelled
+  0: "pending",   
+  1: "processing",
+  2: "processing",
+  3: "delivered", 
+  4: "cancelled", 
   Pending:    "pending",
   Confirmed:  "processing",
   InProgress: "processing",
@@ -83,7 +79,6 @@ const AZ_BANKS = [
   {id:"amrah",name:"Amrahbank",color:"#8B0000"},{id:"other",name:"Digər",color:"#6B7280"},
 ];
 
-/* ─── CONFIRM MODAL ─────────────────────────────────────── */
 function ConfirmModal({ title, message, confirmText, cancelText, danger, onConfirm, onCancel }) {
   useEffect(() => {
     const h = e => { if(e.key === "Escape") onCancel(); };
@@ -118,7 +113,6 @@ function useConfirm() {
   return { confirm, Modal };
 }
 
-/* ─── TOAST ─────────────────────────────────────────────── */
 function Toast({ msg, ok, onClose }) {
   useEffect(() => { const id = setTimeout(onClose, 3200); return () => clearTimeout(id); }, [onClose]);
   return (
@@ -144,7 +138,6 @@ function PwStrength({ pw }) {
   );
 }
 
-/* ─── useOrders hook — GET /orders/my ──────────────────── */
 function useOrders() {
   const [orders,  setOrders]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -168,7 +161,6 @@ function useOrders() {
   return { orders, loading, error, reload: load };
 }
 
-/* ─── TAB: OVERVIEW ─────────────────────────────────────── */
 function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
   const spent = orders.filter(o => {
     const st = ORDER_STATUS_MAP[o.status] ?? o.status?.toLowerCase?.();
@@ -197,7 +189,6 @@ function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
         ))}
       </div>
 
-      {/* Recent orders */}
       <div className="pr-card">
         <div className="pr-card-top">
           <h3 className="pr-card-title">{t("profile.recent_orders")}</h3>
@@ -240,7 +231,6 @@ function OverviewTab({ user, setTab, orders, ordersLoading, savedCount, t }) {
   );
 }
 
-/* ─── TAB: PROFILE EDIT ─────────────────────────────────── */
 function ProfileTab({ user, showToast, t }) {
   const dispatch = useDispatch();
   const { confirm, Modal } = useConfirm();
@@ -305,7 +295,6 @@ function ProfileTab({ user, showToast, t }) {
   return (
     <div className="pr-body pr-ani">
       {Modal}
-      {/* Avatar */}
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.photo_title")}</h3>
         <div
@@ -330,11 +319,9 @@ function ProfileTab({ user, showToast, t }) {
         </div>
       </div>
 
-      {/* Personal info */}
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.personal_info")}</h3>
         <div className="pr-fg">
-          {/* Ad */}
           <div className="pr-field">
             <label className="pr-label">{t("profile.f_name")}</label>
             <input className={`pr-input${errors.name?" pr-ierr":""}`} name="name" type="text" value={form.name} onChange={ch}/>

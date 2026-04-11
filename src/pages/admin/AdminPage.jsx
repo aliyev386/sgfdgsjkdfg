@@ -1393,7 +1393,7 @@ const ORDER_STATUS_COLORS = {
   3: "bg-emerald-100 text-emerald-700 border-emerald-200",
   4: "bg-red-100 text-red-700 border-red-200",
 };
-const ORDER_STATUS_FLOW = [0, 1, 2, 3]; // Pending → Confirmed → InProgress → Delivered
+const ORDER_STATUS_FLOW = [0, 1, 2, 3];
 
 const Orders = ({ t, lang }) => {
   const [page, setPage] = useState(1);
@@ -1414,7 +1414,6 @@ const Orders = ({ t, lang }) => {
     reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
   }, [page, filterStatus]);
 
-  // Status int-dən stringe çevir
   const statusStr = (s) => typeof s === "string" ? s : (ORDER_STATUS_ENUM[s] ?? "Pending");
   const statusIdx = (s) => typeof s === "number" ? s : (ORDER_STATUS_ENUM[s] ?? 0);
 

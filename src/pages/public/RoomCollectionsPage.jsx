@@ -43,10 +43,6 @@ const CollCard = memo(function CollCard({ coll, idx, accent, t }) {
         <h3 className="rcp-card-name">{coll.name}</h3>
         <p className="rcp-card-desc">{coll.description}</p>
         <div className="rcp-card-foot">
-          <span className="rcp-pieces">
-            <span className="rcp-pieces-n">{coll.pieces}</span>
-            {" "}{t("collection_page.pieces")}
-          </span>
           <button
             className="rcp-explore-btn"
             style={{"--accent":accent}}
