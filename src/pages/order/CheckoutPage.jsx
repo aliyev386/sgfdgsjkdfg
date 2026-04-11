@@ -686,6 +686,7 @@ export default function CheckoutPage() {
           selectedColor: it.selectedColor || null,
           selectedSize:  it.selectedSize  || null,
           quantity:     it.quantity,
+          customDescription: customParts.join(" | ") || "",
         })),
       };
 
