@@ -265,10 +265,6 @@ function ProfileTab({ user, showToast, t }) {
   const onFile = f => { if(f && f.size < 5e6) setPreview(URL.createObjectURL(f)); };
 
   const save = async () => {
-    const errs = {};
-    if (!form.name.trim())    errs.name    = t("profile.err_req");
-    if (!form.surname.trim()) errs.surname = t("profile.err_req");
-    if (Object.keys(errs).length) { setErrors(errs); return; }
     const ok = await confirm({
       title: t("profile.confirm_save_title"),
       message: t("profile.confirm_save_msg"),
@@ -389,12 +385,6 @@ function SecurityTab({ showToast, t }) {
   };
 
   const save = async () => {
-    const errs={};
-    if (!form.current)                errs.current   = t("profile.err_req");
-    if (form.newPw.length < 8)        errs.newPw     = t("profile.err_short");
-    if (form.newPw !== form.confirmPw) errs.confirmPw = t("profile.err_match");
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-
     const ok = await confirm({
       title: t("profile.confirm_pw_title"),
       message: t("profile.confirm_pw_msg"),
@@ -679,7 +669,37 @@ function OrderStatusTracker({ status, estimatedDeliveryDate, adminNote }) {
 }
 
 function OrdersTab({ orders, loading, error, reload, t }) {
-  const [open, setOpen] = useState(null);
+  const [open,         setOpen]         = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+  const { confirm, Modal: CancelModal } = useConfirm();
+
+  const canCancel = (status) => {
+    const s = typeof status === "string" ? status
+      : { 0:"Pending", 1:"Confirmed", 2:"InProgress", 3:"Delivered", 4:"Cancelled" }[status] ?? "Pending";
+    return s === "Pending" || s === "Confirmed";
+  };
+
+  const handleCancel = async (e, orderId) => {
+    e.stopPropagation();
+    const ok = await confirm({
+      title: "Sifarişi ləğv et",
+      message: `#${orderId} nömrəli sifarişi ləğv etmək istədiyinizə əminsiniz?`,
+      confirmText: "Bəli, ləğv et",
+      cancelText: "Xeyr",
+      danger: true,
+    });
+    if (!ok) return;
+    setCancellingId(orderId);
+    try {
+      const { default: orderApi } = await import("../../api/orderApi");
+      await orderApi.cancel(orderId);
+      reload();
+    } catch (err) {
+      alert(err?.userMessage || "Ləğvetmə zamanı xəta baş verdi");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   if (loading) return (
     <div className="pr-body pr-ani">
@@ -717,6 +737,7 @@ function OrdersTab({ orders, loading, error, reload, t }) {
 
   return (
     <div className="pr-body pr-ani">
+      {CancelModal}
       <div className="pr-card pr-card-flush">
         <div className="pr-card-pad">
           <h3 className="pr-card-title">{t("profile.order_history")}</h3>
@@ -808,6 +829,31 @@ function OrdersTab({ orders, loading, error, reload, t }) {
                         {o.paidAmount && <span>İlkin ödəniş: <strong style={{color:"#1C1C1C"}}>{fmt(o.paidAmount)}</strong> · </span>}
                         {o.installmentMonths && <span>Kredit: <strong style={{color:"#1C1C1C"}}>{o.installmentMonths} ay</strong></span>}
                         {o.monthlyPayment && <span> · Aylıq: <strong style={{color:"#7A9E7E"}}>{fmt(o.monthlyPayment)}</strong></span>}
+                      </div>
+                    )}
+
+                    {/* Ləğvetmə düyməsi */}
+                    {canCancel(o.status) && (
+                      <div style={{marginTop:14,paddingTop:12,borderTop:"1px solid #F0EDE8",display:"flex",justifyContent:"flex-end"}}>
+                        <button
+                          onClick={(e) => handleCancel(e, o.id)}
+                          disabled={cancellingId === o.id}
+                          style={{
+                            display:"flex",alignItems:"center",gap:6,
+                            padding:"8px 16px",fontSize:12,fontWeight:600,letterSpacing:.5,
+                            background:"none",border:"1.5px solid #EF4444",color:"#EF4444",
+                            cursor:cancellingId===o.id?"not-allowed":"pointer",
+                            opacity:cancellingId===o.id?.5:1,transition:"all .2s",
+                            fontFamily:"inherit",
+                          }}
+                          onMouseEnter={e=>{if(cancellingId!==o.id){e.currentTarget.style.background="#FEF2F2";}}}
+                          onMouseLeave={e=>{e.currentTarget.style.background="none";}}
+                        >
+                          {cancellingId === o.id
+                            ? <><Spin/> Ləğv edilir...</>
+                            : <><Ico n="x" s={13}/> Sifarişi ləğv et</>
+                          }
+                        </button>
                       </div>
                     )}
                   </div>

@@ -161,15 +161,6 @@ export default function LoginPage() {
     i18n.changeLanguage(code);
   };
  
-  const validate = () => {
-    const errs = {};
-    if (!form.email.trim()) errs.email = t.errEmail;
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t.errEmailFmt;
-    if (!form.password) errs.password = t.errPass;
-    else if (form.password.length < 8) errs.password = t.errPassLen;
-    return errs;
-  };
- 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -179,8 +170,6 @@ export default function LoginPage() {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
     setAlert(null);
     try {
@@ -197,7 +186,7 @@ export default function LoginPage() {
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
           mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
-        setErrors((prev) => ({ ...prev, ...mapped }));
+        setErrors(mapped);
       }
       setAlert({ type: "error", msg: err?.userMessage || t.loginFail });
     } finally {
@@ -349,4 +338,3 @@ export default function LoginPage() {
     </div>
   );
 }
- 

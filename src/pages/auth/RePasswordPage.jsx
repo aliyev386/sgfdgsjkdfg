@@ -180,15 +180,6 @@ export default function ResetPasswordPage() {
 
   const isInvalidLink = !token || !email;
 
-  const validate = () => {
-    const errs = {};
-    if (!form.newPassword) errs.newPassword = t.errPass;
-    else if (form.newPassword.length < 8) errs.newPassword = t.errPassLen;
-    if (!form.confirmPassword) errs.confirmPassword = t.errConfirm;
-    else if (form.newPassword !== form.confirmPassword) errs.confirmPassword = t.errConfirmMatch;
-    return errs;
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -198,14 +189,19 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
     setAlert(null);
     try {
       await resetPassword({ token, email, newPassword: form.newPassword });
       setDone(true);
     } catch (err) {
+      if (err?.validationErrors) {
+        const mapped = {};
+        Object.entries(err.validationErrors).forEach(([field, msgs]) => {
+          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+        });
+        setErrors(mapped);
+      }
       setAlert({ type: "error", msg: err?.userMessage || t.errGeneral });
     } finally {
       setLoading(false);

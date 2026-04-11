@@ -22,10 +22,6 @@ const BAKU_DISTRICTS = [
 ];
 const CITIES = ["Bak\u0131","G\u0259nc\u0259","Sumqay\u0131t","L\u0259nk\u0259ran","Nax\xe7\u0131van","\u015eirvan","Ming\u0259\xe7evir","Quba","\u015e\u0259ki","Zaqatala"];
 
-const isValidPhone = (p) => {
-  const clean = p.replace(/[\s\-\(\)]/g, "");
-  return /^(\+994|0)(50|51|55|60|70|77|99|10|12)\d{7}$/.test(clean);
-};
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -179,7 +175,7 @@ function Field({ label, req, name, value, onChange, error, type = "text", placeh
 }
 
 // ── Success Popup ────────────────────────────────────────
-function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping }) {
+function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping, t }) {
   return (
     <>
       <div className="ck-overlay" />
@@ -608,33 +604,8 @@ export default function CheckoutPage() {
   const [creditSel, setCreditSel] = useState(null);
   const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
 
-  const validateUser = () => {
-    const e = {};
-    if (!userData.name.trim()) e.name = t("checkout.err_name");
-    if (!userData.phone.trim()) e.phone = t("checkout.err_phone");
-    else if (!isValidPhone(userData.phone)) e.phone = t("checkout.err_phone_fmt");
-    if (!/\S+@\S+\.\S+/.test(userData.email)) e.email = t("checkout.err_email");
-    setErrors(e); return !Object.keys(e).length;
-  };
-  const validateAddr = () => {
-    const e = {};
-    if (!addrData.city) e.city = t("checkout.err_city");
-    if (!addrData.district.trim()) e.district = t("checkout.err_district");
-    if (!addrData.street.trim()) e.street = t("checkout.err_street");
-    if (!addrData.deliveryType) e.deliveryType = t("checkout.err_delivery_type");
-    setErrors(e); return !Object.keys(e).length;
-  };
-  const validatePay = () => {
-    const e = {};
-    if (payMethod === "credit" && !creditSel) e.payment = t("checkout.err_credit");
-    setErrors(e); return !Object.keys(e).length;
-  };
-
   const next = () => {
     setApiError(null);
-    if (step === 0 && !validateUser()) return;
-    if (step === 1 && !validateAddr()) return;
-    if (step === 2 && !validatePay()) return;
     setErrors({});
     setStep(s => s + 1);
   };
@@ -718,6 +689,7 @@ export default function CheckoutPage() {
             userPhone={userData.phone}
             onGoOrders={() => navigate("/profile")}
             onGoShopping={() => navigate("/categories")}
+            t={t}
           />
         )}
 

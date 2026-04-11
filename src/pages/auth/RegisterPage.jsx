@@ -215,22 +215,6 @@ export default function RegisterPage() {
  
   const changeLang = (code) => { i18n.changeLanguage(code); };
  
-  const validate = () => {
-    const errs = {};
-    if (!form.name.trim()) errs.name = t.errName;
-    else if (form.name.trim().length < 2) errs.name = t.errNameLen;
-    if (!form.surname.trim()) errs.surname = t.errSurname;
-    if (!form.email.trim()) errs.email = t.errEmail;
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t.errEmailFmt;
-    if (form.phone && !/^[+]?[\d\s\-()]{7,15}$/.test(form.phone)) errs.phone = t.errPhone;
-    if (!form.password) errs.password = t.errPass;
-    else if (form.password.length < 8) errs.password = t.errPassLen;
-    if (!form.confirmPassword) errs.confirmPassword = t.errConfirm;
-    else if (form.password !== form.confirmPassword) errs.confirmPassword = t.errConfirmMatch;
-    if (!agreed) errs.agreed = t.errAgreed;
-    return errs;
-  };
- 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -240,8 +224,6 @@ export default function RegisterPage() {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
     setAlert(null);
     try {
@@ -257,7 +239,7 @@ export default function RegisterPage() {
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
           mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
-        setErrors((prev) => ({ ...prev, ...mapped }));
+        setErrors(mapped);
       }
       setAlert({ type: "error", msg: err?.userMessage || t.regFail });
     } finally {
@@ -453,4 +435,3 @@ export default function RegisterPage() {
     </div>
   );
 }
- 

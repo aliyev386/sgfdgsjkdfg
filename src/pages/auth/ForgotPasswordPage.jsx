@@ -99,22 +99,19 @@ export default function ForgotPasswordPage() {
   const changeLang = (code) => {
     i18n.changeLanguage(code);
   };
-  const validate = () => {
-    if (!email.trim()) return t.errEmailEmpty;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return t.errEmailFmt;
-    return "";
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const err = validate();
-    if (err) { setEmailError(err); return; }
     setLoading(true);
     setAlert(null);
+    setEmailError("");
     try {
       await forgotPassword(email);
       setSent(true);
     } catch (err) {
+      if (err?.validationErrors) {
+        const msgs = Object.values(err.validationErrors).flat();
+        setEmailError(msgs[0] || "");
+      }
       setAlert({ type: "error", msg: err?.userMessage || t.errGeneral });
     } finally {
       setLoading(false);
@@ -211,4 +208,3 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
- 

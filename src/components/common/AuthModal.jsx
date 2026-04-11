@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
@@ -268,19 +267,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
     }
   }, [tab, isOpen, renderGoogleButtons]);
 
-  const validateLogin = () => {
-    const errs = {};
-    if (!loginForm.email.trim()) errs.email = t.errEmail;
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginForm.email)) errs.email = t.errEmailFmt;
-    if (!loginForm.password) errs.password = t.errPass;
-    else if (loginForm.password.length < 8) errs.password = t.errPassLen;
-    return errs;
-  };
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    const errs = validateLogin();
-    if (Object.keys(errs).length) { setLoginErrors(errs); return; }
     setLoading(true);
     setAlert(null);
     try {
@@ -296,7 +284,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
           mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
-        setLoginErrors(prev => ({ ...prev, ...mapped }));
+        setLoginErrors(mapped);
       }
       setAlert({ type: "error", msg: err?.userMessage || t.loginFail });
     } finally {
@@ -304,26 +292,8 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
     }
   };
 
-  const validateRegister = () => {
-    const errs = {};
-    if (!regForm.name.trim()) errs.name = t.errName;
-    else if (regForm.name.trim().length < 2) errs.name = t.errNameLen;
-    if (!regForm.surname.trim()) errs.surname = t.errSurname;
-    if (!regForm.email.trim()) errs.email = t.errEmail;
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regForm.email)) errs.email = t.errEmailFmt;
-    if (regForm.phone && !/^[+]?[\d\s\-()]{7,15}$/.test(regForm.phone)) errs.phone = t.errPhone;
-    if (!regForm.password) errs.password = t.errPass;
-    else if (regForm.password.length < 8) errs.password = t.errPassLen;
-    if (!regForm.confirmPassword) errs.confirmPassword = t.errConfirm;
-    else if (regForm.password !== regForm.confirmPassword) errs.confirmPassword = t.errConfirmMatch;
-    if (!agreed) errs.agreed = t.errAgreed;
-    return errs;
-  };
-
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    const errs = validateRegister();
-    if (Object.keys(errs).length) { setRegErrors(errs); return; }
     setLoading(true);
     setAlert(null);
     try {
@@ -343,7 +313,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
           mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
-        setRegErrors(prev => ({ ...prev, ...mapped }));
+        setRegErrors(mapped);
       }
       setAlert({ type: "error", msg: err?.userMessage || t.regFail });
     } finally {
