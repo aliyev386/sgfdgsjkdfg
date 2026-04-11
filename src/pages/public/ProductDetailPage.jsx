@@ -179,7 +179,6 @@ export default function ProductDetailPage() {
   const [activeImg,  setActiveImg]  = useState(0);
   const [lbOpen,     setLbOpen]     = useState(false);
 
-  const [selColor,   setSelColor]   = useState(null);
   const [selSize,    setSelSize]    = useState(null);
   const [qty,        setQty]        = useState(1);
   const [activeTab,  setActiveTab]  = useState("description");
@@ -209,7 +208,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
-    setActiveImg(0); setSelColor(null); setSelSize(null); setQty(1);
+    setActiveImg(0); setSelSize(null); setQty(1);
     setReviews([]); setReviewsPage(1); setReviewsTotal(0); setAvgRating(0);
     window.scrollTo({ top: 0 });
 
@@ -265,7 +264,7 @@ export default function ProductDetailPage() {
     if (!product?.in_stock || cartAdding || buyAdding || cartItems.some(i => i.productId === product.id)) return;
     setBusy(true);
     try {
-      const cart = await cartApi.addItem({ productId: product.id, selectedColor: selColor, quantity: qty });
+      const cart = await cartApi.addItem({ productId: product.id, quantity: qty });
       if (cart) dispatch(setCart(cart));
       clearTimeout(toastTimer.current);
       setToast(`${qty}× ${product.name} səbətə əlavə edildi`);
@@ -464,24 +463,17 @@ export default function ProductDetailPage() {
 
           {product.colors.length > 0 && (
             <div className="pdp-opt-block">
-              <p className="pdp-opt-label">
-                {t("pdp.color")}:&nbsp;
-                <span style={{ color: "#1C1C1C", fontWeight: 500 }}>
-                  {selColor ? product.colors.find(c => c.value === selColor)?.label : t("pdp.select")}
-                </span>
-              </p>
-              <div className="pdp-colors" style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <p className="pdp-opt-label">{t("pdp.color")}</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {product.colors.map(c => (
-                  <button
+                  <span
                     key={c.value}
-                    onClick={() => setSelColor(c.value)}
                     style={{
                       display: "flex", alignItems: "center", gap: 7,
                       padding: "5px 12px 5px 5px",
-                      border: selColor === c.value ? "1.5px solid #7A9E7E" : "1.5px solid #E5DDD4",
-                      background: selColor === c.value ? "#F0F7F1" : "#fff",
-                      borderRadius: 40, cursor: "pointer",
-                      transition: "all .2s",
+                      border: "1.5px solid #E5DDD4",
+                      background: "#fff",
+                      borderRadius: 40,
                     }}
                     title={c.label}
                   >
@@ -493,7 +485,7 @@ export default function ProductDetailPage() {
                     <span style={{ fontSize: 12, color: "#3C3C3C", fontFamily: "'DM Sans',sans-serif" }}>
                       {c.label}
                     </span>
-                  </button>
+                  </span>
                 ))}
               </div>
             </div>

@@ -107,8 +107,8 @@ function RestorationSection({ t }) {
           </Link>
           <p className="rst-note">{t("restoration.note")}</p>
         </div>
-        <div>
-          <div><img src="" alt="" /></div>
+        <div className="refactor-img">
+          <div ><img src="/images/Media.jpg" alt="" /></div>
         </div>
       </div>
 

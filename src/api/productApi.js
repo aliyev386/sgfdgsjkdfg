@@ -26,6 +26,9 @@ const productApi = {
   getByColor: (color, params = {}) =>
     axiosInstance.get("/products/by-color", { params: { color, ...params } }).then(r => r.data),
 
+  getColors: () =>
+    axiosInstance.get("/products/colors").then(r => r.data?.data ?? []),
+
   getByPriceRange: (min, max, params = {}) =>
     axiosInstance.get("/products/price-range", { params: { min, max, ...params } }).then(r => r.data),
 

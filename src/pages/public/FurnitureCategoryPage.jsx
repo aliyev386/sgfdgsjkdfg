@@ -36,16 +36,6 @@ const SORT_OPTIONS = [
 const MATERIALS = ["Wood","Metal","Fabric","Leather","Velvet","Glass","Rattan"];
 const STYLES    = ["Modern","Classic","Scandinavian","Industrial","Bohemian","Minimalist"];
 const ROOMS     = ["Living Room","Bedroom","Office","Dining Room","Outdoor","Kids Room"];
-const COLORS    = [
-  { name:"Charcoal",   hex:"#3a3a3a" },
-  { name:"Ivory",      hex:"#F5EFE0" },
-  { name:"Sage",       hex:"#7A9E7E" },
-  { name:"Walnut",     hex:"#A0856C" },
-  { name:"Navy",       hex:"#2C4A6E" },
-  { name:"Terracotta", hex:"#C1654B" },
-  { name:"Sand",       hex:"#D4BFA0" },
-  { name:"Slate",      hex:"#6B7C8D" },
-];
 
 const fmt   = n => `$${Number(n).toLocaleString()}`;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -139,12 +129,15 @@ function ChipFilter({ items, selected, onToggle }) {
   );
 }
 
-function ColorFilter({ selected, onToggle }) {
+function ColorFilter({ items = [], selected, onToggle }) {
+  if (!items.length) return (
+    <p style={{ fontSize: 12, color: "#aaa", padding: "4px 0" }}>Rəng tapılmadı</p>
+  );
   return (
     <div className="fcp-color-grid">
-      {COLORS.map(c => (
+      {items.map(c => (
         <button key={c.name} className={`fcp-color-btn${selected.includes(c.name)?" active":""}`} onClick={() => onToggle(c.name)} title={c.name}>
-          <span className="fcp-color-swatch" style={{ background: c.hex }} />
+          <span className="fcp-color-swatch" style={{ background: c.hexCode || c.hex || "#ccc" }} />
           <span className="fcp-color-name">{c.name}</span>
           {selected.includes(c.name) && <span className="fcp-color-check">✓</span>}
         </button>
@@ -153,7 +146,7 @@ function ColorFilter({ selected, onToggle }) {
   );
 }
 
-function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, onPriceChange, onReset, hasActive, t, currentSort, onSortChange, localFilters, onLocalFilter, activeCount }) {
+function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, onPriceChange, onReset, hasActive, t, currentSort, onSortChange, localFilters, onLocalFilter, activeCount, apiColors }) {
   const [open, setOpen] = useState({ category:true, price:true, material:true, room:false, style:false, color:false, sort:true, availability:false });
   const tog = k => setOpen(p => ({ ...p, [k]: !p[k] }));
   const priceMin = filters.priceMin !== "" ? Number(filters.priceMin) : 0;
@@ -190,7 +183,7 @@ function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, 
 
 
       <Section label="Color" open={open.color} onToggle={() => tog("color")} count={(localFilters.colors||[]).length}>
-        <ColorFilter selected={localFilters.colors||[]} onToggle={v => toggleLocal("colors",v)} />
+        <ColorFilter items={apiColors} selected={localFilters.colors||[]} onToggle={v => toggleLocal("colors",v)} />
       </Section>
 
 
@@ -233,6 +226,7 @@ export default function FurnitureCategoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [apiCats,     setApiCats]     = useState([]);
+  const [apiColors,   setApiColors]   = useState([]);
   const [selectedId,  setSelectedId]  = useState(routeId ? Number(routeId) : null);
   const [products,    setProducts]    = useState([]);
   const [pagination,  setPagination]  = useState({ total:0, totalPages:1 });
@@ -258,6 +252,12 @@ export default function FurnitureCategoryPage() {
       setApiCats(arr.map((c,i) => ({ id:c.id, name:c.name||`Category ${c.id}`, image:c.imageUrl||BANNER_IMGS[i%BANNER_IMGS.length], accent:ACCENT_COLORS[i%ACCENT_COLORS.length] })));
     }).catch(() => {});
   }, [lang]);
+
+  useEffect(() => {
+    productApi.getColors().then(data => {
+      if (Array.isArray(data) && data.length) setApiColors(data);
+    }).catch(() => {});
+  }, []);
 
   const allCategories = useMemo(() => [{ id:null, name:t("fcp.cat_all"), image:BANNER_IMGS[0], accent:"#6d9b70" }, ...apiCats], [apiCats, t]);
   const activeCat = useMemo(() => allCategories.find(c => c.id===selectedId)??allCategories[0], [selectedId, allCategories]);
@@ -385,6 +385,7 @@ export default function FurnitureCategoryPage() {
       filters={filters} onPriceChange={handlePriceChange} onReset={handleReset} hasActive={hasActive}
       t={t} currentSort={currentSort} onSortChange={handleSortChange}
       localFilters={localFilters} onLocalFilter={handleLocalFilter} activeCount={activeCount}
+      apiColors={apiColors}
     />
   );
 
