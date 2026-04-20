@@ -1,28 +1,55 @@
-// src/pages/order/CheckoutPage.jsx
-import { useState, useEffect } from "react";
+// src/pages/order/CheckoutPage.jsx — Real Stripe Elements inteqrasiyası
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 import { clearCart } from "../../store/slices/cartSlice";
 import orderApi from "../../api/orderApi";
+import paymentApi from "../../api/paymentApi";
 import Navbar from "../../components/common/Navbar";
 import CreditCalculator from "../../components/credit/CreditCalculator";
 
-const fmt = n => `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2 })}`;
+// ── Stripe publishable key (test) ──────────────────────────────────────────
+// Production-da .env faylına köçür: VITE_STRIPE_PK=pk_live_...
+const STRIPE_PK = import.meta.env.VITE_STRIPE_PK || "pk_test_51YOUR_PUBLISHABLE_KEY_HERE";
+const stripePromise = loadStripe(STRIPE_PK);
+
+// ── Sabitlər ──────────────────────────────────────────────────────────────
+const fmt = (n) => `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2 })}`;
 const FREE_SHIPPING = 500;
-const PaymentMethod = { CashOnDelivery: 1, Installment: 4 };
+const PaymentMethod = { CashOnDelivery: 1, Card: 2, Installment: 4 };
 const OrderType     = { Standard: 0, Custom: 1 };
 const DeliveryType  = { DoorDelivery: 1, RoomDelivery: 2, AssemblyIncluded: 3 };
 
 const BAKU_DISTRICTS = [
-  "Bin\u0259q\u0259di","N\u0259simi","Nizami","Pir\u0259k\u0259\u015fk\xfcl","Sabun\xe7u","Suraxan\u0131",
-  "X\u0259tai","Yeni G\xfcn\u0259\u015fli","L\xf6kbatan","Balaxan\u0131","Zabrat","Ramana",
-  "H\xf6vsan","Ma\u015fta\u011fa","Nardaran","Bilg\u0259h","Buzovna",
-  "Novxan\u0131","Sabail","Bay\u0131l","Bil\u0259c\u0259ri",
+  "Binəqədi","Nəsimi","Nizami","Pirəkəşkül","Sabunçu","Suraxanı",
+  "Xətai","Yeni Günəşli","Lökbatan","Balaxanı","Zabrat","Ramana",
+  "Hövsan","Maştağa","Nardaran","Bilgəh","Buzovna","Novxanı","Sabail","Bayıl","Biləcəri",
 ];
-const CITIES = ["Bak\u0131","G\u0259nc\u0259","Sumqay\u0131t","L\u0259nk\u0259ran","Nax\xe7\u0131van","\u015eirvan","Ming\u0259\xe7evir","Quba","\u015e\u0259ki","Zaqatala"];
+const CITIES = ["Bakı","Gəncə","Sumqayıt","Lənkəran","Naxçıvan","Şirvan","Mingəçevir","Quba","Şəki","Zaqatala"];
 
+// ── Stripe Elements görünüşü — layihəyə uyğun ─────────────────────────────
+const STRIPE_ELEMENT_STYLE = {
+  base: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: "14px",
+    color: "#1C1C1C",
+    "::placeholder": { color: "#9ca3af" },
+    iconColor: "#7A9E7E",
+  },
+  invalid: { color: "#C0392B", iconColor: "#C0392B" },
+};
 
+// ── CSS ───────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
 @keyframes ckFU{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -31,6 +58,7 @@ const CSS = `
 @keyframes ckChk{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
 @keyframes ckOverlay{from{opacity:0}to{opacity:1}}
 @keyframes ckPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.85)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes ckPulse{0%,100%{opacity:1}50%{opacity:.4}}
 *,*::before,*::after{box-sizing:border-box}
 .ck{font-family:'DM Sans',sans-serif;color:#1C1C1C;background:#F7F3EE;min-height:100vh;padding-top:80px}
 .ck-prog{background:#fff;border-bottom:1px solid #E5DDD4;padding:0 60px;display:flex;overflow-x:auto;position:sticky;top:80px;z-index:10;scrollbar-width:none}
@@ -67,15 +95,46 @@ const CSS = `
 .ck-dtype.sel{border-color:#7A9E7E;background:#F0F7F1}
 .ck-dtype-name{font-size:12px;font-weight:500;color:#1C1C1C;margin-top:4px}
 .ck-dtype-desc{font-size:10px;color:#6B6B6B;line-height:1.4;margin-top:3px}
-.ck-pay-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-@media(max-width:700px){.ck-pay-grid{grid-template-columns:repeat(2,1fr)}}
-.ck-pay{border:1.5px solid #E5DDD4;padding:18px 12px;cursor:pointer;transition:all .25s;background:#fff;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative}
+.ck-pay-grid{display:grid;gap:12px;margin-bottom:24px}
+.ck-pay{border:1.5px solid #E5DDD4;padding:18px 16px;cursor:pointer;transition:all .25s;background:#fff;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative}
 .ck-pay.sel{border-color:#7A9E7E;background:#F0F7F1}
-.ck-pay.sel::after{content:'checkmark';position:absolute;top:8px;right:10px;font-size:11px;color:#7A9E7E;font-weight:700;content:'✓'}
-.ck-pay-ico{width:40px;height:40px;background:#F7F3EE;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.ck-pay.sel::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;color:#7A9E7E;font-weight:700}
+.ck-pay-ico{width:44px;height:44px;background:#F7F3EE;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background .2s}
 .ck-pay.sel .ck-pay-ico{background:#C8DBC9}
 .ck-pay-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300}
 .ck-pay-desc{font-size:10px;color:#6B6B6B;line-height:1.5}
+
+/* ── Stripe Elements wrapper ── */
+.s-form{border:1px solid #E5DDD4;background:#FDFAF7;padding:24px;margin-top:4px;animation:ckFU .3s ease}
+.s-form-hd{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6B6B6B;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.s-el-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:480px){.s-el-row{grid-template-columns:1fr}}
+.s-el-field{display:flex;flex-direction:column;gap:6px}
+.s-el-lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#6B6B6B}
+.s-el-box{background:#fff;border:1.5px solid #E0D9D2;border-radius:6px;padding:13px 14px;transition:border-color .2s,box-shadow .2s}
+.s-el-box.focused{border-color:#635bff;box-shadow:0 0 0 3px rgba(99,91,255,.15)}
+.s-el-box.invalid{border-color:#C0392B}
+.s-test-hint{background:#F0F4FF;border:1px solid #C7D4FF;border-radius:4px;padding:12px 16px;margin-top:16px;display:flex;gap:10px;align-items:flex-start}
+.s-test-hint-txt{font-size:12px;color:#3730a3;line-height:1.6}
+.s-test-hint-txt strong{display:block;margin-bottom:3px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.s-brands{display:flex;gap:6px;margin-top:14px;align-items:center}
+.s-brand{height:22px;border:1px solid #E5DDD4;border-radius:3px;padding:2px 7px;background:#fff;font-size:9px;font-weight:700;letter-spacing:.5px}
+.s-brand.visa{color:#1a1f71}
+.s-brand.mc{color:#eb001b}
+.s-brand.amex{color:#007bc1}
+.s-secure{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;background:#F0F7F1;border:1px solid #C8DBC9;border-radius:4px}
+.s-secure-txt{font-size:11px;color:#2E6B32;line-height:1.4}
+
+/* Processing overlay */
+.pay-ov{position:fixed;inset:0;background:rgba(28,28,28,.75);backdrop-filter:blur(8px);z-index:8000;display:flex;align-items:center;justify-content:center;animation:ckOverlay .3s ease}
+.pay-box{background:#fff;padding:52px;text-align:center;max-width:360px;width:90%;border:1px solid #E5DDD4}
+.pay-spinner{width:56px;height:56px;border:3px solid #F0EBE3;border-top-color:#635bff;border-radius:50%;animation:ckSpin .75s linear infinite;margin:0 auto 28px}
+.pay-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;margin:0 0 10px}
+.pay-desc{font-size:13px;color:#6B6B6B;line-height:1.7}
+.pay-dots span{animation:ckPulse 1.4s infinite;display:inline-block}
+.pay-dots span:nth-child(2){animation-delay:.2s}
+.pay-dots span:nth-child(3){animation-delay:.4s}
+
 .ck-ibar{background:linear-gradient(135deg,#1C1C1C,#2D3A2E);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px}
 .ck-ibar-i{text-align:center}
 .ck-ibar-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:3px}
@@ -93,6 +152,9 @@ const CSS = `
 .ck-btn-p{background:#1C1C1C;color:#fff;width:100%;margin-top:20px}
 .ck-btn-p:hover:not(:disabled){background:#7A9E7E;transform:translateY(-2px);box-shadow:0 8px 20px rgba(122,158,126,.3)}
 .ck-btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.ck-btn-stripe{background:#635bff;color:#fff;width:100%;margin-top:20px;border-radius:6px}
+.ck-btn-stripe:hover:not(:disabled){background:#4b44d6;transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,91,255,.4)}
+.ck-btn-stripe:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .ck-btn-b{background:none;border:1.5px solid #E5DDD4;color:#6B6B6B;padding:12px 24px;font-size:10px}
 .ck-btn-b:hover{border-color:#1C1C1C;color:#1C1C1C}
 .ck-actions{display:flex;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid #E5DDD4;align-items:center}
@@ -139,19 +201,21 @@ const CSS = `
 .ck-popup-ring{width:80px;height:80px;border-radius:50%;background:#EAF3EB;display:flex;align-items:center;justify-content:center;margin:0 auto 24px}
 .ck-popup-title{font-family:'Cormorant Garamond',serif;font-size:clamp(30px,5vw,44px);font-weight:300;margin:0 0 12px;line-height:1.1}
 .ck-popup-title em{font-style:italic;color:#7A9E7E}
-.ck-popup-desc{font-size:13px;color:#6B6B6B;line-height:1.8;margin:0 0 24px}
-.ck-popup-box{background:#F7F3EE;border:1px solid #E5DDD4;padding:12px 24px;font-size:13px;color:#1C1C1C;margin-bottom:28px;display:inline-block}
+.ck-popup-desc{font-size:13px;color:#6B6B6B;line-height:1.8;margin:0 0 20px}
+.ck-popup-box{background:#F7F3EE;border:1px solid #E5DDD4;padding:12px 24px;font-size:13px;color:#1C1C1C;margin-bottom:24px;display:inline-block}
 .ck-popup-box strong{font-family:'Cormorant Garamond',serif;font-size:18px}
+.ck-popup-facts{display:flex;justify-content:center;gap:20px;margin-bottom:28px;flex-wrap:wrap}
+.ck-popup-fact{text-align:center}
+.ck-popup-fact-icon{width:36px;height:36px;background:#EAF3EB;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px}
+.ck-popup-fact-lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#6B6B6B}
+.ck-popup-fact-val{font-size:12px;color:#1C1C1C;font-weight:500;margin-top:2px}
 .ck-popup-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .ck-popup-btn-p{padding:14px 28px;background:#1C1C1C;color:#fff;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;transition:background .2s}
 .ck-popup-btn-p:hover{background:#7A9E7E}
 .ck-popup-btn-s{padding:14px 28px;background:none;border:1.5px solid #E5DDD4;color:#1C1C1C;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase}
-.ck-card-field{margin-top:16px;padding:20px;border:1px solid #E5DDD4;background:#FDFAF7}
-.ck-card-field-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6B6B6B;margin-bottom:14px}
-.ck-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:500px){.ck-card-grid{grid-template-columns:1fr}}
 `;
 
+// ── Köməkçi komponentlər ──────────────────────────────────────────────────
 function Toggle({ on, onChange, label }) {
   return (
     <div className="ck-toggle" onClick={() => onChange(!on)}>
@@ -174,30 +238,147 @@ function Field({ label, req, name, value, onChange, error, type = "text", placeh
   );
 }
 
-function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping, t }) {
+// ── Real Stripe Elements kart formu ──────────────────────────────────────
+function StripeCardForm({ cardholderName, onNameChange, nameError }) {
+  const [focus, setFocus] = useState({});
+  const [elError, setElError] = useState({});
+
+  const elProps = (key) => ({
+    options: { style: STRIPE_ELEMENT_STYLE },
+    className: `s-el-box${focus[key] ? " focused" : ""}${elError[key] ? " invalid" : ""}`,
+    onFocus:  () => setFocus(p => ({ ...p, [key]: true })),
+    onBlur:   () => setFocus(p => ({ ...p, [key]: false })),
+    onChange:  (e) => setElError(p => ({ ...p, [key]: e.error?.message || null })),
+  });
+
+  return (
+    <div className="s-form">
+      <div className="s-form-hd">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#635bff" strokeWidth="2.2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Kart məlumatları — Stripe ilə qorunur
+      </div>
+
+      {/* Kart nömrəsi - real Stripe Element */}
+      <div className="s-el-field">
+        <label className="s-el-lbl">Kart nömrəsi *</label>
+        <CardNumberElement {...elProps("number")} />
+        {elError.number && <span className="ck-err">{elError.number}</span>}
+      </div>
+
+      {/* Kart sahibi adı - adi input */}
+      <div className="s-el-field" style={{ marginTop: 14 }}>
+        <label className="s-el-lbl">Kart sahibinin adı *</label>
+        <input
+          className={`ck-input${nameError ? " err" : ""}`}
+          style={{ borderRadius: 6, background: "#fff", border: "1.5px solid #E0D9D2" }}
+          type="text"
+          placeholder="AD SOYAD"
+          value={cardholderName}
+          onChange={e => onNameChange(e.target.value.toUpperCase())}
+          autoComplete="cc-name"
+        />
+        {nameError && <span className="ck-err">{nameError}</span>}
+      </div>
+
+      <div className="s-el-row">
+        <div className="s-el-field">
+          <label className="s-el-lbl">Son istifadə tarixi *</label>
+          <CardExpiryElement {...elProps("expiry")} />
+          {elError.expiry && <span className="ck-err">{elError.expiry}</span>}
+        </div>
+        <div className="s-el-field">
+          <label className="s-el-lbl">CVV / CVC *</label>
+          <CardCvcElement {...elProps("cvc")} />
+          {elError.cvc && <span className="ck-err">{elError.cvc}</span>}
+        </div>
+      </div>
+
+      {/* Kart markalar */}
+      <div className="s-brands">
+        <span style={{ fontSize: 10, color: "#9ca3af", letterSpacing: 1, textTransform: "uppercase" }}>Qəbul:</span>
+        {[["visa","VISA"],["mc","MC"],["amex","AMEX"],["unionpay","UP"]].map(([id,lbl]) => (
+          <span key={id} className={`s-brand ${id}`}>{lbl}</span>
+        ))}
+      </div>
+
+      {/* Test kart göstəricisi */}
+      <div className="s-test-hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3730a3" strokeWidth="1.8" style={{ flexShrink: 0, marginTop: 2 }}>
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2" strokeLinecap="round"/>
+        </svg>
+        <div className="s-test-hint-txt">
+          <strong>Test rejimi — pul çıxılmır</strong>
+          Test kartı: <strong>4242 4242 4242 4242</strong> | Tarix: <strong>12/34</strong> | CVC: <strong>123</strong>
+        </div>
+      </div>
+
+      {/* Güvənlik nişanı */}
+      <div className="s-secure">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span className="s-secure-txt">
+          <strong>256-bit SSL + Stripe PCI DSS</strong> — Kart məlumatlarınız serverimizə göndərilmir.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PayOverlay() {
+  return (
+    <div className="pay-ov">
+      <div className="pay-box">
+        <div className="pay-spinner" />
+        <h3 className="pay-title">Ödəniş emal edilir</h3>
+        <p className="pay-desc">
+          Stripe vasitəsilə ödənişiniz işlənir
+          <span className="pay-dots"><span>.</span><span>.</span><span>.</span></span>
+          <br/>Səhifəni bağlamayın
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SuccessPopup({ orderId, payMethod, onGoOrders, onGoShopping, t }) {
   return (
     <>
       <div className="ck-overlay" />
       <div className="ck-popup">
         <div className="ck-popup-ring">
           <svg viewBox="0 0 48 48" fill="none" width="44" height="44">
-            <circle cx="24" cy="24" r="22" stroke="#7A9E7E" strokeWidth="1.5" />
+            <circle cx="24" cy="24" r="22" stroke="#7A9E7E" strokeWidth="1.5"/>
             <path d="M14 24l8 8 12-12" stroke="#7A9E7E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-              strokeDasharray="24" strokeDashoffset="0" style={{ animation: "ckChk .5s .2s ease both" }} />
+              strokeDasharray="24" strokeDashoffset="0" style={{ animation: "ckChk .5s .2s ease both" }}/>
           </svg>
         </div>
-        <h2 className="ck-popup-title">
-          {t("checkout.success_title2")} <em>{t("checkout.success_title2_em")}</em>
-        </h2>
+        <h2 className="ck-popup-title">{t("checkout.success_title2")} <em>{t("checkout.success_title2_em")}</em></h2>
         <p className="ck-popup-desc">
-          {t("checkout.success_greeting")} <strong>{userName}</strong>, {t("checkout.success_registered")}<br /><br />
-          {t("checkout.success_manager_call")} <strong>{userPhone}</strong> {t("checkout.success_will_call")}
+          {t("checkout.success_registered")}<br/><br/>
+          {payMethod === "card"
+            ? "Stripe vasitəsilə ödənişiniz uğurla qəbul edildi. Sifariş təsdiqi e-poçtunuza göndərildi."
+            : payMethod === "cash"
+            ? "Ödənişi çatdırılma zamanı nağd edəcəksiniz."
+            : "Kredit sifarişiniz qəbul edildi."}
         </p>
-        {orderId && (
-          <div className="ck-popup-box">
-            {t("checkout.success_order_id")}: <strong>#{orderId}</strong>
-          </div>
-        )}
+        {orderId && <div className="ck-popup-box">{t("checkout.success_order_id")}: <strong>#{orderId}</strong></div>}
+        <div className="ck-popup-facts">
+          {[
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="2"><path d="M5 12l5 5 9-9" strokeLinecap="round" strokeLinejoin="round"/></svg>, lbl: "Status", val: "Qəbul edildi" },
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>, lbl: "Çatdırılma", val: "Razılaşdırılacaq" },
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>, lbl: "E-poçt", val: "Göndərildi" },
+          ].map((f, i) => (
+            <div key={i} className="ck-popup-fact">
+              <div className="ck-popup-fact-icon">{f.icon}</div>
+              <div className="ck-popup-fact-lbl">{f.lbl}</div>
+              <div className="ck-popup-fact-val">{f.val}</div>
+            </div>
+          ))}
+        </div>
         <div className="ck-popup-btns">
           <button className="ck-popup-btn-p" onClick={onGoOrders}>{t("checkout.go_orders")}</button>
           <button className="ck-popup-btn-s" onClick={onGoShopping}>{t("checkout.go_shopping")}</button>
@@ -210,20 +391,18 @@ function SuccessPopup({ orderId, userName, userPhone, onGoOrders, onGoShopping, 
 function OrderSummary({ cartItems, payMethod, creditSel, t }) {
   const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
   const shipping = subtotal >= FREE_SHIPPING ? 0 : 15;
-  const displayTotal = (payMethod === "credit" && creditSel) ? creditSel.result.totalPay : subtotal + shipping;
-
+  const total = payMethod === "credit" && creditSel ? creditSel.result.totalPay : subtotal + shipping;
   return (
     <div className="ck-sum">
       <div className="ck-sum-hd"><p className="ck-sum-hd-t">{t("checkout.summary_title")}</p></div>
       <div className="ck-sum-body">
         {cartItems.map(it => {
-          const name = it.productName || it.collectionName || "M\u0259hsul";
+          const name = it.productName || it.collectionName || "Məhsul";
           const price = (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity;
-          const img = it.productImage || null;
           return (
             <div key={it.id} className="ck-sum-row">
-              {img
-                ? <img src={img} alt={name} className="ck-sum-img" />
+              {it.productImage
+                ? <img src={it.productImage} alt={name} className="ck-sum-img" />
                 : <div className="ck-sum-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#C4B9AD" }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" width="20" height="20"><path d="M12 2l9 5v10l-9 5-9-5V7z" /></svg>
                   </div>}
@@ -252,23 +431,20 @@ function OrderSummary({ cartItems, payMethod, creditSel, t }) {
       </div>
       <div className="ck-sum-tot">
         <span className="ck-sum-tot-l">{t("checkout.total")}</span>
-        <span className="ck-sum-tot-v">{fmt(displayTotal)}</span>
+        <span className="ck-sum-tot-v">{fmt(total)}</span>
       </div>
     </div>
   );
 }
 
+// ── ADDIMLAR ─────────────────────────────────────────────────────────────
+
 function StepUser({ data, errors, onChange, onNext, user, t }) {
   return (
     <div className="ck-card">
-      <span className="ck-eyebrow">Add\u0131m 1</span>
+      <span className="ck-eyebrow">Addım 1</span>
       <h2 className="ck-card-title">{t("checkout.contact_title")}</h2>
-      {user && (
-        <div className="ck-info">
-          <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5" /><path d="M10 6v4l2 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round" /></svg>
-          <span className="ck-info-txt">{t("checkout.contact_prefilled")}</span>
-        </div>
-      )}
+      {user && <div className="ck-info"><svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5"/><path d="M10 6v4l2 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round"/></svg><span className="ck-info-txt">{t("checkout.contact_prefilled")}</span></div>}
       <div className="ck-grid">
         <Field label={t("checkout.full_name")} req name="name" value={data.name} onChange={onChange} error={errors.name} placeholder={t("checkout.full_name_ph")} />
         <Field label={t("checkout.phone")} req name="phone" value={data.phone} onChange={onChange} error={errors.phone} placeholder={t("checkout.phone_ph")} type="tel" />
@@ -281,16 +457,13 @@ function StepUser({ data, errors, onChange, onNext, user, t }) {
   );
 }
 
-// STEP 2
 function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
-  const isB = data.city === "Bak\u0131";
+  const isB = data.city === "Bakı";
   const hasProducts = cartItems.some(it => it.productId);
-
   return (
     <div className="ck-card">
-      <span className="ck-eyebrow">Add\u0131m 2</span>
+      <span className="ck-eyebrow">Addım 2</span>
       <h2 className="ck-card-title">{t("checkout.address_title")}</h2>
-
       <div className="ck-grid" style={{ marginBottom: 16 }}>
         <div className="ck-field">
           <label className="ck-label">{t("checkout.city")} <span className="req">*</span></label>
@@ -307,18 +480,15 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
                 <option value="">{t("checkout.district_baku")}</option>
                 {BAKU_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
-            : <input className={`ck-input${errors.district ? " err" : ""}`} value={data.district} onChange={e => onChange("district", e.target.value)} placeholder={t("checkout.district_ph")} />
-          }
+            : <input className={`ck-input${errors.district ? " err" : ""}`} value={data.district} onChange={e => onChange("district", e.target.value)} placeholder={t("checkout.district_ph")} />}
           {errors.district && <span className="ck-err">{errors.district}</span>}
         </div>
       </div>
-
       <div className="ck-grid" style={{ marginBottom: 16 }}>
         <Field label={t("checkout.street")} req name="street" value={data.street} onChange={onChange} error={errors.street} placeholder={t("checkout.street_ph")} className="span2" />
         <Field label={t("checkout.house")} name="house" value={data.house} onChange={onChange} placeholder="12" />
         <Field label={t("checkout.apartment")} name="apartment" value={data.apartment} onChange={onChange} placeholder="5" />
       </div>
-
       <div className="ck-grid" style={{ marginBottom: 20 }}>
         <div className="ck-field">
           <label className="ck-label">{t("checkout.floor")}</label>
@@ -326,89 +496,59 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
         </div>
         <div className="ck-field" style={{ justifyContent: "flex-end", paddingBottom: 4 }}>
           <Toggle on={data.hasElevator} onChange={v => onChange("hasElevator", v)} label={t("checkout.has_elevator")} />
-          <div style={{ marginTop: 12 }}>
-            <Toggle on={data.removeOldFurniture} onChange={v => onChange("removeOldFurniture", v)} label={t("checkout.remove_furniture")} />
-          </div>
+          <div style={{ marginTop: 12 }}><Toggle on={data.removeOldFurniture} onChange={v => onChange("removeOldFurniture", v)} label={t("checkout.remove_furniture")} /></div>
         </div>
       </div>
-
       <div className="ck-field" style={{ marginBottom: 16 }}>
         <label className="ck-label">{t("checkout.delivery_type")} <span className="req">*</span></label>
         <div className="ck-dtype-grid">
           {[
-            { t: DeliveryType.DoorDelivery,     n: t("checkout.delivery_door"),     d: t("checkout.delivery_door_desc") },
-            { t: DeliveryType.RoomDelivery,     n: t("checkout.delivery_room"),     d: t("checkout.delivery_room_desc") },
+            { t: DeliveryType.DoorDelivery, n: t("checkout.delivery_door"), d: t("checkout.delivery_door_desc") },
+            { t: DeliveryType.RoomDelivery, n: t("checkout.delivery_room"), d: t("checkout.delivery_room_desc") },
             { t: DeliveryType.AssemblyIncluded, n: t("checkout.delivery_assembly"), d: t("checkout.delivery_assembly_desc") },
           ].map(opt => (
             <div key={opt.t} className={`ck-dtype${data.deliveryType === opt.t ? " sel" : ""}`} onClick={() => onChange("deliveryType", opt.t)}>
-              <p className="ck-dtype-name">{opt.n}</p>
-              <p className="ck-dtype-desc">{opt.d}</p>
+              <p className="ck-dtype-name">{opt.n}</p><p className="ck-dtype-desc">{opt.d}</p>
             </div>
           ))}
         </div>
         {errors.deliveryType && <span className="ck-err">{errors.deliveryType}</span>}
       </div>
-
-      {/* Çatdırılma vaxtı haqqında bildiriş */}
       <div className="ck-info">
-        <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 1 }}>
-          <circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5" />
-          <path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        <span className="ck-info-txt">
-          <strong>{t("checkout.delivery_time_note")}</strong> — {t("checkout.delivery_time_desc")}
-        </span>
+        <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5"/><path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round"/></svg>
+        <span className="ck-info-txt"><strong>{t("checkout.delivery_time_note")}</strong> — {t("checkout.delivery_time_desc")}</span>
       </div>
-
       <Field label={t("checkout.driver_note")} name="note" value={data.note} onChange={onChange} placeholder={t("checkout.driver_note_ph")} as="textarea" />
-
-      {/* Xüsusi Sifariş */}
       {hasProducts && (
         <>
           <hr className="ck-card-sep" />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: data.isCustomOrder ? 0 : 4 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, margin: "0 0 3px" }}>
-                {t("checkout.custom_order_label")}
-              </p>
-              <p style={{ fontSize: 11, color: "#6B6B6B", margin: 0, lineHeight: 1.5 }}>
-                {t("checkout.custom_order_sub")}
-              </p>
+              <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, margin: "0 0 3px" }}>{t("checkout.custom_order_label")}</p>
+              <p style={{ fontSize: 11, color: "#6B6B6B", margin: 0, lineHeight: 1.5 }}>{t("checkout.custom_order_sub")}</p>
             </div>
             <Toggle on={data.isCustomOrder} onChange={v => onChange("isCustomOrder", v)} />
           </div>
-
           {data.isCustomOrder && (
             <div className="ck-custom-panel">
               <p className="ck-custom-title">{t("checkout.custom_params_title")}</p>
               <p className="ck-custom-sub">{t("checkout.custom_params_sub")}</p>
               <div className="ck-custom-grid">
-                <div className="ck-field">
-                  <label className="ck-label">{t("checkout.custom_color_label")}</label>
-                  <input className="ck-input" value={data.customColor || ""} onChange={e => onChange("customColor", e.target.value)} placeholder={t("checkout.custom_color_ph")} />
-                </div>
-                <div className="ck-field">
-                  <label className="ck-label">{t("checkout.custom_size_label")}</label>
-                  <input className="ck-input" value={data.customSize || ""} onChange={e => onChange("customSize", e.target.value)} placeholder={t("checkout.custom_size_ph")} />
-                </div>
+                <div className="ck-field"><label className="ck-label">{t("checkout.custom_color_label")}</label><input className="ck-input" value={data.customColor || ""} onChange={e => onChange("customColor", e.target.value)} placeholder={t("checkout.custom_color_ph")} /></div>
+                <div className="ck-field"><label className="ck-label">{t("checkout.custom_size_label")}</label><input className="ck-input" value={data.customSize || ""} onChange={e => onChange("customSize", e.target.value)} placeholder={t("checkout.custom_size_ph")} /></div>
               </div>
               <div className="ck-field" style={{ marginTop: 12 }}>
                 <label className="ck-label">{t("checkout.custom_note_label")}</label>
                 <textarea className="ck-input" style={{ minHeight: 72, resize: "vertical" }} value={data.customDescription || ""} onChange={e => onChange("customDescription", e.target.value)} placeholder={t("checkout.custom_note_ph")} />
               </div>
               <div className="ck-custom-notice">
-                <svg viewBox="0 0 20 20" fill="none" width="14" height="14" style={{ flexShrink: 0, marginTop: 1 }}>
-                  <circle cx="10" cy="10" r="8" stroke="#7A6000" strokeWidth="1.4" />
-                  <path d="M10 7v4" stroke="#7A6000" strokeWidth="1.4" strokeLinecap="round" />
-                  <circle cx="10" cy="14" r="0.7" fill="#7A6000" />
-                </svg>
+                <svg viewBox="0 0 20 20" fill="none" width="14" height="14" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="10" cy="10" r="8" stroke="#7A6000" strokeWidth="1.4"/><path d="M10 7v4" stroke="#7A6000" strokeWidth="1.4" strokeLinecap="round"/><circle cx="10" cy="14" r=".7" fill="#7A6000"/></svg>
                 <span>{t("checkout.custom_warning")}</span>
               </div>
             </div>
           )}
         </>
       )}
-
       <div className="ck-actions">
         <button className="ck-btn ck-btn-b" onClick={onBack}>{t("checkout.back")}</button>
         <button className="ck-btn ck-btn-p" style={{ flex: 1, margin: 0 }} onClick={onNext}>{t("checkout.next_payment")}</button>
@@ -417,22 +557,18 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
   );
 }
 
-// STEP 3
-function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSel, errors, onNext, onBack, t }) {
+function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSel, cardholderName, onNameChange, nameError, errors, onNext, onBack, t }) {
   const METHODS = [
-    { id: "cash",   name: t("checkout.pay_cash"),   desc: t("checkout.pay_cash_desc"),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /></svg> },
-    { id: "credit", name: t("checkout.pay_credit"), desc: t("checkout.pay_credit_desc"),
-      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg> },
+    { id: "card",   name: "Kartla ödəniş",        desc: "Visa / Mastercard — Stripe", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M11 15h4" strokeLinecap="round"/></svg> },
+    { id: "cash",   name: t("checkout.pay_cash"),  desc: t("checkout.pay_cash_desc"), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> },
+    { id: "credit", name: t("checkout.pay_credit"),desc: t("checkout.pay_credit_desc"), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
   ];
-
   return (
     <div>
       <div className="ck-card">
         <span className="ck-eyebrow">{t("checkout.step3_eyebrow", "Addım 3")}</span>
         <h2 className="ck-card-title">{t("checkout.payment_title")}</h2>
-
-        <div className="ck-pay-grid" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
+        <div className="ck-pay-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
           {METHODS.map(m => (
             <div key={m.id} className={`ck-pay${payMethod === m.id ? " sel" : ""}`} onClick={() => setPayMethod(m.id)}>
               <div className="ck-pay-ico">{m.icon}</div>
@@ -442,18 +578,20 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
           ))}
         </div>
 
+        {payMethod === "card" && (
+          <div style={{ animation: "ckFU .3s ease" }}>
+            <StripeCardForm cardholderName={cardholderName} onNameChange={onNameChange} nameError={nameError} />
+          </div>
+        )}
         {payMethod === "cash" && (
           <div className="ck-info" style={{ animation: "ckFU .3s ease" }}>
-            <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><path d="M9 12l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.4" /></svg>
+            <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0 }}><path d="M9 12l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.4"/></svg>
             <div className="ck-info-txt"><strong>{t("checkout.pay_cash")}.</strong> {t("checkout.cash_info")}</div>
           </div>
         )}
-
         {payMethod === "credit" && (
           <div style={{ animation: "ckFU .3s ease" }}>
-            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, marginBottom: 20 }}>
-              {t("checkout.credit_calculator")}
-            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, marginBottom: 20 }}>{t("checkout.credit_calculator")}</p>
             <CreditCalculator price={subtotal} onSelect={sel => setCreditSel(sel)} />
             {creditSel && (
               <div className="ck-ibar">
@@ -465,15 +603,8 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
             )}
           </div>
         )}
-
-        {errors.payment && (
-          <div className="ck-alert">
-            <span style={{ color: "#C0392B", fontSize: 16, flexShrink: 0 }}>⚠</span>
-            <span className="ck-alert-txt">{errors.payment}</span>
-          </div>
-        )}
+        {errors.payment && <div className="ck-alert"><span style={{ color: "#C0392B", fontSize: 16, flexShrink: 0 }}>⚠</span><span className="ck-alert-txt">{errors.payment}</span></div>}
       </div>
-
       <div className="ck-actions" style={{ marginTop: 16, paddingTop: 0, border: "none" }}>
         <button className="ck-btn ck-btn-b" onClick={onBack}>{t("checkout.back")}</button>
         <button className="ck-btn ck-btn-p" style={{ flex: 1, margin: 0 }} onClick={onNext}>{t("checkout.next_confirm")}</button>
@@ -481,109 +612,114 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
     </div>
   );
 }
-// STEP 4
-function StepConfirm({ userData, addrData, payMethod, creditSel, subtotal, onPlace, onBack, placing, apiError, t }) {
-  const [agreed, setAgreed] = useState(false);
 
-  const payLabel = payMethod === "cash"
-    ? t("checkout.pay_cash")
-    : creditSel
-      ? `${creditSel.bank.name} · ${creditSel.months} ${t("checkout.credit_month_unit")} · ₼${creditSel.result.monthly.toFixed(2)}/${t("checkout.credit_month_unit")}`
-      : t("checkout.pay_credit");
+// ── ADDIM 4: Stripe useStripe hook ilə ödəniş ────────────────────────────
+function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName, totalAmt, onPlace, onBack, placing, payProcessing, apiError, t }) {
+  const [agreed, setAgreed] = useState(false);
+  const payLabel = payMethod === "card"
+    ? "Kartla ödəniş — Stripe"
+    : payMethod === "cash" ? t("checkout.pay_cash")
+    : creditSel ? `${creditSel.bank.name} · ${creditSel.months} ${t("checkout.credit_month_unit")} · ₼${creditSel.result.monthly.toFixed(2)}/${t("checkout.credit_month_unit")}`
+    : t("checkout.pay_credit");
 
   return (
-    <div className="ck-card">
-      <span className="ck-eyebrow">{t("checkout.confirm_step")}</span>
-      <h2 className="ck-card-title">{t("checkout.confirm_title")}</h2>
-
-      <div className="ck-conf">
-        <p className="ck-conf-lbl">{t("checkout.confirm_contact")}</p>
-        <p className="ck-conf-val">{userData.name} · {userData.phone}<br />{userData.email}</p>
-      </div>
-      <div className="ck-conf">
-        <p className="ck-conf-lbl">{t("checkout.confirm_address")}</p>
-        <p className="ck-conf-val">
-          {addrData.city}{addrData.district ? `, ${addrData.district} r.` : ""}<br />
-          {addrData.street}{addrData.house ? `, ev ${addrData.house}` : ""}{addrData.apartment ? `, m\u0259nzil ${addrData.apartment}` : ""}
-          {addrData.note && <><br /><em style={{ color: "#6B6B6B" }}>{addrData.note}</em></>}
-        </p>
-      </div>
-
-      {addrData.isCustomOrder && (
-        <div className="ck-conf" style={{ borderColor: "#C9A84C" }}>
-          <p className="ck-conf-lbl" style={{ color: "#C9A84C" }}>{t("checkout.confirm_custom_label")}</p>
+    <>
+      {payProcessing && <PayOverlay />}
+      <div className="ck-card">
+        <span className="ck-eyebrow">{t("checkout.confirm_step")}</span>
+        <h2 className="ck-card-title">{t("checkout.confirm_title")}</h2>
+        <div className="ck-conf">
+          <p className="ck-conf-lbl">{t("checkout.confirm_contact")}</p>
+          <p className="ck-conf-val">{userData.name} · {userData.phone}<br />{userData.email}</p>
+        </div>
+        <div className="ck-conf">
+          <p className="ck-conf-lbl">{t("checkout.confirm_address")}</p>
           <p className="ck-conf-val">
-            {addrData.customColor && <span>{t("checkout.confirm_custom_color")} {addrData.customColor}<br /></span>}
-            {addrData.customSize && <span>{t("checkout.confirm_custom_size")} {addrData.customSize}<br /></span>}
-            {addrData.customDescription && <em style={{ color: "#6B6B6B" }}>{addrData.customDescription}</em>}
+            {addrData.city}{addrData.district ? `, ${addrData.district} r.` : ""}<br />
+            {addrData.street}{addrData.house ? `, ev ${addrData.house}` : ""}{addrData.apartment ? `, mənzil ${addrData.apartment}` : ""}
+            {addrData.note && <><br /><em style={{ color: "#6B6B6B" }}>{addrData.note}</em></>}
           </p>
         </div>
-      )}
-
-      <div className="ck-conf">
-        <p className="ck-conf-lbl">{t("checkout.confirm_payment")}</p>
-        <p className="ck-conf-val">{payLabel}</p>
-        {payMethod === "credit" && creditSel && (
-          <div className="ck-ibar" style={{ marginTop: 12 }}>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_down")}</p><p className="ck-ibar-v">₼{creditSel.result.downAmount.toFixed(2)}</p></div>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_monthly")}</p><p className="ck-ibar-v g">₼{creditSel.result.monthly.toFixed(2)}</p></div>
-            <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
+        {addrData.isCustomOrder && (
+          <div className="ck-conf" style={{ borderColor: "#C9A84C" }}>
+            <p className="ck-conf-lbl" style={{ color: "#C9A84C" }}>{t("checkout.confirm_custom_label")}</p>
+            <p className="ck-conf-val">
+              {addrData.customColor && <span>{t("checkout.confirm_custom_color")} {addrData.customColor}<br /></span>}
+              {addrData.customSize && <span>{t("checkout.confirm_custom_size")} {addrData.customSize}<br /></span>}
+              {addrData.customDescription && <em style={{ color: "#6B6B6B" }}>{addrData.customDescription}</em>}
+            </p>
           </div>
         )}
-      </div>
-
-      <div className="ck-info">
-        <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 2 }}>
-          <circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5" />
-          <path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-        <span className="ck-info-txt">
-          {t("checkout.success_manager_call")} <strong>{userData.phone}</strong> {t("checkout.confirm_manager_note")}
-        </span>
-      </div>
-
-      {apiError && (
-        <div className="ck-alert">
-          <span style={{ color: "#C0392B", fontSize: 16, flexShrink: 0 }}>⚠</span>
-          <span className="ck-alert-txt">{apiError}</span>
+        <div className="ck-conf">
+          <p className="ck-conf-lbl">{t("checkout.confirm_payment")}</p>
+          <p className="ck-conf-val">{payLabel}</p>
+          {payMethod === "credit" && creditSel && (
+            <div className="ck-ibar" style={{ marginTop: 12 }}>
+              <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_down")}</p><p className="ck-ibar-v">₼{creditSel.result.downAmount.toFixed(2)}</p></div>
+              <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_monthly")}</p><p className="ck-ibar-v g">₼{creditSel.result.monthly.toFixed(2)}</p></div>
+              <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
+            </div>
+          )}
         </div>
-      )}
-
-      <div className="ck-terms" onClick={() => setAgreed(a => !a)}>
-        <div className={`ck-terms-box${agreed ? " on" : ""}`} />
-        <span className="ck-terms-txt">
-          {t("checkout.terms_agree")} <a href="/terms" style={{ color: "#7A9E7E" }}>{t("checkout.terms_link1")}</a>{" "}
-          {t("checkout.terms_and")} <a href="/privacy" style={{ color: "#7A9E7E" }}>{t("checkout.terms_link2")}</a>{" "}
-          {t("checkout.terms_end")}
-        </span>
+        {payMethod === "card" && (
+          <div className="ck-info">
+            <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 2 }}>
+              <path d="M10 2L3 6v5c0 4.4 3 8.5 7 9.5 4-1 7-5.1 7-9.5V6L10 2z" stroke="#2E6B32" strokeWidth="1.4"/>
+              <path d="M7 10l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="ck-info-txt">
+              Ödəniş <strong>Stripe</strong> vasitəsilə emal olunur. Kart məlumatlarınız heç vaxt serverimizə göndərilmir. Hazırda <strong>test rejimindədir</strong> — pul çıxılmır.
+            </span>
+          </div>
+        )}
+        {apiError && <div className="ck-alert"><span style={{ color: "#C0392B", fontSize: 16, flexShrink: 0 }}>⚠</span><span className="ck-alert-txt">{apiError}</span></div>}
+        <div className="ck-terms" onClick={() => setAgreed(a => !a)}>
+          <div className={`ck-terms-box${agreed ? " on" : ""}`} />
+          <span className="ck-terms-txt">
+            {t("checkout.terms_agree")} <a href="/terms" style={{ color: "#7A9E7E" }}>{t("checkout.terms_link1")}</a>{" "}
+            {t("checkout.terms_and")} <a href="/privacy" style={{ color: "#7A9E7E" }}>{t("checkout.terms_link2")}</a>{" "}
+            {t("checkout.terms_end")}
+          </span>
+        </div>
+        <div className="ck-actions">
+          <button className="ck-btn ck-btn-b" onClick={onBack} disabled={placing || payProcessing}>{t("checkout.back")}</button>
+          <button
+            className={`ck-btn ${payMethod === "card" ? "ck-btn-stripe" : "ck-btn-p"}`}
+            style={{ flex: 1, margin: 0 }}
+            disabled={!agreed || placing || payProcessing}
+            onClick={onPlace}
+          >
+            {placing || payProcessing
+              ? <><span className="ck-spin" />{payMethod === "card" ? "Stripe emal edir..." : t("checkout.placing")}</>
+              : payMethod === "card"
+              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Stripe ilə ödə — {fmt(totalAmt)}</>
+              : t("checkout.place_order")}
+          </button>
+        </div>
       </div>
-
-      <div className="ck-actions">
-        <button className="ck-btn ck-btn-b" onClick={onBack} disabled={placing}>{t("checkout.back")}</button>
-        <button className="ck-btn ck-btn-p" style={{ flex: 1, margin: 0 }} disabled={!agreed || placing} onClick={onPlace}>
-          {placing ? <><span className="ck-spin" />{t("checkout.placing")}</> : t("checkout.place_order")}
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 
-// ══════════════════════════════════════════════════════════
-// MAIN
-// ══════════════════════════════════════════════════════════
-export default function CheckoutPage() {
+// ── ƏSAS KOMPONENT (Stripe hook-ları buraya) ──────────────────────────────
+function CheckoutInner() {
   const navigate  = useNavigate();
   const dispatch  = useDispatch();
   const { t }     = useTranslation();
+  const stripe    = useStripe();
+  const elements  = useElements();
   const authUser  = useSelector(s => s.auth.user);
   const cartItems = useSelector(s => s.cart.items);
 
-  const [step,     setStep]     = useState(0);
-  const [placing,  setPlacing]  = useState(false);
-  const [done,     setDone]     = useState(false);
-  const [orderId,  setOrderId]  = useState(null);
-  const [apiError, setApiError] = useState(null);
-  const [errors,   setErrors]   = useState({});
+  const [step,          setStep]          = useState(0);
+  const [placing,       setPlacing]       = useState(false);
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [done,          setDone]          = useState(false);
+  const [orderId,       setOrderId]       = useState(null);
+  const [apiError,      setApiError]      = useState(null);
+  const [errors,        setErrors]        = useState({});
+  const [cardholderName, setCardholderName] = useState("");
+  const [nameError,     setNameError]     = useState(null);
 
   useEffect(() => { if (cartItems.length === 0 && !done) navigate("/cart"); }, [cartItems, done]);
 
@@ -593,45 +729,59 @@ export default function CheckoutPage() {
     email: authUser?.email || "",
   });
   const [addrData, setAddrData] = useState({
-    city: "Bak\u0131", district: "", street: "", house: "", apartment: "",
+    city: "Bakı", district: "", street: "", house: "", apartment: "",
     floor: 0, hasElevator: false, removeOldFurniture: false,
     deliveryType: DeliveryType.DoorDelivery, note: "",
     isCustomOrder: false, customColor: "", customSize: "", customDescription: "",
   });
-  const [payMethod, setPayMethod] = useState("cash");
+  const [payMethod, setPayMethod] = useState("card");
   const [creditSel, setCreditSel] = useState(null);
-  const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
 
-  const next = () => {
-    setApiError(null);
-    setErrors({});
-    setStep(s => s + 1);
-  };
+  const subtotal = cartItems.reduce((s, it) => s + (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity, 0);
+  const shipping = subtotal >= FREE_SHIPPING ? 0 : 15;
+  const totalAmt = subtotal + shipping;
+
+  const next = () => { setApiError(null); setErrors({}); setStep(s => s + 1); };
 
   const placeOrder = async () => {
-    setPlacing(true); setApiError(null);
+    // Kart adı yoxlaması
+    if (payMethod === "card" && !cardholderName.trim()) {
+      setNameError("Kart sahibinin adını daxil edin");
+      setStep(2);
+      return;
+    }
+    setNameError(null);
+
+    if (!stripe || !elements) {
+      setApiError("Stripe yüklənmədi. Səhifəni yeniləyin.");
+      return;
+    }
+
+    setPlacing(true);
+    setApiError(null);
+
     try {
-      const pm = payMethod === "cash" ? PaymentMethod.CashOnDelivery : PaymentMethod.Installment;
+      // 1) Sifariş yarat
+      const pm = payMethod === "card" ? PaymentMethod.Card
+               : payMethod === "cash" ? PaymentMethod.CashOnDelivery
+               : PaymentMethod.Installment;
 
       const customParts = [
-        addrData.customColor ? `R\u0259ng: ${addrData.customColor}` : null,
-        addrData.customSize ? `Ölçü: ${addrData.customSize}` : null,
+        addrData.customColor ? `Rəng: ${addrData.customColor}` : null,
+        addrData.customSize  ? `Ölçü: ${addrData.customSize}`  : null,
         addrData.customDescription || null,
       ].filter(Boolean);
 
       const addrNote = [
         `${addrData.city}, ${addrData.district} r., ${addrData.street}`,
-        addrData.house ? `ev ${addrData.house}` : null,
-        addrData.apartment ? `m\u0259nzil ${addrData.apartment}` : null,
-        addrData.floor > 0 ? `${addrData.floor}-ci m\u0259rt\u0259b\u0259` : null,
-        addrData.hasElevator ? "Lift var" : null,
-        addrData.removeOldFurniture ? "Köhn\u0259 mebeli aparsinlar" : null,
-        `M\xfc\u015ft\u0259ri: ${userData.name} / ${userData.phone}`,
+        addrData.house        ? `ev ${addrData.house}`            : null,
+        addrData.apartment    ? `mənzil ${addrData.apartment}`    : null,
+        addrData.floor > 0    ? `${addrData.floor}-ci mərtəbə`    : null,
+        addrData.hasElevator  ? "Lift var"                         : null,
+        addrData.removeOldFurniture ? "Köhnə mebeli aparsınlar"  : null,
+        `Müştəri: ${userData.name} / ${userData.phone}`,
         addrData.note || null,
       ].filter(Boolean).join("; ");
-
-      const installmentMonths = payMethod === "credit" && creditSel ? creditSel.months : null;
-      const monthlyPayment    = payMethod === "credit" && creditSel ? Math.round(creditSel.result.monthly * 100) / 100 : null;
 
       const payload = {
         type: addrData.isCustomOrder ? OrderType.Custom : OrderType.Standard,
@@ -639,9 +789,9 @@ export default function CheckoutPage() {
         note: addrNote,
         isCustomOrder: addrData.isCustomOrder,
         customDescription: customParts.join(" | ") || null,
-        paidAmount: null,
-        installmentMonths,
-        monthlyPayment,
+        paidAmount: payMethod === "card" ? totalAmt : null,
+        installmentMonths: payMethod === "credit" && creditSel ? creditSel.months : null,
+        monthlyPayment:    payMethod === "credit" && creditSel ? Math.round(creditSel.result.monthly * 100) / 100 : null,
         deliveryInfo: {
           deliveryType:       addrData.deliveryType,
           floor:              parseInt(addrData.floor) || 0,
@@ -650,25 +800,59 @@ export default function CheckoutPage() {
           deliveryNote:       addrData.note || null,
         },
         items: cartItems.map(it => ({
-          productId:    it.productId    || null,
-          collectionId: it.collectionId || null,
-          selectedColor: it.selectedColor || null,
-          selectedSize:  it.selectedSize  || null,
-          quantity:     it.quantity,
+          productId:         it.productId    || null,
+          collectionId:      it.collectionId || null,
+          selectedColor:     it.selectedColor || null,
+          selectedSize:      it.selectedSize  || null,
+          quantity:          it.quantity,
           customDescription: customParts.join(" | ") || "",
         })),
       };
 
-      const data = await orderApi.create(payload);
-      const id = data?.id ?? data?.data?.id;
-      setOrderId(id);
+      const orderData  = await orderApi.create(payload);
+      const newOrderId = orderData?.id ?? orderData?.data?.id;
+      setOrderId(newOrderId);
+
+      // 2) Kart ödənişi → Stripe PaymentIntent
+      if (payMethod === "card") {
+        setPayProcessing(true);
+
+        // Backend-dən clientSecret al
+        const intentData = await paymentApi.createIntent(newOrderId);
+
+        // Stripe ilə kartı charge et
+        const cardElement = elements.getElement(CardNumberElement);
+        const { error: stripeError } = await stripe.confirmCardPayment(intentData.clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name:  cardholderName,
+              email: userData.email,
+              phone: userData.phone,
+            },
+          },
+        });
+
+        if (stripeError) {
+          // Stripe xətası — ödəniş uğursuz
+          setApiError(stripeError.message || "Ödəniş uğursuz oldu. Kart məlumatlarını yoxlayın.");
+          setPayProcessing(false);
+          setPlacing(false);
+          return;
+        }
+        // Uğurlu — webhook backend-i avtomatik notify edəcək (PaymentStatus→Paid)
+        setPayProcessing(false);
+      }
 
       dispatch(clearCart());
       setDone(true);
+
     } catch (err) {
+      setPayProcessing(false);
       setApiError(err?.userMessage || t("checkout.err_api"));
     } finally {
       setPlacing(false);
+      setPayProcessing(false);
     }
   };
 
@@ -679,18 +863,7 @@ export default function CheckoutPage() {
       <style>{CSS}</style>
       <div className="ck">
         <Navbar />
-
-        {done && (
-          <SuccessPopup
-            orderId={orderId}
-            userName={userData.name}
-            userPhone={userData.phone}
-            onGoOrders={() => navigate("/profile")}
-            onGoShopping={() => navigate("/categories")}
-            t={t}
-          />
-        )}
-
+        {done && <SuccessPopup orderId={orderId} payMethod={payMethod} onGoOrders={() => navigate("/profile")} onGoShopping={() => navigate("/categories")} t={t} />}
         <div className="ck-prog">
           {STEPS.map((s, i) => (
             <div key={i} className={`ck-st${step === i ? " active" : ""}${step > i ? " done" : ""}`}>
@@ -704,17 +877,24 @@ export default function CheckoutPage() {
             </div>
           ))}
         </div>
-
         <div className="ck-body">
           <div>
             {step === 0 && <StepUser data={userData} errors={errors} onChange={(k, v) => setUserData(p => ({ ...p, [k]: v }))} onNext={next} user={authUser} t={t} />}
             {step === 1 && <StepAddress data={addrData} errors={errors} onChange={(k, v) => setAddrData(p => ({ ...p, [k]: v }))} onNext={next} onBack={() => setStep(0)} cartItems={cartItems} t={t} />}
-            {step === 2 && <StepPayment subtotal={subtotal} payMethod={payMethod} setPayMethod={setPayMethod} creditSel={creditSel} setCreditSel={setCreditSel} errors={errors} onNext={next} onBack={() => setStep(1)} t={t} />}
-            {step === 3 && <StepConfirm userData={userData} addrData={addrData} payMethod={payMethod} creditSel={creditSel} subtotal={subtotal} placing={placing} apiError={apiError} onPlace={placeOrder} onBack={() => setStep(2)} t={t} />}
+            {step === 2 && <StepPayment subtotal={subtotal} payMethod={payMethod} setPayMethod={setPayMethod} creditSel={creditSel} setCreditSel={setCreditSel} cardholderName={cardholderName} onNameChange={setCardholderName} nameError={nameError} errors={errors} onNext={next} onBack={() => setStep(1)} t={t} />}
+            {step === 3 && <StepConfirm userData={userData} addrData={addrData} payMethod={payMethod} creditSel={creditSel} cardholderName={cardholderName} totalAmt={totalAmt} placing={placing} payProcessing={payProcessing} apiError={apiError} onPlace={placeOrder} onBack={() => setStep(2)} t={t} />}
           </div>
           <OrderSummary cartItems={cartItems} payMethod={payMethod} creditSel={creditSel} t={t} />
         </div>
       </div>
     </>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Elements stripe={stripePromise} options={{ locale: "az" }}>
+      <CheckoutInner />
+    </Elements>
   );
 }

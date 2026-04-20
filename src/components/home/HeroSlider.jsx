@@ -49,7 +49,12 @@ export default function HeroSlider({ slides = [], t }) {
         <h1 className="hp-h1">{slides[current]?.heading}</h1>
         <p className="hp-sub">{slides[current]?.subheading}</p>
         <div className="hp-cta-row">
-          <Link to="/shop"  className="btn-dark">{t("hero.cta_primary")} →</Link>
+          <Link
+            to={slides[current]?.collectionId ? `/collection-detail/${slides[current].collectionId}` : "/collections"}
+            className="btn-dark"
+          >
+            {t("hero.cta_primary")} →
+          </Link>
           <Link to="/about" className="btn-ghost">{t("hero.cta_secondary")}</Link>
         </div>
       </div>

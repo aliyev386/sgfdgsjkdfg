@@ -3,10 +3,17 @@ import axiosInstance from "./axiosInstance";
 const unwrap = (r) => r.data?.data ?? r.data;
 
 const paymentApi = {
-  initiate: (orderId) =>
-    axiosInstance.post("/payments/initiate", { orderId }).then(unwrap),
-  verify: (payload) =>
-    axiosInstance.post("/payments/verify", payload).then(unwrap),
+
+  createIntent: (orderId) =>
+    axiosInstance.post(`/payments/${orderId}/create-intent`).then(unwrap),
+
+ markPaid:   (orderId) =>
+    axiosInstance.post(`/payments/${orderId}/mark-paid`).then(unwrap),
+
+  markFailed: (orderId) =>
+    axiosInstance.post(`/payments/${orderId}/mark-failed`).then(unwrap),
 };
 
 export default paymentApi;
+
+

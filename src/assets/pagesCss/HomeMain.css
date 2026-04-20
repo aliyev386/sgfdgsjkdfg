@@ -191,7 +191,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 900px;
 }
 
 .rst-content {
@@ -699,11 +698,10 @@
 .rst-inner {
   display: flex;
   align-items: center;
-  gap: 80px;
-  max-width: 1200px;
   margin: 0 auto;
   position: relative;
   z-index: 2;
+  gap:60px;
 }
 
 .rst-visual {
