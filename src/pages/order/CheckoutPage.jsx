@@ -239,16 +239,25 @@ function Field({ label, req, name, value, onChange, error, type = "text", placeh
 }
 
 // ── Real Stripe Elements kart formu ──────────────────────────────────────
-function StripeCardForm({ cardholderName, onNameChange, nameError }) {
+function StripeCardForm({ cardholderName, onNameChange, nameError, onCardChange }) {
+  const { t } = useTranslation();
   const [focus, setFocus] = useState({});
   const [elError, setElError] = useState({});
+  const [elComplete, setElComplete] = useState({ number: false, expiry: false, cvc: false });
 
   const elProps = (key) => ({
     options: { style: STRIPE_ELEMENT_STYLE },
     className: `s-el-box${focus[key] ? " focused" : ""}${elError[key] ? " invalid" : ""}`,
     onFocus:  () => setFocus(p => ({ ...p, [key]: true })),
     onBlur:   () => setFocus(p => ({ ...p, [key]: false })),
-    onChange:  (e) => setElError(p => ({ ...p, [key]: e.error?.message || null })),
+    onChange:  (e) => {
+      setElError(p => ({ ...p, [key]: e.error?.message || null }));
+      setElComplete(p => {
+        const next = { ...p, [key]: e.complete };
+        onCardChange?.(next);
+        return next;
+      });
+    },
   });
 
   return (
@@ -257,24 +266,22 @@ function StripeCardForm({ cardholderName, onNameChange, nameError }) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#635bff" strokeWidth="2.2">
           <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        Kart məlumatları — Stripe ilə qorunur
+        {t("checkout.stripe_card_header")}
       </div>
 
-      {/* Kart nömrəsi - real Stripe Element */}
       <div className="s-el-field">
-        <label className="s-el-lbl">Kart nömrəsi *</label>
+        <label className="s-el-lbl">{t("checkout.stripe_card_number")} *</label>
         <CardNumberElement {...elProps("number")} />
         {elError.number && <span className="ck-err">{elError.number}</span>}
       </div>
 
-      {/* Kart sahibi adı - adi input */}
       <div className="s-el-field" style={{ marginTop: 14 }}>
-        <label className="s-el-lbl">Kart sahibinin adı *</label>
+        <label className="s-el-lbl">{t("checkout.stripe_card_holder")} *</label>
         <input
           className={`ck-input${nameError ? " err" : ""}`}
           style={{ borderRadius: 6, background: "#fff", border: "1.5px solid #E0D9D2" }}
           type="text"
-          placeholder="AD SOYAD"
+          placeholder={t("checkout.stripe_card_holder_ph")}
           value={cardholderName}
           onChange={e => onNameChange(e.target.value.toUpperCase())}
           autoComplete="cc-name"
@@ -284,44 +291,41 @@ function StripeCardForm({ cardholderName, onNameChange, nameError }) {
 
       <div className="s-el-row">
         <div className="s-el-field">
-          <label className="s-el-lbl">Son istifadə tarixi *</label>
+          <label className="s-el-lbl">{t("checkout.stripe_expiry")} *</label>
           <CardExpiryElement {...elProps("expiry")} />
           {elError.expiry && <span className="ck-err">{elError.expiry}</span>}
         </div>
         <div className="s-el-field">
-          <label className="s-el-lbl">CVV / CVC *</label>
+          <label className="s-el-lbl">{t("checkout.stripe_cvc")} *</label>
           <CardCvcElement {...elProps("cvc")} />
           {elError.cvc && <span className="ck-err">{elError.cvc}</span>}
         </div>
       </div>
 
-      {/* Kart markalar */}
       <div className="s-brands">
-        <span style={{ fontSize: 10, color: "#9ca3af", letterSpacing: 1, textTransform: "uppercase" }}>Qəbul:</span>
+        <span style={{ fontSize: 10, color: "#9ca3af", letterSpacing: 1, textTransform: "uppercase" }}>{t("checkout.stripe_accept")}</span>
         {[["visa","VISA"],["mc","MC"],["amex","AMEX"],["unionpay","UP"]].map(([id,lbl]) => (
           <span key={id} className={`s-brand ${id}`}>{lbl}</span>
         ))}
       </div>
 
-      {/* Test kart göstəricisi */}
       <div className="s-test-hint">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3730a3" strokeWidth="1.8" style={{ flexShrink: 0, marginTop: 2 }}>
           <circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2" strokeLinecap="round"/>
         </svg>
         <div className="s-test-hint-txt">
-          <strong>Test rejimi — pul çıxılmır</strong>
-          Test kartı: <strong>4242 4242 4242 4242</strong> | Tarix: <strong>12/34</strong> | CVC: <strong>123</strong>
+          <strong>{t("checkout.stripe_test_title")}</strong>
+          {t("checkout.stripe_test_card_hint")}
         </div>
       </div>
 
-      {/* Güvənlik nişanı */}
       <div className="s-secure">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         <span className="s-secure-txt">
-          <strong>256-bit SSL + Stripe PCI DSS</strong> — Kart məlumatlarınız serverimizə göndərilmir.
+          <strong>256-bit SSL + Stripe PCI DSS</strong> — {t("checkout.stripe_secure_text")}
         </span>
       </div>
     </div>
@@ -329,15 +333,16 @@ function StripeCardForm({ cardholderName, onNameChange, nameError }) {
 }
 
 function PayOverlay() {
+  const { t } = useTranslation();
   return (
     <div className="pay-ov">
       <div className="pay-box">
         <div className="pay-spinner" />
-        <h3 className="pay-title">Ödəniş emal edilir</h3>
+        <h3 className="pay-title">{t("checkout.pay_processing")}</h3>
         <p className="pay-desc">
-          Stripe vasitəsilə ödənişiniz işlənir
+          {t("checkout.pay_processing_desc")}
           <span className="pay-dots"><span>.</span><span>.</span><span>.</span></span>
-          <br/>Səhifəni bağlamayın
+          <br/>{t("checkout.pay_dont_close")}
         </p>
       </div>
     </div>
@@ -345,6 +350,11 @@ function PayOverlay() {
 }
 
 function SuccessPopup({ orderId, payMethod, onGoOrders, onGoShopping, t }) {
+  const [sec, setSec] = useState(3);
+  useEffect(() => {
+    const id = setInterval(() => setSec(s => s - 1), 1000);
+    return () => clearInterval(id);
+  }, []);
   return (
     <>
       <div className="ck-overlay" />
@@ -360,17 +370,21 @@ function SuccessPopup({ orderId, payMethod, onGoOrders, onGoShopping, t }) {
         <p className="ck-popup-desc">
           {t("checkout.success_registered")}<br/><br/>
           {payMethod === "card"
-            ? "Stripe vasitəsilə ödənişiniz uğurla qəbul edildi. Sifariş təsdiqi e-poçtunuza göndərildi."
+            ? t("checkout.success_card_msg")
             : payMethod === "cash"
-            ? "Ödənişi çatdırılma zamanı nağd edəcəksiniz."
-            : "Kredit sifarişiniz qəbul edildi."}
+            ? t("checkout.success_cash_msg")
+            : t("checkout.success_credit_msg")}
+          <br/><br/>
+          <span style={{ fontSize: 12, color: "#9ca3af" }}>
+            {sec > 0 ? `${sec} saniyə sonra ana səhifəyə yönləndiriləcəksiniz...` : "Yönləndirilir..."}
+          </span>
         </p>
         {orderId && <div className="ck-popup-box">{t("checkout.success_order_id")}: <strong>#{orderId}</strong></div>}
         <div className="ck-popup-facts">
           {[
-            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="2"><path d="M5 12l5 5 9-9" strokeLinecap="round" strokeLinejoin="round"/></svg>, lbl: "Status", val: "Qəbul edildi" },
-            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>, lbl: "Çatdırılma", val: "Razılaşdırılacaq" },
-            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>, lbl: "E-poçt", val: "Göndərildi" },
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="2"><path d="M5 12l5 5 9-9" strokeLinecap="round" strokeLinejoin="round"/></svg>, lbl: t("checkout.success_status_label"), val: t("checkout.success_status_val") },
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>, lbl: t("checkout.success_delivery_label"), val: t("checkout.success_delivery_val") },
+            { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E6B32" strokeWidth="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>, lbl: t("checkout.success_email_label"), val: t("checkout.success_email_val") },
           ].map((f, i) => (
             <div key={i} className="ck-popup-fact">
               <div className="ck-popup-fact-icon">{f.icon}</div>
@@ -514,10 +528,6 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
         </div>
         {errors.deliveryType && <span className="ck-err">{errors.deliveryType}</span>}
       </div>
-      <div className="ck-info">
-        <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="10" cy="10" r="8" stroke="#2E6B32" strokeWidth="1.5"/><path d="M10 6v5l3 2" stroke="#2E6B32" strokeWidth="1.4" strokeLinecap="round"/></svg>
-        <span className="ck-info-txt"><strong>{t("checkout.delivery_time_note")}</strong> — {t("checkout.delivery_time_desc")}</span>
-      </div>
       <Field label={t("checkout.driver_note")} name="note" value={data.note} onChange={onChange} placeholder={t("checkout.driver_note_ph")} as="textarea" />
       {hasProducts && (
         <>
@@ -557,9 +567,9 @@ function StepAddress({ data, errors, onChange, onNext, onBack, cartItems, t }) {
   );
 }
 
-function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSel, cardholderName, onNameChange, nameError, errors, onNext, onBack, t }) {
+function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSel, cardholderName, onNameChange, nameError, onCardChange, errors, onNext, onBack, t }) {
   const METHODS = [
-    { id: "card",   name: "Kartla ödəniş",        desc: "Visa / Mastercard — Stripe", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M11 15h4" strokeLinecap="round"/></svg> },
+    { id: "card",   name: t("checkout.pay_card"),       desc: t("checkout.pay_card_stripe_desc"), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M11 15h4" strokeLinecap="round"/></svg> },
     { id: "cash",   name: t("checkout.pay_cash"),  desc: t("checkout.pay_cash_desc"), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> },
     { id: "credit", name: t("checkout.pay_credit"),desc: t("checkout.pay_credit_desc"), icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> },
   ];
@@ -580,7 +590,7 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
 
         {payMethod === "card" && (
           <div style={{ animation: "ckFU .3s ease" }}>
-            <StripeCardForm cardholderName={cardholderName} onNameChange={onNameChange} nameError={nameError} />
+            <StripeCardForm cardholderName={cardholderName} onNameChange={onNameChange} nameError={nameError} onCardChange={onCardChange} />
           </div>
         )}
         {payMethod === "cash" && (
@@ -617,7 +627,7 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
 function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName, totalAmt, onPlace, onBack, placing, payProcessing, apiError, t }) {
   const [agreed, setAgreed] = useState(false);
   const payLabel = payMethod === "card"
-    ? "Kartla ödəniş — Stripe"
+    ? t("checkout.confirm_pay_card")
     : payMethod === "cash" ? t("checkout.pay_cash")
     : creditSel ? `${creditSel.bank.name} · ${creditSel.months} ${t("checkout.credit_month_unit")} · ₼${creditSel.result.monthly.toFixed(2)}/${t("checkout.credit_month_unit")}`
     : t("checkout.pay_credit");
@@ -668,7 +678,7 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName,
               <path d="M7 10l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="ck-info-txt">
-              Ödəniş <strong>Stripe</strong> vasitəsilə emal olunur. Kart məlumatlarınız heç vaxt serverimizə göndərilmir. Hazırda <strong>test rejimindədir</strong> — pul çıxılmır.
+              {t("checkout.confirm_stripe_info")}
             </span>
           </div>
         )}
@@ -690,9 +700,9 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName,
             onClick={onPlace}
           >
             {placing || payProcessing
-              ? <><span className="ck-spin" />{payMethod === "card" ? "Stripe emal edir..." : t("checkout.placing")}</>
+              ? <><span className="ck-spin" />{payMethod === "card" ? t("checkout.stripe_processing_btn") : t("checkout.placing")}</>
               : payMethod === "card"
-              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Stripe ilə ödə — {fmt(totalAmt)}</>
+              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>{t("checkout.stripe_pay_btn")} — {fmt(totalAmt)}</>
               : t("checkout.place_order")}
           </button>
         </div>
@@ -720,8 +730,10 @@ function CheckoutInner() {
   const [errors,        setErrors]        = useState({});
   const [cardholderName, setCardholderName] = useState("");
   const [nameError,     setNameError]     = useState(null);
+  const [cardComplete,  setCardComplete]  = useState({ number: false, expiry: false, cvc: false });
 
   useEffect(() => { if (cartItems.length === 0 && !done) navigate("/cart"); }, [cartItems, done]);
+  useEffect(() => { if (done) { const id = setTimeout(() => navigate("/"), 3000); return () => clearTimeout(id); } }, [done]);
 
   const [userData, setUserData] = useState({
     name:  authUser ? `${authUser.name || ""} ${authUser.surname || ""}`.trim() : "",
@@ -743,17 +755,37 @@ function CheckoutInner() {
 
   const next = () => { setApiError(null); setErrors({}); setStep(s => s + 1); };
 
+  const nextPayment = () => {
+    if (payMethod === "card") {
+      const errs = {};
+      if (!cardholderName.trim()) setNameError(t("checkout.err_cardholder"));
+      const allElComplete = cardComplete.number && cardComplete.expiry && cardComplete.cvc;
+      if (!cardholderName.trim() || !allElComplete) {
+        errs.payment = t("checkout.err_card_incomplete");
+        setErrors(errs);
+        return;
+      }
+    }
+    if (payMethod === "credit" && !creditSel) {
+      setErrors({ payment: t("checkout.err_credit") });
+      return;
+    }
+    setApiError(null);
+    setErrors({});
+    setStep(3);
+  };
+
   const placeOrder = async () => {
     // Kart adı yoxlaması
     if (payMethod === "card" && !cardholderName.trim()) {
-      setNameError("Kart sahibinin adını daxil edin");
+      setNameError(t("checkout.err_cardholder"));
       setStep(2);
       return;
     }
     setNameError(null);
 
     if (!stripe || !elements) {
-      setApiError("Stripe yüklənmədi. Səhifəni yeniləyin.");
+      setApiError(t("checkout.err_stripe_load"));
       return;
     }
 
@@ -835,7 +867,7 @@ function CheckoutInner() {
 
         if (stripeError) {
           // Stripe xətası — ödəniş uğursuz
-          setApiError(stripeError.message || "Ödəniş uğursuz oldu. Kart məlumatlarını yoxlayın.");
+          setApiError(stripeError.message || t("checkout.err_payment_failed"));
           setPayProcessing(false);
           setPlacing(false);
           return;
@@ -881,7 +913,7 @@ function CheckoutInner() {
           <div>
             {step === 0 && <StepUser data={userData} errors={errors} onChange={(k, v) => setUserData(p => ({ ...p, [k]: v }))} onNext={next} user={authUser} t={t} />}
             {step === 1 && <StepAddress data={addrData} errors={errors} onChange={(k, v) => setAddrData(p => ({ ...p, [k]: v }))} onNext={next} onBack={() => setStep(0)} cartItems={cartItems} t={t} />}
-            {step === 2 && <StepPayment subtotal={subtotal} payMethod={payMethod} setPayMethod={setPayMethod} creditSel={creditSel} setCreditSel={setCreditSel} cardholderName={cardholderName} onNameChange={setCardholderName} nameError={nameError} errors={errors} onNext={next} onBack={() => setStep(1)} t={t} />}
+            {step === 2 && <StepPayment subtotal={subtotal} payMethod={payMethod} setPayMethod={setPayMethod} creditSel={creditSel} setCreditSel={setCreditSel} cardholderName={cardholderName} onNameChange={setCardholderName} nameError={nameError} onCardChange={setCardComplete} errors={errors} onNext={nextPayment} onBack={() => setStep(1)} t={t} />}
             {step === 3 && <StepConfirm userData={userData} addrData={addrData} payMethod={payMethod} creditSel={creditSel} cardholderName={cardholderName} totalAmt={totalAmt} placing={placing} payProcessing={payProcessing} apiError={apiError} onPlace={placeOrder} onBack={() => setStep(2)} t={t} />}
           </div>
           <OrderSummary cartItems={cartItems} payMethod={payMethod} creditSel={creditSel} t={t} />
