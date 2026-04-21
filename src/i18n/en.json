@@ -118,7 +118,8 @@
     "best_seller": "Best Seller",
     "out_of_stock": "Out of Stock",
     "add_to_cart": "Add to Cart",
-    "view_details": "View Details"
+    "view_details": "View Details",
+    "cancel": "Cancel"
   },
   "category_page": {
     "products_found": "products found",
@@ -299,7 +300,9 @@
     "step_confirm": "Confirm",
     "confirm_order": "Order Details",
     "agree_terms": "I agree to the terms",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "clear_confirm_title": "Clear cart?",
+    "clear_confirm_desc": "All items will be removed from your cart. This action cannot be undone."
   },
   "pdp": {
     "home": "Home",
@@ -379,7 +382,8 @@
     "banner_title": "Perfect Furniture",
     "banner_title_em": "For Every Room",
     "banner_btn_p": "Shop All Products",
-    "banner_btn_s": "Contact Us"
+    "banner_btn_s": "Contact Us",
+    "search_placeholder": "Search rooms..."
   },
   "rooms_coll": {
     "collections_for": "Collections for",
@@ -779,5 +783,10 @@
     "val3_desc": "Not standard sizes. We listen to you and design for you.",
     "val4_title": "Warranty",
     "val4_desc": "10-year structural warranty. If there's a problem — we solve it."
+  },
+  "cart_popup": {
+    "added": "Added to cart",
+    "continue": "Continue shopping",
+    "go_cart": "View cart"
   }
 }

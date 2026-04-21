@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import CreditCalculator, { calcCredit, AZ_BANKS } from "../../components/credit/CreditCalculator";
+import CreditCalculator, { calcCredit } from "../../components/credit/CreditCalculator";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
@@ -11,6 +11,7 @@ import cartApi    from "../../api/cartApi";
 import productApi from "../../api/productApi";
 import Navbar     from "../../components/common/Navbar";
 import Footer     from "../../components/common/Footer";
+import { fireCartAdded } from "../../components/common/CartAddedPopup";
 import "../../assets/pagesCss/ProductDetail.css";
 
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
@@ -266,9 +267,7 @@ export default function ProductDetailPage() {
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: qty });
       if (cart) dispatch(setCart(cart));
-      clearTimeout(toastTimer.current);
-      setToast(`${qty}× ${product.name} səbətə əlavə edildi`);
-      toastTimer.current = setTimeout(() => setToast(null), 2900);
+      fireCartAdded({ name: `${qty}× ${product.name}`, image: product.images?.[0]?.imageUrl || null, price: product.discountPrice ?? product.price });
     } catch {}
     setTimeout(() => setBusy(false), 1300);
   }, [product, qty, cartAdding, buyAdding, dispatch]);
@@ -320,7 +319,6 @@ export default function ProductDetailPage() {
 
   const save        = product.old_price ? product.old_price - product.price : 0;
   const discPct     = product.old_price ? Math.round((save / product.old_price) * 100) : 0;
-  const defaultBank = AZ_BANKS[0];
   const previewChips = [
     { months: 4,  val: (product.price * 0.8 / 4).toFixed(2),   badge: "0%", label: "4 ay" },
     { months: 12, val: calcCredit({ price: product.price, downPct: 20, months: 12, bankRate: defaultBank.rate12 }).monthly.toFixed(2), badge: null, label: "12 ay" },
@@ -765,13 +763,6 @@ export default function ProductDetailPage() {
           )}
         </div>
       )}
-      {toast && (
-        <div className="pdp-toast">
-          <span className="pdp-toast-check">✓</span>
-          <span><strong>{toast}</strong></span>
-        </div>
-      )}
-
       <Footer />
     </div>
   );

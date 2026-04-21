@@ -6,6 +6,78 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/CartPage.css";
 
+/* ── Səbəti Təmizlə Təsdiq Popup ── */
+function ClearConfirmModal({ onConfirm, onCancel, t }) {
+  return (
+    <>
+      <style>{`
+        .ccp-overlay {
+          position: fixed; inset: 0; z-index: 99998;
+          background: rgba(28,28,28,0.45);
+          display: flex; align-items: center; justify-content: center;
+          animation: ccpFade .2s ease;
+        }
+        @keyframes ccpFade { from{opacity:0} to{opacity:1} }
+        .ccp-box {
+          background: #fff; width: 100%; max-width: 420px;
+          margin: 16px; padding: 36px 32px 28px;
+          animation: ccpUp .25s cubic-bezier(0.22,1,0.36,1);
+          font-family: 'DM Sans', sans-serif;
+        }
+        @keyframes ccpUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+        .ccp-icon {
+          width: 52px; height: 52px; background: #FFF4F0;
+          border-radius: 50%; display: flex; align-items: center;
+          justify-content: center; margin: 0 auto 20px;
+        }
+        .ccp-icon svg { color: #D4714A; }
+        .ccp-title {
+          font-size: 18px; font-weight: 600; color: #1C1C1C;
+          text-align: center; margin-bottom: 10px;
+          font-family: 'Cormorant Garamond', serif;
+        }
+        .ccp-desc {
+          font-size: 13px; color: #6B6B6B;
+          text-align: center; line-height: 1.6; margin-bottom: 28px;
+        }
+        .ccp-actions { display: flex; gap: 10px; }
+        .ccp-btn {
+          flex: 1; padding: 13px 8px; border: none; cursor: pointer;
+          font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+          font-family: 'DM Sans', sans-serif; font-weight: 600;
+          transition: background .2s, color .2s;
+        }
+        .ccp-btn-cancel { background: #F5F1EC; color: #1C1C1C; }
+        .ccp-btn-cancel:hover { background: #EDE7DC; }
+        .ccp-btn-confirm { background: #1C1C1C; color: #fff; }
+        .ccp-btn-confirm:hover { background: #D4714A; }
+      `}</style>
+      <div className="ccp-overlay" onClick={onCancel}>
+        <div className="ccp-box" onClick={e => e.stopPropagation()}>
+          <div className="ccp-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+          </div>
+          <h2 className="ccp-title">{t("cart.clear_confirm_title", "Səbəti təmizlə?")}</h2>
+          <p className="ccp-desc">{t("cart.clear_confirm_desc", "Bütün məhsullar səbətdən silinəcək. Bu əməliyyat geri qaytarıla bilməz.")}</p>
+          <div className="ccp-actions">
+            <button className="ccp-btn ccp-btn-cancel" onClick={onCancel}>
+              {t("common.cancel", "Ləğv et")}
+            </button>
+            <button className="ccp-btn ccp-btn-confirm" onClick={onConfirm}>
+              {t("cart.clear_cart", "Səbəti təmizlə")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function Toast({ message, type = "info", onClose }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3200);
@@ -164,6 +236,7 @@ export default function CartPage() {
   const [error,      setError]      = useState(null);
   const [updating,   setUpdating]   = useState(new Set());
   const [toast,      setToast]      = useState(null);
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const fetchCart = useCallback(async () => {
     setLoading(true);
@@ -216,8 +289,12 @@ export default function CartPage() {
     }
   };
 
-  const handleClear = async () => {
-    if (!window.confirm(t("cart.clear_cart") + "?")) return;
+  const handleClear = () => {
+    setShowClearModal(true);
+  };
+
+  const handleClearConfirmed = async () => {
+    setShowClearModal(false);
     try {
       await cartApi.clear();
       setCart(prev => ({ ...prev, items: [] }));
@@ -343,6 +420,13 @@ export default function CartPage() {
       )}
     </div>
     <Footer />
+    {showClearModal && (
+      <ClearConfirmModal
+        t={t}
+        onConfirm={handleClearConfirmed}
+        onCancel={() => setShowClearModal(false)}
+      />
+    )}
     </>
   );
 }

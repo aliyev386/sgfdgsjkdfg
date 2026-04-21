@@ -118,7 +118,8 @@
     "best_seller": "Ən çox satan",
     "out_of_stock": "Stokda yoxdur",
     "add_to_cart": "Səbətə əlavə et",
-    "view_details": "Ətraflı bax"
+    "view_details": "Ətraflı bax",
+    "cancel": "Ləğv et"
   },
   "category_page": {
     "products_found": "məhsul tapıldı",
@@ -299,7 +300,9 @@
     "step_confirm": "Təsdiq",
     "confirm_order": "Sifariş təfsilatları",
     "agree_terms": "Şərtləri qəbul edirəm",
-    "processing": "İşlənir..."
+    "processing": "İşlənir...",
+    "clear_confirm_title": "Səbəti təmizlə?",
+    "clear_confirm_desc": "Bütün məhsullar səbətdən silinəcək. Bu əməliyyat geri qaytarıla bilməz."
   },
   "pdp": {
     "home": "Ana Səhifə",
@@ -379,7 +382,8 @@
     "banner_title": "Hər otaq üçün",
     "banner_title_em": "Mükəmməl Mebel",
     "banner_btn_p": "Bütün məhsullar",
-    "banner_btn_s": "Bizimlə əlaqə"
+    "banner_btn_s": "Bizimlə əlaqə",
+    "search_placeholder": "Otaq axtar..."
   },
   "rooms_coll": {
     "collections_for": "Kolleksiyalar",
@@ -779,5 +783,10 @@
     "val3_desc": "Standart ölçülər deyil. Sizi dinləyir, sizin üçün dizayn edirik.",
     "val4_title": "Zəmanət",
     "val4_desc": "10 illik konstruktiv zəmanət. Əgər problem varsa — biz həll edirik."
+  },
+  "cart_popup": {
+    "added": "Səbətə əlavə edildi",
+    "continue": "Alış-verişə davam et",
+    "go_cart": "Səbətə get"
   }
 }

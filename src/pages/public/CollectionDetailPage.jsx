@@ -11,6 +11,7 @@ import Navbar        from "../../components/common/Navbar";
 import Footer        from "../../components/common/Footer";
 import { useAuthModal } from "../../hooks/useAuthModal";
 import CreditCalculator from "../../components/credit/CreditCalculator";
+import { fireCartAdded } from "../../components/common/CartAddedPopup";
 import "../../assets/pagesCss/CollectionDetails.css";
 
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
@@ -133,10 +134,8 @@ export default function CollectionDetailPage() {
   const [lbOpen,      setLbOpen]     = useState(false);
   const [addingId,    setAddingId]   = useState(null);
   const [addingAll,   setAddingAll]  = useState(false);
-  const [toast,       setToast]      = useState(null);
   const [sortBy,      setSortBy]     = useState("default");
   const [creditOpen,  setCreditOpen] = useState(false);
-  const toastTimer = useRef(null);
 
   useEffect(() => {
     if (!collId) return;
@@ -196,15 +195,15 @@ export default function CollectionDetailPage() {
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
       if (cart) dispatch(setCart(cart));
-      clearTimeout(toastTimer.current);
-      setToast(product.name + " səbətə əlavə edildi");
-      toastTimer.current = setTimeout(() => setToast(null), 2900);
+      // Global popup
+      fireCartAdded({ name: product.name, image: product.image, price: product.price });
     } catch {}
     setTimeout(() => setAddingId(null), 1400);
   }, [addingId, isAuthenticated, openAuthModal, dispatch]);
 
   const handleAddAll = useCallback(async () => {
     if (addingAll || !coll) return;
+    if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingAll(true);
     try {
       const inStock = coll.products.filter(p => p.in_stock);
@@ -212,12 +211,15 @@ export default function CollectionDetailPage() {
         const cart = await cartApi.addItem({ productId: p.id, quantity: 1 });
         if (cart) dispatch(setCart(cart));
       }
-      clearTimeout(toastTimer.current);
-      setToast(`${inStock.length} məhsul səbətə əlavə edildi ✓`);
-      toastTimer.current = setTimeout(() => setToast(null), 3200);
+      // Dəsti bir yekun popup kimi göstər
+      fireCartAdded({
+        name:  coll.name,
+        image: coll.gallery[0] || null,
+        price: coll.discountPrice ?? coll.totalPrice,
+      });
     } catch {}
     setTimeout(() => setAddingAll(false), 1600);
-  }, [addingAll, coll, dispatch]);
+  }, [addingAll, coll, isAuthenticated, openAuthModal, dispatch]);
 
   const handleSaveCollection = useCallback(() => {
     if (!coll) return;
@@ -366,7 +368,7 @@ export default function CollectionDetailPage() {
               disabled={addingAll}
             >
               <IconCart/>
-              {addingAll ? "Əlavə edilir..." : "Hamısını səbətə at"}
+              {addingAll ? t("common.loading") : t("cdp.add_all_to_cart", "Hamısını səbətə at")}
             </button>
 
             <button
@@ -375,7 +377,7 @@ export default function CollectionDetailPage() {
               title={isCollSaved ? "Seçilmişlərdən çıxar" : "Seçilmişlərə əlavə et"}
             >
               <IconHeart filled={isCollSaved}/>
-              <span>{isCollSaved ? "Saxlanıldı" : "Saxla"}</span>
+              <span>{isCollSaved ? t("cdp.saved", "Saxlanıldı") : t("cdp.save", "Saxla")}</span>
             </button>
           </div>
           
@@ -390,8 +392,8 @@ export default function CollectionDetailPage() {
                   </svg>
                 </span>
                 <span className="cd-credit-toggle-text">
-                  Kredit kalkulyatoru
-                  <span className="cd-credit-toggle-sub">Aylıq ödənişi hesabla</span>
+                  {t("cdp.credit_calculator", "Kredit kalkulyatoru")}
+                  <span className="cd-credit-toggle-sub">{t("cdp.credit_sub", "Aylıq ödənişi hesabla")}</span>
                 </span>
                 <span className={`cd-credit-toggle-arrow${creditOpen ? " open" : ""}`}>
                   <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.4" width="16" height="16">
@@ -503,13 +505,6 @@ export default function CollectionDetailPage() {
           {coll.gallery.length > 1 && (
             <div className="cd-lb-counter">{activeImg + 1} / {coll.gallery.length}</div>
           )}
-        </div>
-      )}
-
-      {toast && (
-        <div className="cd-toast">
-          <span className="cd-toast-check">✓</span>
-          <span><strong>{toast}</strong></span>
         </div>
       )}
 

@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import AuthEventListener from './components/common/AuthEventListener'
 import AuthModal from './components/common/AuthModal'
 import { AuthModalProvider, useAuthModal } from './hooks/useAuthModal'
+import CartAddedPopup from './components/common/CartAddedPopup'
 
 function AppInner() {
   const { isOpen, tab, onSuccess, closeAuthModal } = useAuthModal();
@@ -31,6 +32,8 @@ function AppInner() {
         onClose={closeAuthModal}
         onSuccess={handleSuccess}
       />
+      {/* Global cart popup — bütün səhifələrdə görünür */}
+      <CartAddedPopup />
     </>
   );
 }

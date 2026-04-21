@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -44,6 +44,8 @@ export default function RoomsPage() {
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState(null);
   const [expanded, setExpanded] = useState(false);
+  const [search,   setSearch]   = useState("");
+  const searchRef = useRef(null);
 
   const fetchRooms = useCallback(() => {
     setLoading(true);
@@ -68,17 +70,28 @@ export default function RoomsPage() {
     window.scrollTo({ top: 0 });
   }, [fetchRooms]);
 
+  const handleReset = useCallback(() => {
+    setSearch(""); setExpanded(false);
+    searchRef.current?.focus();
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return allRooms;
+    const q = search.trim().toLowerCase();
+    return allRooms.filter(r => r.name?.toLowerCase().includes(q));
+  }, [allRooms, search]);
+
   const visibleRooms = useMemo(
-    () => (expanded ? allRooms : allRooms.slice(0, INITIAL_VISIBLE)).map((r, i) => ({
+    () => (expanded ? filtered : filtered.slice(0, INITIAL_VISIBLE)).map((r, i) => ({
       ...r,
       span:   SPANS[i % SPANS.length],
       accent: ACCENTS[i % ACCENTS.length],
     })),
-    [allRooms, expanded]
+    [filtered, expanded]
   );
 
-  const hiddenCount = allRooms.length - INITIAL_VISIBLE;
-  const showToggle  = allRooms.length > INITIAL_VISIBLE;
+  const hiddenCount = filtered.length - INITIAL_VISIBLE;
+  const showToggle  = filtered.length > INITIAL_VISIBLE;
 
   return (
     <div className="cp-page">
@@ -104,6 +117,29 @@ export default function RoomsPage() {
         </div>
       </div>
 
+      <div className="cp-toolbar">
+        <div className="cp-search-wrap">
+          <span className="cp-search-icon">⌕</span>
+          <input
+            ref={searchRef}
+            className="cp-search"
+            type="text"
+            placeholder={t("rooms_page.search_placeholder")}
+            value={search}
+            onChange={e => { setSearch(e.target.value); setExpanded(false); }}
+            autoComplete="off"
+          />
+          {search && (
+            <button className="cp-search-clear" onClick={() => setSearch("")}>✕</button>
+          )}
+        </div>
+        {search && (
+          <button className="cp-reset-btn" onClick={handleReset}>
+            × {t("cat_list.reset")}
+          </button>
+        )}
+      </div>
+
       <div className="cp-grid-wrap">
 
         {loading && (
@@ -120,10 +156,12 @@ export default function RoomsPage() {
           </div>
         )}
 
-        {!loading && !error && allRooms.length === 0 && (
+        {!loading && !error && filtered.length === 0 && (
           <div className="cp-empty">
             <span className="cp-empty-ic">🛋</span>
-            <h3>{t("rooms_coll.no_collections", "Kolleksiya tapılmadı")}</h3>
+            <h3>{t("cat_list.no_results")}</h3>
+            <p>{t("cat_list.no_results_hint")}</p>
+            <button onClick={handleReset}>{t("cat_list.reset")}</button>
           </div>
         )}
 
