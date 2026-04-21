@@ -321,8 +321,8 @@ export default function ProductDetailPage() {
   const discPct     = product.old_price ? Math.round((save / product.old_price) * 100) : 0;
   const previewChips = [
     { months: 4,  val: (product.price * 0.8 / 4).toFixed(2),   badge: "0%", label: "4 ay" },
-    { months: 12, val: calcCredit({ price: product.price, downPct: 20, months: 12, bankRate: defaultBank.rate12 }).monthly.toFixed(2), badge: null, label: "12 ay" },
-    { months: 24, val: calcCredit({ price: product.price, downPct: 20, months: 24, bankRate: defaultBank.rate24 }).monthly.toFixed(2), badge: null, label: "24 ay" },
+    { months: 12, val: calcCredit({ price: product.price, downPct: 20, months: 12, }).monthly.toFixed(2), badge: null, label: "12 ay" },
+    { months: 24, val: calcCredit({ price: product.price, downPct: 20, months: 24, }).monthly.toFixed(2), badge: null, label: "24 ay" },
   ];
 
   const hasSpecs = product.material || product.width || product.height || product.depth || product.weight;

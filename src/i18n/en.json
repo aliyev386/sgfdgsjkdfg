@@ -302,7 +302,7 @@
     "agree_terms": "I agree to the terms",
     "processing": "Processing...",
     "clear_confirm_title": "Clear cart?",
-    "clear_confirm_desc": "All items will be removed from your cart. This action cannot be undone."
+    "clear_confirm_desc": "All items in your cart will be removed. This action cannot be undone."
   },
   "pdp": {
     "home": "Home",

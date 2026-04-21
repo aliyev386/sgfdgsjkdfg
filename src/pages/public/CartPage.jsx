@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { selectLang } from "../../store/slices/langSlice";
 import cartApi from "../../api/cartApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
@@ -230,6 +232,7 @@ function CartSummary({ items, onCheckout, t }) {
 export default function CartPage() {
   const { t }     = useTranslation();
   const navigate  = useNavigate();
+  const lang      = useSelector(selectLang);
 
   const [cart,       setCart]       = useState(null);
   const [loading,    setLoading]    = useState(true);
@@ -249,7 +252,7 @@ export default function CartPage() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, lang]);
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
 

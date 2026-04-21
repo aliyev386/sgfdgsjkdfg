@@ -206,12 +206,8 @@ export default function CollectionDetailPage() {
     if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingAll(true);
     try {
-      const inStock = coll.products.filter(p => p.in_stock);
-      for (const p of inStock) {
-        const cart = await cartApi.addItem({ productId: p.id, quantity: 1 });
-        if (cart) dispatch(setCart(cart));
-      }
-      // Dəsti bir yekun popup kimi göstər
+      const cart = await cartApi.addItem({ collectionId: coll.id, quantity: 1 });
+      if (cart) dispatch(setCart(cart));
       fireCartAdded({
         name:  coll.name,
         image: coll.gallery[0] || null,

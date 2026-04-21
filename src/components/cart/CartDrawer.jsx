@@ -417,6 +417,7 @@ export default function CartDrawer({ isOpen, onClose }) {
   const [toast,    setToast]    = useState(null);
   const [closing,  setClosing]  = useState(false);
   const [checkout, setCheckout] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -593,7 +594,7 @@ export default function CartDrawer({ isOpen, onClose }) {
               })}
 
               {items.length > 0 && (
-                <button className="cd-clear-btn" onClick={handleClear}>
+                <button className="cd-clear-btn" onClick={() => setClearConfirm(true)}>
                   <svg viewBox="0 0 20 20" fill="none" width="13" height="13">
                     <path d="M4 5h12M8 5V3h4v2M6 5l1 12h6l1-12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -647,6 +648,47 @@ export default function CartDrawer({ isOpen, onClose }) {
       </div>
 
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+
+      {clearConfirm && (
+        <>
+          <div
+            style={{ position:"fixed", inset:0, background:"rgba(28,28,28,.5)", zIndex:9000, backdropFilter:"blur(4px)" }}
+            onClick={() => setClearConfirm(false)}
+          />
+          <div style={{
+            position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
+            background:"#fff", border:"1px solid #E5DDD4", padding:"40px 36px",
+            zIndex:9001, width:320, textAlign:"center",
+            fontFamily:"'DM Sans',sans-serif",
+          }}>
+            <div style={{ width:52, height:52, background:"#FDF0EF", borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="1.8" width="24" height="24">
+                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:22, fontWeight:300, margin:"0 0 10px", color:"#1C1C1C" }}>
+              {t("cart.clear_confirm_title", "Səbəti təmizlə?")}
+            </p>
+            <p style={{ fontSize:13, color:"#6B6B6B", lineHeight:1.6, margin:"0 0 28px" }}>
+              {t("cart.clear_confirm_desc", "Səbətdəki bütün məhsullar silinəcək. Bu əməliyyat geri qaytarıla bilməz.")}
+            </p>
+            <div style={{ display:"flex", gap:10 }}>
+              <button
+                onClick={() => setClearConfirm(false)}
+                style={{ flex:1, padding:"12px", border:"1.5px solid #E5DDD4", background:"#fff", cursor:"pointer", fontSize:11, letterSpacing:2, textTransform:"uppercase", fontFamily:"'DM Sans',sans-serif", color:"#6B6B6B" }}
+              >
+                {t("checkout.back", "← Geri")}
+              </button>
+              <button
+                onClick={() => { setClearConfirm(false); handleClear(); }}
+                style={{ flex:1, padding:"12px", border:"none", background:"#C0392B", color:"#fff", cursor:"pointer", fontSize:11, letterSpacing:2, textTransform:"uppercase", fontFamily:"'DM Sans',sans-serif" }}
+              >
+                {t("cart.clear_cart", "Təmizlə")}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

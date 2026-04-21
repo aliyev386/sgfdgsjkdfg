@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, updateUser, logoutAction } from "../../store/slices/authSlice";
+import { selectLang } from "../../store/slices/langSlice";
 import { removeFromWishlist } from "../../store/slices/wishlistStore";
 import { setCart } from "../../store/slices/cartSlice";
 import axiosInstance from "../../api/axiosInstance";
@@ -138,7 +139,7 @@ function PwStrength({ pw }) {
   );
 }
 
-function useOrders() {
+function useOrders(lang) {
   const [orders,  setOrders]  = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
@@ -155,7 +156,7 @@ function useOrders() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => { load(); }, [load]);
   return { orders, loading, error, reload: load };
@@ -962,12 +963,13 @@ export default function ProfilePage() {
   // Redux
   const user     = useSelector(s => s.auth.user);
   const wishlist = useSelector(s => s.wishlist.items);
+  const lang     = useSelector(selectLang);
 
   const [tab,   setTab]   = useState("overview");
   const [toast, setToast] = useState(null);
 
   // Orders from API
-  const { orders, loading: ordersLoading, error: ordersError, reload: reloadOrders } = useOrders();
+  const { orders, loading: ordersLoading, error: ordersError, reload: reloadOrders } = useOrders(lang);
 
   const showToast = (msg, ok) => setToast({msg, ok});
 
