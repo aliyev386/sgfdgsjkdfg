@@ -86,11 +86,11 @@
      letter-spacing: -1.5px;
      margin-bottom: 20px;
    }
-   .cp-hero-title em { font-style: italic; color: #5a865e; }
+   .cp-hero-title em { color: #5a865e; }
    
    .cp-hero-sub {
      font-size: 16px;
-     color: rgba(255,255,255,.5);
+     color: rgb(32, 32, 32);
      max-width: 420px;
      line-height: 1.7;
      font-weight: 300;
