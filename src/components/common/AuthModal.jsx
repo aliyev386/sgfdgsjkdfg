@@ -281,7 +281,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setLoginErrors(mapped);
       }
@@ -310,7 +310,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = "login", onSuc
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setRegErrors(mapped);
       }

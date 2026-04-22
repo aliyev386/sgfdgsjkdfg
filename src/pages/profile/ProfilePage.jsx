@@ -281,7 +281,7 @@ function ProfileTab({ user, showToast, t }) {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([k,v]) => {
-          mapped[k.toLowerCase()] = Array.isArray(v) ? v[0] : v;
+          mapped[k] = Array.isArray(v) ? v[0] : v;
         });
         setErrors(mapped);
       }
@@ -386,6 +386,7 @@ function SecurityTab({ showToast, t }) {
       await axiosInstance.put("/users/me/password", {
         currentPassword: form.current,
         newPassword:     form.newPw,
+        confirmNewPassword: form.confirmPw,
       });
       setForm({current:"",newPw:"",confirmPw:""});
       showToast(t("profile.pw_changed"), true);
@@ -393,7 +394,7 @@ function SecurityTab({ showToast, t }) {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([k,v]) => {
-          mapped[k.toLowerCase()] = Array.isArray(v) ? v[0] : v;
+          mapped[k] = Array.isArray(v) ? v[0] : v;
         });
         setErrors(mapped);
       } else {

@@ -1,23 +1,4 @@
-export const MOCK_SLIDES = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1800&q=85",
-    heading: "Timeless Furniture for Modern Living",
-    subheading: "Handcrafted pieces that blend artisan tradition with contemporary design.",
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1800&q=85",
-    heading: "Crafted With Purpose & Care",
-    subheading: "14 years of refined craftsmanship — pieces built to last a lifetime.",
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1800&q=85",
-    heading: "New Arrivals — Spring 2025",
-    subheading: "Discover our latest collection of sustainably sourced oak furniture.",
-  },
-];
+
 export const BADGE_COLORS = {
   best_seller: "#D4714A",
   new_in:      "#7A9E7E",

@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthModal } from "../../hooks/useAuthModal";
@@ -52,6 +53,7 @@ export default function FeaturedProductsSection({ products = [], categories = []
 
   const handleAddToCart = useCallback(async (product) => {
     if (addingId === product.id) return;
+    if (cartItems.some(i => i.productId === product.id)) return;
     if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingId(product.id);
     try {
@@ -145,15 +147,12 @@ export default function FeaturedProductsSection({ products = [], categories = []
         </div>
       )}
 
-      {toast && (
-        <div style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 9999,
-          background: "#1a3a2a", color: "#fff", borderRadius: 12,
-          padding: "12px 20px", fontWeight: 600, fontSize: 14,
-          boxShadow: "0 8px 32px rgba(0,0,0,.18)", animation: "hpFadeUp .3s ease both",
-        }}>
-          ✓ {toast} {t("fcp.added_to_cart")}
-        </div>
+      {toast && createPortal(
+        <div className="cd-toast">
+          <div className="cd-toast-check">✓</div>
+          {toast} — səbətə əlavə edildi
+        </div>,
+        document.body
       )}
     </>
   );

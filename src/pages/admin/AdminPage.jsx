@@ -776,7 +776,7 @@ const Products = ({ t, lang }) => {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setErrors(prev => ({ ...prev, ...mapped }));
       }
@@ -1011,7 +1011,7 @@ const Categories = ({ t, lang }) => {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setErrors(prev => ({ ...prev, ...mapped }));
       }

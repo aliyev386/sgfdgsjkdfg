@@ -11,7 +11,7 @@ import Navbar        from "../../components/common/Navbar";
 import Footer        from "../../components/common/Footer";
 import { useAuthModal } from "../../hooks/useAuthModal";
 import CreditCalculator from "../../components/credit/CreditCalculator";
-import { fireCartAdded } from "../../components/common/CartAddedPopup";
+
 import "../../assets/pagesCss/CollectionDetails.css";
 
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
@@ -136,6 +136,14 @@ export default function CollectionDetailPage() {
   const [addingAll,   setAddingAll]  = useState(false);
   const [sortBy,      setSortBy]     = useState("default");
   const [creditOpen,  setCreditOpen] = useState(false);
+  const [toast,       setToast]      = useState(null);
+  const toastTimer = useRef(null);
+
+  const showToast = useCallback((name) => {
+    clearTimeout(toastTimer.current);
+    setToast(name);
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
+  }, []);
 
   useEffect(() => {
     if (!collId) return;
@@ -190,32 +198,29 @@ export default function CollectionDetailPage() {
 
   const handleAdd = useCallback(async (product) => {
     if (addingId === product.id || !product.in_stock) return;
+    if (cartItems.some(i => i.productId === product.id)) return;
     if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingId(product.id);
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: 1 });
       if (cart) dispatch(setCart(cart));
-      // Global popup
-      fireCartAdded({ name: product.name, image: product.image, price: product.price });
+      showToast(product.name);
     } catch {}
     setTimeout(() => setAddingId(null), 1400);
-  }, [addingId, isAuthenticated, openAuthModal, dispatch]);
+  }, [addingId, cartItems, isAuthenticated, openAuthModal, dispatch, showToast]);
 
   const handleAddAll = useCallback(async () => {
     if (addingAll || !coll) return;
+    if (cartItems.some(i => i.collectionId === coll.id)) return;
     if (!isAuthenticated) { openAuthModal("login"); return; }
     setAddingAll(true);
     try {
       const cart = await cartApi.addItem({ collectionId: coll.id, quantity: 1 });
       if (cart) dispatch(setCart(cart));
-      fireCartAdded({
-        name:  coll.name,
-        image: coll.gallery[0] || null,
-        price: coll.discountPrice ?? coll.totalPrice,
-      });
+      showToast(coll.name);
     } catch {}
     setTimeout(() => setAddingAll(false), 1600);
-  }, [addingAll, coll, isAuthenticated, openAuthModal, dispatch]);
+  }, [addingAll, coll, cartItems, isAuthenticated, openAuthModal, dispatch, showToast]);
 
   const handleSaveCollection = useCallback(() => {
     if (!coll) return;
@@ -359,12 +364,12 @@ export default function CollectionDetailPage() {
 
           <div className="cd-cta-row">
             <button
-              className={`cd-btn-primary cd-btn-cart${addingAll ? " adding" : ""}`}
+              className={`cd-btn-primary cd-btn-cart${addingAll ? " adding" : ""}${cartItems.some(i => i.collectionId === coll?.id) ? " in-cart" : ""}`}
               onClick={handleAddAll}
-              disabled={addingAll}
+              disabled={addingAll || cartItems.some(i => i.collectionId === coll?.id)}
             >
               <IconCart/>
-              {addingAll ? t("common.loading") : t("cdp.add_all_to_cart", "Hamısını səbətə at")}
+              {addingAll ? t("common.loading") : cartItems.some(i => i.collectionId === coll?.id) ? "Səbətdə ✓" : t("cdp.add_all_to_cart", "Hamısını səbətə at")}
             </button>
 
             <button
@@ -501,6 +506,13 @@ export default function CollectionDetailPage() {
           {coll.gallery.length > 1 && (
             <div className="cd-lb-counter">{activeImg + 1} / {coll.gallery.length}</div>
           )}
+        </div>
+      )}
+
+      {toast && (
+        <div className="cd-toast">
+          <div className="cd-toast-check">✓</div>
+          {toast} — səbətə əlavə edildi
         </div>
       )}
 

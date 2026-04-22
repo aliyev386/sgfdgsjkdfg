@@ -10,7 +10,7 @@ import categoryApi from "../../api/categoryApi";
 import productApi from "../../api/productApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
-import { fireCartAdded } from "../../components/common/CartAddedPopup";
+
 import "../../assets/pagesCss/FurnitureCategory.css";
 
 const PAGE_SIZE = 12;
@@ -373,7 +373,9 @@ export default function FurnitureCategoryPage() {
     try {
       const cart = await cartApi.addItem({ productId:product.id, quantity:1 });
       if (cart) dispatch(setCart(cart));
-      fireCartAdded({ name: product.name, image: product.images?.[0]?.imageUrl || product.image || null, price: product.discountPrice ?? product.price });
+      clearTimeout(toastTimer.current);
+      setToast(product.name);
+      toastTimer.current = setTimeout(() => setToast(null), 3000);
     } catch {}
     setTimeout(() => setAddingId(null), 1400);
   }, [addingId, dispatch]);
@@ -496,6 +498,13 @@ export default function FurnitureCategoryPage() {
             <div className="fcp-drawer-body">{SidebarNode}</div>
           </div>
         </>
+      )}
+
+      {toast && (
+        <div className="cd-toast">
+          <div className="cd-toast-check">✓</div>
+          {toast} — səbətə əlavə edildi
+        </div>
       )}
 
       <Footer />

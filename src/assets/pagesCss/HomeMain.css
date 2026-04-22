@@ -894,3 +894,34 @@
   .rst-card { padding: 16px 12px; }
   .rst-chair-svg { width: 80px; height: 93px; }
 }
+
+/* ── Cart toast (shared) ── */
+@keyframes cdToast { 0%{opacity:0;transform:translateY(16px) scale(.96)} 12%,82%{opacity:1;transform:none} 100%{opacity:0} }
+.cd-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: #1C1C1C;
+  color: #fff;
+  padding: 14px 22px;
+  font-size: 14px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 32px rgba(28,28,28,.2);
+  animation: cdToast 3s ease forwards;
+}
+.cd-toast-check {
+  width: 20px;
+  height: 20px;
+  background: #7A9E7E;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+

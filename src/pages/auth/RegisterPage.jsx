@@ -103,13 +103,7 @@ const T = {
     googleFail: "Google ilə qeydiyyat uğursuz oldu",
     regFail: "Qeydiyyat zamanı xəta baş verdi",
     tagline: "Mebel & Dizayn",
-    errName: "Ad boş ola bilməz", errNameLen: "Ad ən az 2 simvol olmalıdır",
-    errSurname: "Soyad boş ola bilməz",
-    errEmail: "Email boş ola bilməz", errEmailFmt: "Email formatı düzgün deyil",
-    errPhone: "Telefon nömrəsi düzgün deyil",
-    errPass: "Şifrə boş ola bilməz", errPassLen: "Şifrə ən az 8 simvol olmalıdır",
-    errConfirm: "Şifrəni təkrarlayın", errConfirmMatch: "Şifrələr uyğun gəlmir",
-    errAgreed: "Şərtləri qəbul etməlisiniz",
+    passMatch: "✓ Şifrələr uyğundur",
     strengthLabels: ["", "Çox zəif", "Zəif", "Orta", "Yaxşı", "Güclü"],
   },
   en: {
@@ -131,13 +125,7 @@ const T = {
     googleFail: "Google sign up failed",
     regFail: "Registration failed",
     tagline: "Furniture & Design",
-    errName: "First name is required", errNameLen: "First name must be at least 2 characters",
-    errSurname: "Last name is required",
-    errEmail: "Email is required", errEmailFmt: "Invalid email format",
-    errPhone: "Invalid phone number",
-    errPass: "Password is required", errPassLen: "Password must be at least 8 characters",
-    errConfirm: "Please confirm password", errConfirmMatch: "Passwords do not match",
-    errAgreed: "You must accept the terms",
+    passMatch: "✓ Passwords match",
     strengthLabels: ["", "Very weak", "Weak", "Fair", "Good", "Strong"],
   },
   ru: {
@@ -159,13 +147,7 @@ const T = {
     googleFail: "Ошибка регистрации через Google",
     regFail: "Ошибка при регистрации",
     tagline: "Мебель и дизайн",
-    errName: "Введите имя", errNameLen: "Имя должно содержать минимум 2 символа",
-    errSurname: "Введите фамилию",
-    errEmail: "Введите email", errEmailFmt: "Неверный формат email",
-    errPhone: "Неверный номер телефона",
-    errPass: "Введите пароль", errPassLen: "Пароль должен содержать минимум 8 символов",
-    errConfirm: "Подтвердите пароль", errConfirmMatch: "Пароли не совпадают",
-    errAgreed: "Примите условия",
+    passMatch: "✓ Пароли совпадают",
     strengthLabels: ["", "Очень слабый", "Слабый", "Средний", "Хороший", "Надёжный"],
   },
 };
@@ -224,10 +206,16 @@ export default function RegisterPage() {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setAlert(null);
+
+    if (!agreed) {
+      setErrors((prev) => ({ ...prev, agreed: t.termsRequired || "Şərtləri qəbul etməlisiniz" }));
+      return;
+    }
+
+    setLoading(true);
     try {
-      const tokenData = await register({ name: form.name, surname: form.surname, email: form.email, password: form.password, phone: form.phone });
+      const tokenData = await register({ name: form.name, surname: form.surname, email: form.email, password: form.password, confirmPassword: form.confirmPassword, phone: form.phone });
       let user = { email: form.email, name: form.name, surname: form.surname };
       try { user = await getMe(); } catch { }
       dispatch(loginSuccess({ token: tokenData.accessToken, refreshToken: tokenData.refreshToken, user }));
@@ -237,7 +225,7 @@ export default function RegisterPage() {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setErrors(mapped);
       }

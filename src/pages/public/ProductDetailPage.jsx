@@ -11,7 +11,7 @@ import cartApi    from "../../api/cartApi";
 import productApi from "../../api/productApi";
 import Navbar     from "../../components/common/Navbar";
 import Footer     from "../../components/common/Footer";
-import { fireCartAdded } from "../../components/common/CartAddedPopup";
+
 import "../../assets/pagesCss/ProductDetail.css";
 
 const fmt = (n) => `₼${Number(n).toLocaleString()}`;
@@ -267,7 +267,9 @@ export default function ProductDetailPage() {
     try {
       const cart = await cartApi.addItem({ productId: product.id, quantity: qty });
       if (cart) dispatch(setCart(cart));
-      fireCartAdded({ name: `${qty}× ${product.name}`, image: product.images?.[0]?.imageUrl || null, price: product.discountPrice ?? product.price });
+      clearTimeout(toastTimer.current);
+      setToast(product.name);
+      toastTimer.current = setTimeout(() => setToast(null), 3000);
     } catch {}
     setTimeout(() => setBusy(false), 1300);
   }, [product, qty, cartAdding, buyAdding, dispatch]);
@@ -763,6 +765,14 @@ export default function ProductDetailPage() {
           )}
         </div>
       )}
+
+      {toast && (
+        <div className="cd-toast">
+          <div className="cd-toast-check">✓</div>
+          {toast} — səbətə əlavə edildi
+        </div>
+      )}
+
       <Footer />
     </div>
   );

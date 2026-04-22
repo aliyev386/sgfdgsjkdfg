@@ -70,14 +70,11 @@ const T = {
     passMatch: "✓ Şifrələr uyğundur",
     submitBtn: "Şifrəni Yenilə →",
     submitting: "Yenilənir...",
-    errPass: "Şifrə boş ola bilməz",
-    errPassLen: "Şifrə ən az 8 simvol olmalıdır",
-    errConfirm: "Şifrəni təkrarlayın",
-    errConfirmMatch: "Şifrələr uyğun gəlmir",
     errGeneral: "Şifrə yeniləmə zamanı xəta baş verdi. Link köhnəlmiş ola bilər.",
     strengthLabels: ["", "Çox zəif", "Zəif", "Orta", "Yaxşı", "Güclü"],
     tagline: "Mebel & Dizayn",
     forEmail: "üçün yeni şifrə daxil edin",
+    passMatch: "✓ Şifrələr uyğundur",
   },
   en: {
     back: "← Sign In",
@@ -96,14 +93,11 @@ const T = {
     passMatch: "✓ Passwords match",
     submitBtn: "Update Password →",
     submitting: "Updating...",
-    errPass: "Password is required",
-    errPassLen: "Password must be at least 8 characters",
-    errConfirm: "Please confirm your password",
-    errConfirmMatch: "Passwords do not match",
     errGeneral: "Failed to reset password. The link may have expired.",
     strengthLabels: ["", "Very weak", "Weak", "Fair", "Good", "Strong"],
     tagline: "Furniture & Design",
     forEmail: "Enter new password for",
+    passMatch: "✓ Passwords match",
   },
   ru: {
     back: "← Войти",
@@ -122,14 +116,11 @@ const T = {
     passMatch: "✓ Пароли совпадают",
     submitBtn: "Обновить пароль →",
     submitting: "Обновление...",
-    errPass: "Введите пароль",
-    errPassLen: "Пароль должен содержать минимум 8 символов",
-    errConfirm: "Подтвердите пароль",
-    errConfirmMatch: "Пароли не совпадают",
     errGeneral: "Не удалось сбросить пароль. Ссылка могла устареть.",
     strengthLabels: ["", "Очень слабый", "Слабый", "Средний", "Хороший", "Надёжный"],
     tagline: "Мебель и дизайн",
     forEmail: "Введите новый пароль для",
+    passMatch: "✓ Пароли совпадают",
   },
 };
 
@@ -192,13 +183,13 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setAlert(null);
     try {
-      await resetPassword({ token, email, newPassword: form.newPassword });
+      await resetPassword({ token, email, newPassword: form.newPassword, confirmPassword: form.confirmPassword });
       setDone(true);
     } catch (err) {
       if (err?.validationErrors) {
         const mapped = {};
         Object.entries(err.validationErrors).forEach(([field, msgs]) => {
-          mapped[field.toLowerCase()] = Array.isArray(msgs) ? msgs[0] : msgs;
+          mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
         });
         setErrors(mapped);
       }

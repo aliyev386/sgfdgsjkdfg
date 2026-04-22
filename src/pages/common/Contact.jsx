@@ -22,20 +22,10 @@ export default function ContactPage() {
     setServerErr("");
   };
 
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim())                              e.name    = t("contact.err_name");
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = t("contact.err_email");
-    if (!form.message.trim())                           e.message = t("contact.err_message");
-    return e;
-  };
-
   const handleSubmit = async () => {
-    const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
-
     setLoading(true);
     setServerErr("");
+    setErrors({});
     try {
       const res = await fetch(`${API_BASE}/api/contact/send`, {
         method: "POST",
@@ -46,7 +36,16 @@ export default function ContactPage() {
       if (res.ok) {
         setSent(true);
       } else {
-        setServerErr(t("contact.err_server"));
+        const data = await res.json().catch(() => null);
+        if (data?.validationErrors) {
+          const mapped = {};
+          Object.entries(data.validationErrors).forEach(([field, msgs]) => {
+            mapped[field] = Array.isArray(msgs) ? msgs[0] : msgs;
+          });
+          setErrors(mapped);
+        } else {
+          setServerErr(data?.message || t("contact.err_server"));
+        }
       }
     } catch {
       setServerErr(t("contact.err_server"));
