@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import CreditCalculator, { calcCredit } from "../../components/credit/CreditCalculator";
 import { useTranslation } from "react-i18next";
@@ -173,6 +173,7 @@ export default function ProductDetailPage() {
   const { openAuthModal } = useAuthModal();
 
   const [product,    setProduct]    = useState(null);
+  const [fetchError, setFetchError] = useState(null);
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editRating,      setEditRating]      = useState(0);
   const [editComment,     setEditComment]     = useState("");
@@ -236,7 +237,7 @@ export default function ProductDetailPage() {
           stock_qty:   p.stock,
           sku:         `ARV-${p.id}`,
           images:      imgs.length ? imgs : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90"],
-          colors:      (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode })),
+          colors:      (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode, imageUrl: c.imageUrl || null })),
           material:    p.material || null,
           sizes:       [],
           description: p.description || "",
@@ -247,7 +248,9 @@ export default function ProductDetailPage() {
           category:    { id: p.furnitureCategoryId, name: p.categoryName || "" },
         };
         setProduct(mapped);
-        if (mapped.colors.length > 0) setSelColor(mapped.colors[0].value);(p.id)
+        if (mapped.colors.length > 0) setSelColor(mapped.colors[0].value);
+
+        productApi.getSimilar(p.id)
           .then(arr => {
             setSimilar((arr ?? []).map(x => ({
               id:        x.id,
@@ -263,7 +266,10 @@ export default function ProductDetailPage() {
 
         loadReviews(p.id, 1, false);
       })
-      .catch(() => navigate("/categories"))
+      .catch(err => {
+        console.error("Product fetch error:", err);
+        setFetchError(err?.userMessage || "Məhsul yüklənmədi.");
+      })
       .finally(() => setLoading(false));
   }, [productId, lang, navigate, loadReviews]);
 
@@ -337,15 +343,15 @@ export default function ProductDetailPage() {
   };
 
   useEffect(() => {
-    if (!lbOpen || !product?.images?.length) return;
+    if (!lbOpen || !displayImages?.length) return;
     const h = (e) => {
       if (e.key === "Escape")     setLbOpen(false);
-      if (e.key === "ArrowLeft")  setActiveImg(i => (i - 1 + product.images.length) % product.images.length);
-      if (e.key === "ArrowRight") setActiveImg(i => (i + 1) % product.images.length);
+      if (e.key === "ArrowLeft")  setActiveImg(i => (i - 1 + displayImages.length) % displayImages.length);
+      if (e.key === "ArrowRight") setActiveImg(i => (i + 1) % displayImages.length);
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [lbOpen, product?.images?.length]);
+  }, [lbOpen, displayImages]);
 
   if (loading) return (
     <div className="pdp-page">
@@ -360,7 +366,20 @@ export default function ProductDetailPage() {
     </div>
   );
 
-  if (!product) return null;
+  if (fetchError || (!loading && !product)) return (
+    <div className="pdp-page">
+      <Navbar />
+      <div style={{ minHeight:"50vh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16, padding:"60px 24px" }}>
+        <span style={{ fontSize:48 }}>🛋️</span>
+        <h2 style={{ fontFamily:"'DM Sans',sans-serif", fontSize:20, color:"#1C1C1C", margin:0 }}>Məhsul tapılmadı</h2>
+        <p style={{ fontSize:14, color:"#A8A09A", margin:0 }}>{fetchError || "Bu məhsul mövcud deyil və ya silinib."}</p>
+        <button onClick={() => navigate(-1)} style={{ marginTop:8, padding:"10px 24px", background:"#1C1C1C", color:"#fff", border:"none", borderRadius:4, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14 }}>
+          ← Geri qayıt
+        </button>
+      </div>
+      <Footer />
+    </div>
+  );
 
   const save        = product.old_price ? product.old_price - product.price : 0;
   const discPct     = product.old_price ? Math.round((save / product.old_price) * 100) : 0;
@@ -383,6 +402,22 @@ export default function ProductDetailPage() {
 
   const hasMoreReviews = reviews.length < reviewsTotal;
 
+  // Seçilmiş rəngin şəkli varsa, gallery-nin əvvəlinə qoy
+  const displayImages = useMemo(() => {
+    if (!product) return [];
+    const selColorObj = product.colors.find(c => c.value === selColor);
+    if (selColorObj?.imageUrl) {
+      const filtered = product.images.filter(img => img !== selColorObj.imageUrl);
+      return [selColorObj.imageUrl, ...filtered];
+    }
+    return product.images;
+  }, [product, selColor]);
+
+  const handleColorSelect = (colorValue) => {
+    setSelColor(colorValue);
+    setActiveImg(0); // həmişə birinci şəkilə keç
+  };
+
   return (
     <div className="pdp-page">
       <Navbar />
@@ -401,7 +436,7 @@ export default function ProductDetailPage() {
 
         <div className="pdp-gallery">
           <div className="pdp-main-img-wrap" onClick={() => setLbOpen(true)}>
-            <img className="pdp-main-img" src={product.images[activeImg]} alt={product.name} />
+            <img className="pdp-main-img" src={displayImages[activeImg] || displayImages[0]} alt={product.name} />
             {product.badge && (
               <span className="pdp-img-badge" style={{ background: BADGE_CLR[product.badge] || "#7A9E7E" }}>
                 {product.badge}
@@ -418,9 +453,9 @@ export default function ProductDetailPage() {
               </svg>
             </div>
           </div>
-          {product.images.length > 1 && (
+          {displayImages.length > 1 && (
             <div className="pdp-thumbs">
-              {product.images.map((img, i) => (
+              {displayImages.map((img, i) => (
                 <div key={i} className={`pdp-thumb${activeImg === i ? " active" : ""}`} onClick={() => setActiveImg(i)}>
                   <img src={img} alt={`${product.name} ${i + 1}`} loading="lazy" />
                 </div>
@@ -521,7 +556,7 @@ export default function ProductDetailPage() {
                       outlineOffset: 2,
                     }}
                     title={c.label}
-                    onClick={() => setSelColor(c.value)}
+                    onClick={() => handleColorSelect(c.value)}
                   />
                 ))}
               </div>
@@ -825,15 +860,15 @@ export default function ProductDetailPage() {
       {lbOpen && (
         <div className="pdp-lb" onClick={() => setLbOpen(false)}>
           <button className="pdp-lb-close" onClick={() => setLbOpen(false)}>✕</button>
-          {product.images.length > 1 && (
+          {displayImages.length > 1 && (
             <>
-              <button className="pdp-lb-prev" onClick={e => { e.stopPropagation(); setActiveImg(i => (i - 1 + product.images.length) % product.images.length); }}>‹</button>
-              <button className="pdp-lb-next" onClick={e => { e.stopPropagation(); setActiveImg(i => (i + 1) % product.images.length); }}>›</button>
+              <button className="pdp-lb-prev" onClick={e => { e.stopPropagation(); setActiveImg(i => (i - 1 + displayImages.length) % displayImages.length); }}>‹</button>
+              <button className="pdp-lb-next" onClick={e => { e.stopPropagation(); setActiveImg(i => (i + 1) % displayImages.length); }}>›</button>
             </>
           )}
-          <img className="pdp-lb-img" src={product.images[activeImg]} alt={product.name} onClick={e => e.stopPropagation()} />
-          {product.images.length > 1 && (
-            <div className="pdp-lb-counter">{activeImg + 1} / {product.images.length}</div>
+          <img className="pdp-lb-img" src={displayImages[activeImg]} alt={product.name} onClick={e => e.stopPropagation()} />
+          {displayImages.length > 1 && (
+            <div className="pdp-lb-counter">{activeImg + 1} / {displayImages.length}</div>
           )}
         </div>
       )}

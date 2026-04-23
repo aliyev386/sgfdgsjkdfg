@@ -47,6 +47,35 @@ const translations = {
     invalidPrice: "Qiymət 0-dan böyük olmalıdır", invalidStock: "Stok 0 və ya daha çox olmalıdır",
     invalidDiscount: "Endirim 1-100 arası olmalıdır", dateError: "Başlanğıc tarixi son tarixdən əvvəl olmalıdır",
     uploadImage: "Şəkil yükləyin", clickToUpload: "Şəkil əlavə etmək üçün basın",
+    actionsCol: "Əməliyyatlar", revenueOverview: "Gəlir Xülasəsi (Son 6 ay)",
+    recentOrders: "Son Sifarişlər", orderId: "Sifariş", customer: "Müştəri",
+    addressCol: "Ünvan", amount: "Məbləğ", allStatuses: "Bütün statuslar",
+    statusPending: "Gözlənilir", statusConfirmed: "Təsdiqləndi",
+    statusInProgress: "Hazırlanır", statusDelivered: "Çatdırıldı",
+    statusCancelled: "Ləğv edildi", resetFilter: "Sıfırla",
+    orderCount: "sifariş", items: "əşya", showingEntries: "Göstərilir",
+    specialOrder: "XÜSUSİ", customerInfo: "Müştəri Məlumatları",
+    fullName: "Ad Soyad", phone: "Telefon", email: "E-poçt",
+    deliveryAddress: "Çatdırılma ünvanı", specialOrderNote: "Xüsusi Sifariş Tələbi",
+    paymentSection: "Ödəniş", totalAmount: "Ümumi məbləğ",
+    initialPayment: "İlkin ödəniş", creditPeriod: "Kredit müddəti",
+    monthly: "Aylıq", productsSection: "Məhsullar", statusControl: "Status İdarəsi",
+    currentStatus: "Cari", cancelOrder: "Ləğv et",
+    adminNote: "Admin Qeydi (müştəriyə göstərilir)",
+    adminNotePh: "məs: Çatdırılma 14:00-da olacaq...",
+    estimatedDate: "Razılaşdırılmış Çatdırılma Tarixi",
+    saveNoteDate: "Qeydi & Tarixi Saxla", saving2: "Saxlanılır...",
+    expiration: "Bitmə tarixi", startDate: "Başlanğıc tarixi",
+    endDate: "Bitmə tarixi", advanceTo: "→",
+    nameIn3Langs: "Ad (3 dildə məcburidir)", nameOptional: "Ad (3 dildə)",
+    dimensions: "Ölçülər (sm / kq)", discountPrice: "Endirimli qiymət (₼)",
+    featured: "Öne çıxarılsın (Featured)", addColor: "Rəng əlavə et",
+    addImage: "Şəkil əlavə et", mainImage: "Əsas",
+    widthCm: "En (sm)", heightCm: "Hündürlük (sm)", depthCm: "Dərinlik (sm)", weightKg: "Çəki (kq)",
+    hexPrompt: "Hex rəng kodu (məs: #FF0000 və ya FF0000)", colorNamePrompt: "Rəng adı (məs: Qırmızı)",
+    hexError: "Yanlış hex format! Nümunə: #FF0000", select: "Seçin", selected: "seçilib",
+    atLeast1Image: "Ən azı 1 şəkil əlavə edin", atLeast1Color: "Ən azı 1 rəng əlavə edin",
+    productsLoading: "Məhsullar yüklənir...", selectCategory: "Kateqoriya seçin", displayOrder: "Göstərilmə sırası",
   },
   en: {
     dashboard: "Dashboard", products: "Products", categories: "Categories",
@@ -80,6 +109,35 @@ const translations = {
     invalidPrice: "Price must be greater than 0", invalidStock: "Stock must be 0 or more",
     invalidDiscount: "Discount must be between 1 and 100", dateError: "Start date must be before end date",
     uploadImage: "Upload Image", clickToUpload: "Click to upload image",
+    actionsCol: "Actions", revenueOverview: "Revenue Overview (Last 6 months)",
+    recentOrders: "Recent Orders", orderId: "Order", customer: "Customer",
+    addressCol: "Address", amount: "Amount", allStatuses: "All statuses",
+    statusPending: "Pending", statusConfirmed: "Confirmed",
+    statusInProgress: "In Progress", statusDelivered: "Delivered",
+    statusCancelled: "Cancelled", resetFilter: "Reset",
+    orderCount: "orders", items: "items", showingEntries: "Showing",
+    specialOrder: "SPECIAL", customerInfo: "Customer Information",
+    fullName: "Full Name", phone: "Phone", email: "Email",
+    deliveryAddress: "Delivery address", specialOrderNote: "Special Order Request",
+    paymentSection: "Payment", totalAmount: "Total amount",
+    initialPayment: "Initial payment", creditPeriod: "Credit period",
+    monthly: "Monthly", productsSection: "Products", statusControl: "Status Management",
+    currentStatus: "Current", cancelOrder: "Cancel",
+    adminNote: "Admin Note (shown to customer)",
+    adminNotePh: "e.g. Delivery at 14:00, we will call you...",
+    estimatedDate: "Agreed Delivery Date",
+    saveNoteDate: "Save Note & Date", saving2: "Saving...",
+    expiration: "Expiration date", startDate: "Start date",
+    endDate: "End date", advanceTo: "→",
+    nameIn3Langs: "Name (required in all 3 languages)", nameOptional: "Name (3 languages)",
+    dimensions: "Dimensions (cm / kg)", discountPrice: "Discounted price (₼)",
+    featured: "Feature this product", addColor: "Add color",
+    addImage: "Add image", mainImage: "Main",
+    widthCm: "Width (cm)", heightCm: "Height (cm)", depthCm: "Depth (cm)", weightKg: "Weight (kg)",
+    hexPrompt: "Hex color code (e.g. #FF0000 or FF0000)", colorNamePrompt: "Color name (e.g. Red)",
+    hexError: "Invalid hex format! Example: #FF0000", select: "Select", selected: "selected",
+    atLeast1Image: "Add at least 1 image", atLeast1Color: "Add at least 1 color",
+    productsLoading: "Loading products...", selectCategory: "Select category", displayOrder: "Display order",
   },
   ru: {
     dashboard: "Панель управления", products: "Товары", categories: "Категории",
@@ -113,6 +171,35 @@ const translations = {
     invalidPrice: "Цена должна быть больше 0", invalidStock: "Остаток должен быть 0 или больше",
     invalidDiscount: "Скидка должна быть от 1 до 100", dateError: "Дата начала должна быть раньше даты окончания",
     uploadImage: "Загрузить фото", clickToUpload: "Нажмите для загрузки",
+    actionsCol: "Действия", revenueOverview: "Обзор выручки (последние 6 мес.)",
+    recentOrders: "Последние заказы", orderId: "Заказ", customer: "Клиент",
+    addressCol: "Адрес", amount: "Сумма", allStatuses: "Все статусы",
+    statusPending: "Ожидает", statusConfirmed: "Подтверждён",
+    statusInProgress: "В обработке", statusDelivered: "Доставлен",
+    statusCancelled: "Отменён", resetFilter: "Сбросить",
+    orderCount: "заказов", items: "товаров", showingEntries: "Показано",
+    specialOrder: "ОСОБЫЙ", customerInfo: "Данные клиента",
+    fullName: "Имя и фамилия", phone: "Телефон", email: "Эл. почта",
+    deliveryAddress: "Адрес доставки", specialOrderNote: "Запрос особого заказа",
+    paymentSection: "Оплата", totalAmount: "Общая сумма",
+    initialPayment: "Первоначальный взнос", creditPeriod: "Срок кредита",
+    monthly: "Ежемесячно", productsSection: "Товары", statusControl: "Управление статусом",
+    currentStatus: "Текущий", cancelOrder: "Отменить",
+    adminNote: "Заметка администратора (видна клиенту)",
+    adminNotePh: "напр.: Доставка в 14:00, мы вам позвоним...",
+    estimatedDate: "Согласованная дата доставки",
+    saveNoteDate: "Сохранить заметку и дату", saving2: "Сохранение...",
+    expiration: "Дата истечения", startDate: "Дата начала",
+    endDate: "Дата окончания", advanceTo: "→",
+    nameIn3Langs: "Название (обязательно на 3 языках)", nameOptional: "Название (3 языка)",
+    dimensions: "Размеры (см / кг)", discountPrice: "Цена со скидкой (₼)",
+    featured: "Рекомендуемый товар", addColor: "Добавить цвет",
+    addImage: "Добавить фото", mainImage: "Главное",
+    widthCm: "Ширина (см)", heightCm: "Высота (см)", depthCm: "Глубина (см)", weightKg: "Вес (кг)",
+    hexPrompt: "Hex код цвета (напр. #FF0000 или FF0000)", colorNamePrompt: "Название цвета (напр. Красный)",
+    hexError: "Неверный hex формат! Пример: #FF0000", select: "Выбрать", selected: "выбрано",
+    atLeast1Image: "Добавьте хотя бы 1 фото", atLeast1Color: "Добавьте хотя бы 1 цвет",
+    productsLoading: "Загрузка товаров...", selectCategory: "Выберите категорию", displayOrder: "Порядок отображения",
   },
 };
 
@@ -258,19 +345,19 @@ const Modal = ({ open, onClose, title, children, width = "max-w-2xl" }) => {
   );
 };
 
-const Table = ({ columns, data, onEdit, onDelete, onView, extraActions, loading }) => (
+const Table = ({ columns, data, onEdit, onDelete, onView, extraActions, loading, t }) => (
   <div className="overflow-x-auto">
     {loading ? (
       <div className="flex items-center justify-center py-16 text-gray-400">
         <div className="flex flex-col items-center gap-2">
           <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Yüklənir...</span>
+          <span className="text-sm">{t?.loading || "Yüklənir..."}</span>
         </div>
       </div>
     ) : data.length === 0 ? (
       <div className="flex flex-col items-center justify-center py-16 text-gray-400">
         <Icons.Package />
-        <p className="text-sm mt-2">Məlumat yoxdur</p>
+        <p className="text-sm mt-2">{t?.noData || "Məlumat yoxdur"}</p>
       </div>
     ) : (
       <table className="w-full text-sm">
@@ -280,7 +367,7 @@ const Table = ({ columns, data, onEdit, onDelete, onView, extraActions, loading 
               <th key={c.key} className="text-left px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{c.label}</th>
             ))}
             {(onEdit || onDelete || onView || extraActions) && (
-              <th className="text-right px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Actions</th>
+              <th className="text-right px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">{t?.actionsCol || "Əməliyyatlar"}</th>
             )}
           </tr>
         </thead>
@@ -308,12 +395,12 @@ const Table = ({ columns, data, onEdit, onDelete, onView, extraActions, loading 
   </div>
 );
 
-const Pagination = ({ total, page, perPage, onChange }) => {
+const Pagination = ({ total, page, perPage, onChange, t }) => {
   const totalPages = Math.ceil(total / perPage);
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-sm text-gray-500">
-      <span>Showing {Math.min((page - 1) * perPage + 1, total)}–{Math.min(page * perPage, total)} of {total}</span>
+      <span>{t?.showingEntries || "Göstərilir"} {Math.min((page - 1) * perPage + 1, total)}–{Math.min(page * perPage, total)} / {total}</span>
       <div className="flex gap-1">
         <Btn size="sm" variant="secondary" onClick={() => onChange(page - 1)} disabled={page === 1}><Icons.ChevronLeft /></Btn>
         {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -343,7 +430,7 @@ const StatCard = ({ icon, label, value, trend, color }) => (
         <p className="text-2xl font-bold text-gray-800">{value}</p>
         {trend !== undefined && (
           <p className={`text-xs font-semibold mt-1 ${trend >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-            {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}% bu ay
+            {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
           </p>
         )}
       </div>
@@ -379,10 +466,10 @@ const ImageUpload = ({ value, onChange, label, uploadFn, t }) => {
       if (url) {
         onChange(url);
       } else {
-        setUploadError("Şəkil URL-i alınamadı");
+        setUploadError(t?.error || "Şəkil URL-i alınamadı");
       }
     } catch (err) {
-      setUploadError(err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi");
+      setUploadError(err?.userMessage || err?.message || t?.error || "Xəta baş verdi");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -432,7 +519,7 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
           if (url) {
             uploaded.push(url);
           } else {
-            setUploadError("Şəkil URL-i alınamadı. Backend cavabını yoxlayın.");
+            setUploadError(t?.error || "Şəkil URL-i alınamadı.");
           }
         } else {
           uploaded.push(URL.createObjectURL(file));
@@ -440,7 +527,7 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
       }
       if (uploaded.length > 0) onChange([...images, ...uploaded]);
     } catch (err) {
-      const msg = err?.userMessage || err?.message || "Şəkil yüklənərkən xəta baş verdi";
+      const msg = err?.userMessage || err?.message || t?.error || "Xəta baş verdi";
       setUploadError(msg);
     } finally {
       setUploading(false);
@@ -458,7 +545,7 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
           <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-emerald-300 group">
             <img src={url} alt="" className="w-full h-full object-cover" />
             {idx === 0 && (
-              <span className="absolute top-0.5 left-0.5 bg-emerald-600 text-white text-[9px] px-1 rounded font-bold">Ana</span>
+              <span className="absolute top-0.5 left-0.5 bg-emerald-600 text-white text-[9px] px-1 rounded font-bold">{t?.mainImage || "Ana"}</span>
             )}
             <button
               type="button"
@@ -474,14 +561,14 @@ const MultiImageUpload = ({ images, onChange, label, uploadFn, t }) => {
           ) : (
             <>
               <Icons.Upload />
-              <span className="text-[9px] text-gray-400 mt-1 text-center px-1">Şəkil əlavə et</span>
+              <span className="text-[9px] text-gray-400 mt-1 text-center px-1">{t?.addImage || "Şəkil əlavə et"}</span>
             </>
           )}
         </label>
       </div>
       {uploadError && <p className="text-xs text-red-500 mb-1">⚠ {uploadError}</p>}
       {images.length === 0 && (
-        <p className="text-xs text-amber-600">⚠ Ən azı 1 şəkil əlavə edin</p>
+        <p className="text-xs text-amber-600">⚠ {t?.atLeast1Image || "Ən azı 1 şəkil əlavə edin"}</p>
       )}
     </div>
   );
@@ -581,7 +668,7 @@ const Dashboard = ({ t, lang }) => {
       <div className="grid lg:grid-cols-2 gap-4">
         {monthlyData.length > 0 && (
           <Card className="p-5">
-            <h2 className="text-sm font-bold text-gray-700 mb-4">Revenue Overview (Last 6 months)</h2>
+            <h2 className="text-sm font-bold text-gray-700 mb-4">{t.revenueOverview}</h2>
             <div className="flex items-end gap-2 h-36">
               {monthlyData.map((d, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -618,11 +705,12 @@ const Dashboard = ({ t, lang }) => {
       {recentOrders.length > 0 && (
         <Card>
           <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-bold text-gray-700">Recent Orders</h2>
+            <h2 className="text-sm font-bold text-gray-700">{t.recentOrders}</h2>
           </div>
           <Table
+            t={t}
             columns={[
-              { key: "id", label: "Order ID", render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
+              { key: "id", label: t.orderId, render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
               { key: "user", label: t.user, render: r => typeof r.user === "object" ? `${r.user.name || r.user.firstName || ""} ${r.user.surname || r.user.lastName || ""}`.trim() : r.user },
               { key: "total", label: t.totalRevenue, render: r => <span className="font-semibold text-gray-800">${r.total?.toLocaleString()}</span> },
               { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
@@ -690,8 +778,8 @@ const Products = ({ t, lang }) => {
     if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice;
     if (form.stock === "" || Number(form.stock) < 0) e.stock = t.invalidStock;
     if (!form.category_id) e.category_id = t.required;
-    if (!form.images || form.images.length === 0) e.images = "Ən azı 1 şəkil əlavə edin";
-    if (!form.colors || form.colors.length === 0) e.colors = "Ən azı 1 rəng əlavə edin";
+    if (!form.images || form.images.length === 0) e.images = t.atLeast1Image;
+    if (!form.colors || form.colors.length === 0) e.colors = t.atLeast1Color;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -804,9 +892,10 @@ const Products = ({ t, lang }) => {
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder={t.search}
               className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all" />
           </div>
-          <span className="text-xs text-gray-500">{total} items</span>
+          <span className="text-xs text-gray-500">{total} {t.items}</span>
         </div>
         <Table
+          t={t}
           loading={loading}
           columns={[
             { key: "name", label: t.name, render: r => (
@@ -840,13 +929,13 @@ const Products = ({ t, lang }) => {
           onEdit={openEdit}
           onDelete={onDelete}
         />
-        <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
+        <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.editProduct : t.addProduct} width="max-w-3xl">
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ad (3 dildə məcburidir)</label>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.nameIn3Langs}</label>
             <div className="grid grid-cols-3 gap-3">
               <Input label="AZ *" value={form.name.az} onChange={v => setLangField("name", "az", v)} error={errors.name_az} />
               <Input label="EN *" value={form.name.en} onChange={v => setLangField("name", "en", v)} error={errors.name_en} />
@@ -867,7 +956,7 @@ const Products = ({ t, lang }) => {
               <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">{t.category} *</label>
               <select value={form.category_id} onChange={e => setField("category_id", e.target.value)}
                 className={`w-full px-3 py-2 text-sm bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 ${errors.category_id ? "border-red-400 bg-red-50" : "border-gray-200"}`}>
-                <option value="">— Seçin —</option>
+                <option value="">— {t.select || "Seçin"} —</option>
                 {categories.map(c => (
                   <option key={c.id} value={c.id}>{typeof c.name === "object" ? c.name[lang] : c.name}</option>
                 ))}
@@ -882,7 +971,7 @@ const Products = ({ t, lang }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Endirimli qiymət (₼)" value={form.discount_price || ""} onChange={v => setField("discount_price", v)} type="number" placeholder="0.00" />
+            <Input label={t.discountPrice} value={form.discount_price || ""} onChange={v => setField("discount_price", v)} type="number" placeholder="0.00" />
             <div className="flex items-center gap-3 pt-5">
               <input
                 id="is_featured"
@@ -892,18 +981,18 @@ const Products = ({ t, lang }) => {
                 className="w-4 h-4 accent-emerald-600 cursor-pointer"
               />
               <label htmlFor="is_featured" className="text-sm font-medium text-gray-700 cursor-pointer">
-                ⭐ Öne çıxarılsın (Featured)
+                ⭐ {t.featured}
               </label>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Ölçülər (cm / kg)</label>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.dimensions}</label>
             <div className="grid grid-cols-4 gap-3">
-              <Input label="En (cm)" value={form.width || ""} onChange={v => setField("width", v)} type="number" placeholder="0" />
-              <Input label="Hündürlük" value={form.height || ""} onChange={v => setField("height", v)} type="number" placeholder="0" />
-              <Input label="Dərinlik" value={form.depth || ""} onChange={v => setField("depth", v)} type="number" placeholder="0" />
-              <Input label="Çəki (kg)" value={form.weight || ""} onChange={v => setField("weight", v)} type="number" placeholder="0" />
+              <Input label={t.widthCm || "En (cm)"} value={form.width || ""} onChange={v => setField("width", v)} type="number" placeholder="0" />
+              <Input label={t.heightCm || "Hündürlük"} value={form.height || ""} onChange={v => setField("height", v)} type="number" placeholder="0" />
+              <Input label={t.depthCm || "Dərinlik"} value={form.depth || ""} onChange={v => setField("depth", v)} type="number" placeholder="0" />
+              <Input label={t.weightKg || "Çəki (kg)"} value={form.weight || ""} onChange={v => setField("weight", v)} type="number" placeholder="0" />
             </div>
           </div>
 
@@ -918,18 +1007,18 @@ const Products = ({ t, lang }) => {
                 </div>
               ))}
               <Btn size="sm" variant="secondary" onClick={() => {
-                let hex = prompt("Hex rəng kodu (məs: #FF0000 və ya FF0000)");
-                const name = prompt("Rəng adı (məs: Qırmızı)");
+                let hex = prompt(t.hexPrompt || "Hex rəng kodu (məs: #FF0000 və ya FF0000)");
+                const name = prompt(t.colorNamePrompt || "Rəng adı (məs: Qırmızı)");
                 if (hex && name) {
                   hex = hex.trim();
                   if (!hex.startsWith("#")) hex = "#" + hex;
                   if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                    alert("Yanlış hex format! Nümunə: #FF0000");
+                    alert(t.hexError || "Yanlış hex format! Nümunə: #FF0000");
                     return;
                   }
                   setField("colors", [...form.colors, { hex, name }]);
                 }
-              }} type="button"><Icons.Plus />Rəng əlavə et</Btn>
+              }} type="button"><Icons.Plus />{t.addColor}</Btn>
             </div>
             {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
           </div>
@@ -1109,8 +1198,8 @@ const Collections = ({ t, lang }) => {
     const e = {};
     if (!form.name.az?.trim() && !form.name.en?.trim() && !form.name.ru?.trim()) e.name = t.required;
     if (!form.price || Number(form.price) <= 0) e.price = t.invalidPrice || "Qiymət lazımdır";
-    if (!form.collection_category_id) e.collection_category_id = "Kateqoriya seçin";
-    if (!form.product_ids || form.product_ids.length === 0) e.product_ids = "Ən az 1 məhsul seçin";
+    if (!form.collection_category_id) e.collection_category_id = t.required;
+    if (!form.product_ids || form.product_ids.length === 0) e.product_ids = t.required;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -1193,6 +1282,7 @@ const Collections = ({ t, lang }) => {
       </div>
       <Card>
         <Table
+          t={t}
           loading={loading}
           columns={[
             { key: "name", label: t.name, render: r => {
@@ -1201,7 +1291,7 @@ const Collections = ({ t, lang }) => {
               return <span className="font-semibold text-gray-800">{name}</span>;
             }},
             { key: "price", label: t.price, render: r => <span className="font-bold text-emerald-700">₼{Number(r.totalPrice ?? r.price ?? 0).toLocaleString()}</span> },
-            { key: "products", label: t.products, render: r => <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">{r.products?.length || 0} məhsul</span> },
+            { key: "products", label: t.products, render: r => <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">{r.products?.length || 0} {t.items}</span> },
           ]}
           data={colls}
           onEdit={openEdit}
@@ -1242,16 +1332,16 @@ const Collections = ({ t, lang }) => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label={`${t.price} *`} value={form.price} onChange={v => setForm(f => ({ ...f, price: v }))} type="number" error={errors.price} />
-            <Input label="Endirimli qiymət" value={form.discount_price} onChange={v => setForm(f => ({ ...f, discount_price: v }))} type="number" />
+            <Input label={t.discountPrice || "Endirimli qiymət"} value={form.discount_price} onChange={v => setForm(f => ({ ...f, discount_price: v }))} type="number" />
           </div>
-          <Input label="Göstərilmə sırası" value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" />
+          <Input label={t.displayOrder || "Göstərilmə sırası"} value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" />
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
-              {t.selectProducts} * <span className="text-emerald-600 font-normal">({form.product_ids.length} seçilib)</span>
+              {t.selectProducts} * <span className="text-emerald-600 font-normal">({form.product_ids.length} {t.selected || "seçilib"})</span>
             </label>
             {errors.product_ids && <p className="text-red-500 text-xs mb-1">{errors.product_ids}</p>}
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
-              {availableProducts.length === 0 && <p className="text-gray-400 text-xs col-span-2 text-center py-4">Məhsullar yüklənir...</p>}
+              {availableProducts.length === 0 && <p className="text-gray-400 text-xs col-span-2 text-center py-4">{t.productsLoading}</p>}
               {availableProducts.map(p => (
                 <label key={p.id} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${form.product_ids?.includes(p.id) ? "border-emerald-500 bg-emerald-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <input type="checkbox" checked={form.product_ids?.includes(p.id)} onChange={() => toggleProduct(p.id)} className="accent-emerald-600" />
@@ -1411,7 +1501,8 @@ const Orders = ({ t, lang }) => {
   );
 
   useEffect(() => {
-    reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
+    const statusParam = filterStatus === "all" ? undefined : Number(filterStatus);
+    reload({ page, limit: PER_PAGE, status: statusParam });
   }, [page, filterStatus]);
 
   const statusStr = (s) => typeof s === "string" ? s : (ORDER_STATUS_ENUM[s] ?? "Pending");
@@ -1439,11 +1530,11 @@ const Orders = ({ t, lang }) => {
         note || null,
         estDate ? new Date(estDate).toISOString() : null
       );
-      setToast({ message: "Status uğurla yeniləndi", type: "success" });
+      setToast({ message: t.successSaved, type: "success" });
       if (detail?.id === orderId) {
         setDetail(d => ({ ...d, status: newStatus, adminNote: note, estimatedDeliveryDate: estDate }));
       }
-      reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : filterStatus });
+      reload({ page, limit: PER_PAGE, status: filterStatus === "all" ? undefined : Number(filterStatus) });
     } catch (err) {
       setToast({ message: err?.userMessage || t.error, type: "error" });
     } finally { setAdvancing(null); }
@@ -1483,24 +1574,24 @@ const Orders = ({ t, lang }) => {
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">{t.orders}</h1>
-        <span className="text-sm text-gray-500">{total} sifariş</span>
+        <span className="text-sm text-gray-500">{total} {t.orderCount}</span>
       </div>
 
       {/* Filter */}
       <Card className="p-4 flex flex-wrap items-center gap-3">
         <Select value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1); }}
           options={[
-            { value: "all", label: "Bütün statuslar" },
-            { value: "0", label: "Gözlənilir" },
-            { value: "1", label: "Təsdiqləndi" },
-            { value: "2", label: "Hazırlanır" },
-            { value: "3", label: "Çatdırıldı" },
-            { value: "4", label: "Ləğv edildi" },
+            { value: "all", label: t.allStatuses },
+            { value: "0", label: t.statusPending },
+            { value: "1", label: t.statusConfirmed },
+            { value: "2", label: t.statusInProgress },
+            { value: "3", label: t.statusDelivered },
+            { value: "4", label: t.statusCancelled },
           ]}
         />
         {filterStatus !== "all" && (
           <Btn variant="ghost" size="sm" onClick={() => { setFilterStatus("all"); }}>
-            <Icons.X /> Sıfırla
+            <Icons.X /> {t.resetFilter}
           </Btn>
         )}
       </Card>
@@ -1508,39 +1599,40 @@ const Orders = ({ t, lang }) => {
       {/* Table */}
       <Card>
         <Table
+          t={t}
           loading={loading}
           columns={[
-            { key: "id", label: "Sifariş", render: r => (
+            { key: "id", label: t.orderId, render: r => (
               <div>
                 <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span>
                 {(r.isCustomOrder || r.type === 1) && (
-                  <span className="ml-1.5 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">✦ XÜSUSİ</span>
+                  <span className="ml-1.5 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">✦ {t.specialOrder}</span>
                 )}
               </div>
             )},
-            { key: "user", label: "Müştəri", render: r => (
+            { key: "user", label: t.customer, render: r => (
               <div>
                 <p className="font-semibold text-gray-800 text-sm">{getUserName(r)}</p>
                 {r.userPhone && <p className="text-xs text-emerald-600 font-medium">📞 {r.userPhone}</p>}
                 {r.userEmail && <p className="text-xs text-gray-400">{r.userEmail}</p>}
               </div>
             )},
-            { key: "note", label: "Ünvan", render: r => (
+            { key: "note", label: t.addressCol, render: r => (
               <p className="text-xs text-gray-500 max-w-xs truncate" title={r.note}>{r.note || "—"}</p>
             )},
-            { key: "totalPrice", label: "Məbləğ", render: r => (
+            { key: "totalPrice", label: t.amount, render: r => (
               <div>
                 <p className="font-bold text-gray-800">₼{Number(r.totalPrice ?? r.total ?? 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-400">{getPayLabel(r.paymentMethod)}</p>
-                {r.paidAmount && <p className="text-xs text-blue-600">İlkin: ₼{r.paidAmount}</p>}
+                {r.paidAmount && <p className="text-xs text-blue-600">{t.initialPayment}: ₼{r.paidAmount}</p>}
               </div>
             )},
-            { key: "status", label: "Status", render: r => (
+            { key: "status", label: t.status, render: r => (
               <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${ORDER_STATUS_COLORS[r.status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
                 {ORDER_STATUS_LABELS[r.status] ?? r.status}
               </span>
             )},
-            { key: "createdAt", label: "Tarix", render: r => (
+            { key: "createdAt", label: t.date, render: r => (
               <span className="text-gray-500 text-xs">{r.createdAt ? new Date(r.createdAt).toLocaleDateString("az-AZ") : "—"}</span>
             )},
           ]}
@@ -1561,79 +1653,79 @@ const Orders = ({ t, lang }) => {
             ) : null;
           }}
         />
-        <Pagination total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
+        <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 
       {/* Detail Modal */}
-      <Modal open={!!detail} onClose={() => setDetail(null)} title={`Sifariş #${detail?.id}`} width="max-w-2xl">
+      <Modal open={!!detail} onClose={() => setDetail(null)} title={`${t.orderId} #${detail?.id}`} width="max-w-2xl">
         {detail && (
           <div className="space-y-4">
 
-            {/* Müştəri məlumatları */}
+            {/* Customer info */}
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📋 Müştəri Məlumatları</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">📋 {t.customerInfo}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-400">Ad Soyad</p>
+                  <p className="text-xs text-gray-400">{t.fullName}</p>
                   <p className="font-semibold text-gray-800">{getUserName(detail)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Telefon</p>
+                  <p className="text-xs text-gray-400">{t.phone}</p>
                   <a href={`tel:${detail.userPhone}`} className="font-semibold text-emerald-600 hover:underline flex items-center gap-1">
                     📞 {detail.userPhone || "—"}
                   </a>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-gray-400">E-poçt</p>
+                  <p className="text-xs text-gray-400">{t.email}</p>
                   <p className="font-medium text-gray-700">{detail.userEmail || "—"}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-gray-400">Çatdırılma ünvanı</p>
+                  <p className="text-xs text-gray-400">{t.deliveryAddress}</p>
                   <p className="font-medium text-gray-700 text-sm">{detail.note || "—"}</p>
                 </div>
               </div>
             </div>
 
-            {/* Xüsusi sifariş */}
+            {/* Special order */}
             {(detail.isCustomOrder || detail.type === 1) && (
               <div className="border border-amber-300 bg-amber-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">✦ Xüsusi Sifariş Tələbi</p>
-                <p className="text-sm text-gray-700">{detail.customDescription || "Müştəri xüsusi dəyişiklik istəyib. Zəng edib razılaşın."}</p>
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">✦ {t.specialOrderNote}</p>
+                <p className="text-sm text-gray-700">{detail.customDescription || t.specialOrderNote}</p>
               </div>
             )}
 
-            {/* Ödəniş */}
+            {/* Payment */}
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💳 Ödəniş</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">💳 {t.paymentSection}</p>
               <div className="flex flex-wrap gap-4">
                 <div>
-                  <p className="text-xs text-gray-400">Ödəniş üsulu</p>
+                  <p className="text-xs text-gray-400">{t.payment_method || t.paymentSection}</p>
                   <p className="font-semibold text-gray-800">{getPayLabel(detail.paymentMethod)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Ümumi məbləğ</p>
+                  <p className="text-xs text-gray-400">{t.totalAmount}</p>
                   <p className="font-bold text-emerald-700 text-lg">₼{Number(detail.totalPrice ?? 0).toFixed(2)}</p>
                 </div>
                 {detail.paidAmount && (
                   <div>
-                    <p className="text-xs text-gray-400">İlkin ödəniş</p>
+                    <p className="text-xs text-gray-400">{t.initialPayment}</p>
                     <p className="font-semibold text-blue-600">₼{Number(detail.paidAmount).toFixed(2)}</p>
                   </div>
                 )}
                 {detail.installmentMonths && (
                   <div>
-                    <p className="text-xs text-gray-400">Kredit müddəti</p>
-                    <p className="font-semibold text-gray-800">{detail.installmentMonths} ay</p>
-                    {detail.monthlyPayment && <p className="text-xs text-emerald-600">Aylıq: ₼{Number(detail.monthlyPayment).toFixed(2)}</p>}
+                    <p className="text-xs text-gray-400">{t.creditPeriod}</p>
+                    <p className="font-semibold text-gray-800">{detail.installmentMonths} {t.months || "ay"}</p>
+                    {detail.monthlyPayment && <p className="text-xs text-emerald-600">{t.monthly}: ₼{Number(detail.monthlyPayment).toFixed(2)}</p>}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Məhsullar */}
+            {/* Products */}
             {detail.items && detail.items.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">📦 Məhsullar</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">📦 {t.productsSection}</p>
                 <div className="space-y-2">
                   {detail.items.map((it, i) => (
                     <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
@@ -1642,7 +1734,7 @@ const Orders = ({ t, lang }) => {
                         : <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"><Icons.Package /></div>
                       }
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-800 text-sm truncate">{it.productName || it.collectionName || "Məhsul"}</p>
+                        <p className="font-medium text-gray-800 text-sm truncate">{it.productName || it.collectionName || t.products}</p>
                         <div className="flex gap-2 flex-wrap">
                           {it.selectedColor && <span className="text-xs text-gray-500">🎨 {it.selectedColor}</span>}
                           {it.selectedSize && <span className="text-xs text-gray-500">📐 {it.selectedSize}</span>}
@@ -1656,17 +1748,17 @@ const Orders = ({ t, lang }) => {
               </div>
             )}
 
-            {/* Status idarəsi */}
+            {/* Status management */}
             <div className="border border-gray-200 rounded-xl p-4 space-y-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">⚙️ Status İdarəsi</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">⚙️ {t.statusControl}</p>
 
-              {/* Cari status */}
+              {/* Current status */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className={`text-sm font-semibold px-3 py-1.5 rounded-full border ${ORDER_STATUS_COLORS[detail.status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
-                  Cari: {ORDER_STATUS_LABELS[detail.status] ?? detail.status}
+                  {t.currentStatus}: {ORDER_STATUS_LABELS[detail.status] ?? detail.status}
                 </span>
 
-                {/* Status dəyişdirmə düymələri */}
+                {/* Status change buttons */}
                 <div className="flex gap-2 flex-wrap">
                   {ORDER_STATUS_FLOW.filter(s => s !== statusIdx(detail.status)).map(s => (
                     <button key={s}
@@ -1681,29 +1773,29 @@ const Orders = ({ t, lang }) => {
                     onClick={() => changeStatus(detail.id, 4, adminNote, estimatedDate)}
                     disabled={advancing === detail.id || statusIdx(detail.status) === 4}
                     className="text-xs font-semibold px-3 py-1.5 border rounded-full bg-red-50 text-red-600 border-red-200 hover:bg-red-100 disabled:opacity-40 cursor-pointer">
-                    ✕ Ləğv et
+                    ✕ {t.cancelOrder}
                   </button>
                 </div>
               </div>
 
-              {/* Admin qeydi */}
+              {/* Admin note */}
               <div>
                 <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
-                  Admin Qeydi (müştəriyə göstərilir)
+                  {t.adminNote}
                 </label>
                 <textarea
                   value={adminNote}
                   onChange={e => setAdminNote(e.target.value)}
-                  placeholder="məs: Çatdırılma 14:00-da olacaq, sizi əvvəlcədən zəng edəcəyik..."
+                  placeholder={t.adminNotePh}
                   className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
                   rows={2}
                 />
               </div>
 
-              {/* Çatdırılma tarixi */}
+              {/* Delivery date */}
               <div>
                 <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1.5">
-                  Razılaşdırılmış Çatdırılma Tarixi
+                  {t.estimatedDate}
                 </label>
                 <input
                   type="date"
@@ -1718,8 +1810,8 @@ const Orders = ({ t, lang }) => {
               <div className="flex justify-end">
                 <Btn onClick={saveAdminInfo} disabled={saving}>
                   {saving
-                    ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saxlanılır...</>
-                    : <><Icons.Check /> Qeydi & Tarixi Saxla</>
+                    ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t.saving2}</>
+                    : <><Icons.Check /> {t.saveNoteDate}</>
                   }
                 </Btn>
               </div>
@@ -1953,6 +2045,7 @@ const Campaigns = ({ t, lang }) => {
       </div>
       <Card>
         <Table
+          t={t}
           loading={loading}
           columns={[
             { key: "title", label: t.name, render: r => <span className="font-semibold text-gray-800">{r.title || (typeof r.name === "object" ? r.name[lang] : r.name)}</span> },
@@ -1960,8 +2053,8 @@ const Campaigns = ({ t, lang }) => {
               const pct = r.discountPercent ?? r.discount;
               return pct ? <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold">{pct}% OFF</span> : <span className="text-gray-400 text-xs">—</span>;
             }},
-            { key: "startDate", label: "Start", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.startDate)}</span> },
-            { key: "endDate",   label: "End",   render: r => <span className="text-gray-500 text-xs">{toDateStr(r.endDate)}</span> },
+            { key: "startDate", label: t.startDate, render: r => <span className="text-gray-500 text-xs">{toDateStr(r.startDate)}</span> },
+            { key: "endDate",   label: t.endDate,   render: r => <span className="text-gray-500 text-xs">{toDateStr(r.endDate)}</span> },
             { key: "isActive", label: t.status, render: r => {
               const active = r.isActive !== undefined ? r.isActive : r.active;
               return (
@@ -1988,8 +2081,8 @@ const Campaigns = ({ t, lang }) => {
           </div>
           <Input label={`${t.discount} %`} value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" error={errors.discount} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Başlanğıc tarixi" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
-            <Input label="Bitmə tarixi"     value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
+            <Input label={t.startDate} value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
+            <Input label={t.endDate}   value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
           </div>
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
@@ -2078,6 +2171,7 @@ const DiscountCodes = ({ t }) => {
       </div>
       <Card>
         <Table
+          t={t}
           loading={loading}
           columns={[
             { key: "code",  label: t.code,  render: r => <code className="bg-gray-100 px-2.5 py-1 rounded-lg text-sm font-bold text-gray-800">{r.code}</code> },
@@ -2088,7 +2182,7 @@ const DiscountCodes = ({ t }) => {
               return <span className="font-bold text-emerald-700">{val}{isPercent ? "%" : "$"}</span>;
             }},
             { key: "usageCount", label: t.usageCount, render: r => <span className="text-gray-600">{r.usedCount ?? r.usageCount ?? 0} / {r.maxUses ?? r.limit ?? "∞"}</span> },
-            { key: "expiresAt", label: "Expires", render: r => <span className="text-gray-500 text-xs">{toDateStr(r.expiresAt || r.expiration)}</span> },
+            { key: "expiresAt", label: t.expiration, render: r => <span className="text-gray-500 text-xs">{toDateStr(r.expiresAt || r.expiration)}</span> },
             { key: "status", label: t.status, render: r => {
               const isActive = r.status === 1 || r.status === "Active" || r.active === true;
               return (
@@ -2113,7 +2207,7 @@ const DiscountCodes = ({ t }) => {
               onChange={v => setForm(f => ({ ...f, value: v }))} type="number" error={errors.value} />
             <Input label={t.limit} value={form.limit} onChange={v => setForm(f => ({ ...f, limit: v }))} type="number" />
           </div>
-          <Input label="Expiration Date" value={form.expiration} onChange={v => setForm(f => ({ ...f, expiration: v }))} type="date" error={errors.expiration} />
+          <Input label={t.expiration} value={form.expiration} onChange={v => setForm(f => ({ ...f, expiration: v }))} type="date" error={errors.expiration} />
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
             <Btn onClick={onSave} disabled={saving}>

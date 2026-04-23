@@ -1,5 +1,3 @@
-
-
 import axiosInstance from "./axiosInstance";
 
 
@@ -212,15 +210,18 @@ function buildCollCatPayload(form, id) {
   };
 }
 export const orderApi = {
-  getAll: (params = {}) =>
-    axiosInstance.get("/orders/admin/all", {
-      params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 8 }
-    }).then(r => {
+  getAll: (params = {}) => {
+    const queryParams = { page: params.page || 1, pageSize: params.limit || params.pageSize || 8 };
+    if (params.status !== undefined && params.status !== null) {
+      queryParams.status = params.status;
+    }
+    return axiosInstance.get("/orders/admin/all", { params: queryParams }).then(r => {
       const d = r.data?.data ?? r.data;
       const arr = Array.isArray(d) ? d : [];
       const total = r.data?.pagination?.totalCount ?? arr.length;
       return { data: arr, total };
-    }),
+    });
+  },
 
   getById: (id) =>
     axiosInstance.get(`/orders/${id}`).then(unwrap),
