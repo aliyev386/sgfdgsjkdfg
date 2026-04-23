@@ -333,7 +333,8 @@ export default function FurnitureCategoryPage() {
           price:p.discountPrice??p.price, oldPrice:p.discountPrice?p.price:null,
           badge:p.label||null, image:p.images?.[0]?.imageUrl||null,
           material:p.material||null, room:p.room||null, style:p.style||null,
-          color:p.color||null, inStock:p.stockQuantity>0,
+          colors: Array.isArray(p.colors) ? p.colors : [],
+          inStock:p.stock>0,
         }));
         const sorted = [...mapped].sort((a,b) => {
           if (currentSort==="price_asc")  return a.price-b.price;
@@ -355,7 +356,7 @@ export default function FurnitureCategoryPage() {
     if (localFilters.materials.length) r = r.filter(p => p.material && localFilters.materials.some(m => p.material.toLowerCase().includes(m.toLowerCase())));
     if (localFilters.rooms.length)     r = r.filter(p => p.room && localFilters.rooms.some(m => p.room.toLowerCase().includes(m.toLowerCase())));
     if (localFilters.styles.length)    r = r.filter(p => p.style && localFilters.styles.some(m => p.style.toLowerCase().includes(m.toLowerCase())));
-    if (localFilters.colors.length)    r = r.filter(p => p.color && localFilters.colors.some(m => p.color.toLowerCase().includes(m.toLowerCase())));
+    if (localFilters.colors.length)    r = r.filter(p => p.colors && p.colors.some(c => localFilters.colors.some(sel => c.name.toLowerCase() === sel.toLowerCase())));
     if (localFilters.inStock)          r = r.filter(p => p.inStock !== false);
     return r;
   }, [products, localFilters]);

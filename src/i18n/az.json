@@ -549,6 +549,7 @@
     "style4": "Lüks",
     "btn_main": "Konsultasiya sifariş et",
     "btn_call": "Zəng edin",
+    "btn_whatsapp": "WhatsApp",
     "process_label": "Necə işləyirik",
     "step1_title": "Görüş & Konsept",
     "step1_desc": "Sizinlə görüşüb arzularınızı dinləyirik, eskiz hazırlayırıq",
@@ -571,6 +572,7 @@
     "feat3": "Çərçivə möhkəmləndirilməsi",
     "feat4": "Tam restavrasiya xidməti",
     "btn": "Bərpa üçün müraciət et",
+    "btn_whatsapp": "WhatsApp",
     "note": "Pulsuz qiymətləndirmə — evinizdən çıxmadan"
   },
   "checkout": {

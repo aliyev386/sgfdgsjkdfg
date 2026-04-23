@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import "./i18n";
@@ -27,39 +27,47 @@ import CampaignsPage from "./pages/public/CampaignsPage.jsx";
 import ContactPage from "./pages/common/Contact.jsx";
 import NotFoundPage from "./pages/common/NotFound.jsx";
 import AboutPage from "./pages/common/About.jsx";
+import { useSelector } from "react-redux";
+import { selectUser } from "./store/slices/authSlice";
+
+// Admin isə /admin-ə yönləndir, deyilsə normal render et
+function UserOnly({ children }) {
+  const user = useSelector((state) => state.auth.user);
+  if (user?.role === "Admin") return <Navigate to="/admin" replace />;
+  return children;
+}
+
 const router = createBrowserRouter([
   {
     element: <App />,
     children: [
-      { path: "/",element: <HomePage /> },
-      { path: "/categories",element: <CategoryPage /> },
-      { path: "/collections",element: <RoomsPage /> },
-      { path: "/category",element: <FurnitureCategoryPage /> },
-      { path: "/category/:id",element: <FurnitureCategoryPage /> },
-      { path: "/cart",element: <CartPage /> },
-      { path: "/room-collections",element: <RoomCollectionsPage /> },
-      { path: "/room-collections/:categoryId", element: <RoomCollectionsPage /> },
-      { path: "/collection-detail",element: <CollectionDetailPage /> },
-      { path: "/collection-detail/:id",element: <CollectionDetailPage /> },
-      { path: "/details",element: <ProductDetailPage /> },
-      { path: "/details/:id",element: <ProductDetailPage /> },
-      { path: "/campaigns",element: <CampaignsPage /> },
-      { path: "/login",element: <LoginPage /> },
-      { path: "/register",element: <RegisterPage /> },
-      { path: "/forgot-password",element: <ForgotPasswordPage /> },
-      { path: "/reset-password",element: <ResetPasswordPage /> },
-      { path: "/about",element: <AboutPage /> },
-      { path: "/contact",element: <ContactPage /> },
-      { path: "/*",element:<NotFoundPage />},
+      { path: "/", element: <UserOnly><HomePage /></UserOnly> },
+      { path: "/categories", element: <UserOnly><CategoryPage /></UserOnly> },
+      { path: "/collections", element: <UserOnly><RoomsPage /></UserOnly> },
+      { path: "/category", element: <UserOnly><FurnitureCategoryPage /></UserOnly> },
+      { path: "/category/:id", element: <UserOnly><FurnitureCategoryPage /></UserOnly> },
+      { path: "/cart", element: <UserOnly><CartPage /></UserOnly> },
+      { path: "/room-collections", element: <UserOnly><RoomCollectionsPage /></UserOnly> },
+      { path: "/room-collections/:categoryId", element: <UserOnly><RoomCollectionsPage /></UserOnly> },
+      { path: "/collection-detail", element: <UserOnly><CollectionDetailPage /></UserOnly> },
+      { path: "/collection-detail/:id", element: <UserOnly><CollectionDetailPage /></UserOnly> },
+      { path: "/details/:id", element: <UserOnly><ProductDetailPage /></UserOnly> },
+      { path: "/campaigns", element: <UserOnly><CampaignsPage /></UserOnly> },
+      { path: "/login", element: <UserOnly><LoginPage /></UserOnly> },
+      { path: "/register", element: <UserOnly><RegisterPage /></UserOnly> },
+      { path: "/forgot-password", element: <UserOnly><ForgotPasswordPage /></UserOnly> },
+      { path: "/reset-password", element: <UserOnly><ResetPasswordPage /></UserOnly> },
+      { path: "/about", element: <UserOnly><AboutPage /></UserOnly> },
+      { path: "/contact", element: <UserOnly><ContactPage /></UserOnly> },
+      { path: "/*", element: <NotFoundPage /> },
       {
         path: "/profile",
-        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
+        element: <UserOnly><ProtectedRoute><ProfilePage /></ProtectedRoute></UserOnly>,
       },
       {
         path: "/checkout",
-        element: <ProtectedRoute><CheckoutPage /></ProtectedRoute>,
+        element: <UserOnly><ProtectedRoute><CheckoutPage /></ProtectedRoute></UserOnly>,
       },
-
       {
         path: "/admin",
         element: <ProtectedRoute requiredRole="Admin"><AdminPanel /></ProtectedRoute>,

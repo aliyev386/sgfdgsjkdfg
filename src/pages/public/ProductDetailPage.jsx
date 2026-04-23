@@ -189,6 +189,7 @@ export default function ProductDetailPage() {
   const [activeImg,  setActiveImg]  = useState(0);
   const [lbOpen,     setLbOpen]     = useState(false);
 
+  const [selColor,   setSelColor]   = useState(null);
   const [selSize,    setSelSize]    = useState(null);
   const [qty,        setQty]        = useState(1);
   const [activeTab,  setActiveTab]  = useState("description");
@@ -218,7 +219,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
-    setActiveImg(0); setSelSize(null); setQty(1);
+    setActiveImg(0); setSelSize(null); setSelColor(null); setQty(1);
     setReviews([]); setReviewsPage(1); setReviewsTotal(0); setAvgRating(0);
     window.scrollTo({ top: 0 });
 
@@ -246,8 +247,7 @@ export default function ProductDetailPage() {
           category:    { id: p.furnitureCategoryId, name: p.categoryName || "" },
         };
         setProduct(mapped);
-
-        productApi.getSimilar(p.id)
+        if (mapped.colors.length > 0) setSelColor(mapped.colors[0].value);(p.id)
           .then(arr => {
             setSimilar((arr ?? []).map(x => ({
               id:        x.id,
@@ -506,29 +506,23 @@ export default function ProductDetailPage() {
 
           {product.colors.length > 0 && (
             <div className="pdp-opt-block">
-              <p className="pdp-opt-label">{t("pdp.color")}</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              <p className="pdp-opt-label">
+                {t("pdp.color")}:&nbsp;
+                <span>{selColor || ""}</span>
+              </p>
+              <div className="pdp-colors">
                 {product.colors.map(c => (
-                  <span
+                  <button
                     key={c.value}
+                    className={`pdp-color-swatch${selColor === c.value ? " active" : ""}`}
                     style={{
-                      display: "flex", alignItems: "center", gap: 7,
-                      padding: "5px 12px 5px 5px",
-                      border: "1.5px solid #E5DDD4",
-                      background: "#fff",
-                      borderRadius: 40,
+                      background: c.hex,
+                      outline: selColor === c.value ? "2px solid #1C1C1C" : "2px solid #E5DDD4",
+                      outlineOffset: 2,
                     }}
                     title={c.label}
-                  >
-                    <span style={{
-                      width: 20, height: 20, borderRadius: "50%",
-                      background: c.hex, border: "1px solid rgba(0,0,0,.1)",
-                      flexShrink: 0, display: "inline-block"
-                    }} />
-                    <span style={{ fontSize: 12, color: "#3C3C3C", fontFamily: "'DM Sans',sans-serif" }}>
-                      {c.label}
-                    </span>
-                  </span>
+                    onClick={() => setSelColor(c.value)}
+                  />
                 ))}
               </div>
             </div>

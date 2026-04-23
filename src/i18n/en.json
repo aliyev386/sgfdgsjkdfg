@@ -549,6 +549,7 @@
     "style4": "Luxury",
     "btn_main": "Book a Consultation",
     "btn_call": "Call Us",
+    "btn_whatsapp": "WhatsApp",
     "process_label": "How we work",
     "step1_title": "Meeting & Concept",
     "step1_desc": "We listen to your vision and sketch out the perfect design together",
@@ -571,6 +572,7 @@
     "feat3": "Frame reinforcement & repair",
     "feat4": "Full restoration service",
     "btn": "Request Restoration",
+    "btn_whatsapp": "WhatsApp",
     "note": "Free assessment — without leaving your home"
   },
   "checkout": {
