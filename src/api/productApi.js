@@ -38,8 +38,14 @@ const productApi = {
   getReviews: (productId, params = {}) =>
     axiosInstance.get(`/reviews/by-product/${productId}`, { params }).then(r => r.data),
 
-  addReview: ({ productId, rating, comment }) =>
-    axiosInstance.post("/reviews", { productId, rating, comment }).then(r => r.data?.data ?? r.data),
+  addReview: ({ productId, rating, comment, authorName, authorEmail }) =>
+    axiosInstance.post("/reviews", { productId, rating, comment, authorName, authorEmail }).then(r => r.data?.data ?? r.data),
+
+  updateReview: (id, { rating, comment }) =>
+    axiosInstance.put(`/reviews/${id}`, { rating, comment }).then(r => r.data?.data ?? r.data),
+
+  deleteReview: (id) =>
+    axiosInstance.delete(`/reviews/${id}`).then(r => r.data),
 };
 
 export default productApi;

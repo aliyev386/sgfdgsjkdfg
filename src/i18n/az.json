@@ -367,7 +367,16 @@
     "spec_weight": "Çəki (kq)",
     "spec_sku": "Məhsul kodu",
     "spec_category": "Kateqoriya",
-    "spec_stock": "Stok"
+    "spec_stock": "Stok",
+    "reviewing_as": "Rəy yazan",
+    "review_error_req": "Reytinq və rəy mütləqdir.",
+    "login_to_review": "Rəy bildirmək üçün",
+    "login_link": "daxil olun",
+    "edit_review": "Redaktə et",
+    "delete_review": "Sil",
+    "save_review": "Yadda saxla",
+    "cancel": "Ləğv et",
+    "confirm_delete_review": "Bu rəyi silmək istədiyinizdən əminsiniz?"
   },
   "rooms_page": {
     "eyebrow": "Otaqlar",

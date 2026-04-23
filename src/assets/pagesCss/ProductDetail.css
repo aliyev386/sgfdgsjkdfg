@@ -474,16 +474,25 @@
   font-size: 12px; color: #6B6B6B;
 }
 
-.pdp-specs-grid { display: flex; flex-direction: column; gap: 0; max-width: 760px; }
+.pdp-specs-title {
+  font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1C1C1C;
+  letter-spacing: 0;
+  margin-bottom: 16px;
+}
+.pdp-specs-grid { display: flex; flex-direction: column; gap: 0; max-width: 640px; }
 .pdp-spec-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid #E5DDD4;
+  padding: 13px 16px;
+  border-bottom: 1px solid #EDE8DF;
   background: #fff;
+  gap: 16px;
 }
-.pdp-spec-row:first-child { border-top: 1px solid #E5DDD4; }
-.pdp-spec-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #A8A09A; font-weight: 500; }
-.pdp-spec-val   { font-size: 13px; color: #1C1C1C; font-weight: 400; }
+.pdp-spec-row:first-child { border-top: 1px solid #EDE8DF; }
+.pdp-spec-label { font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: #A8A09A; font-weight: 500; flex-shrink: 0; }
+.pdp-spec-val   { font-size: 14px; color: #1C1C1C; font-weight: 500; text-align: right; }
 
 .pdp-empty-tab {
   text-align: center; padding: 56px 40px;
@@ -903,3 +912,88 @@
   flex-shrink: 0;
 }
 
+
+/* ── REVIEW ACTIONS (edit / delete) ───────────────────────────── */
+.pdp-rev-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.pdp-review-card:hover .pdp-rev-actions {
+  opacity: 1;
+}
+.pdp-rev-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #E5DDD4;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, border-color .2s, color .2s;
+  color: #A8A09A;
+  padding: 0;
+  line-height: 1;
+}
+.pdp-rev-action-btn.edit:hover  { background: #F0F7F0; border-color: #7A9E7E; color: #7A9E7E; }
+.pdp-rev-action-btn.delete:hover { background: #FDF0F0; border-color: #C94B4B; color: #C94B4B; }
+
+/* ── REVIEW EDIT FORM ─────────────────────────────────────────── */
+.pdp-rev-edit-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pdp-rev-edit-stars {
+  display: flex;
+  gap: 4px;
+}
+.pdp-star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #DDD;
+  padding: 0;
+  line-height: 1;
+  transition: color .15s, transform .15s;
+}
+.pdp-star-btn.on  { color: #D4A843; }
+.pdp-star-btn:hover { transform: scale(1.15); }
+.pdp-rev-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+.pdp-rev-save-btn {
+  padding: 8px 20px;
+  background: #1C1C1C;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+.pdp-rev-save-btn:hover { background: #7A9E7E; }
+.pdp-rev-cancel-btn {
+  padding: 8px 20px;
+  background: transparent;
+  color: #A8A09A;
+  border: 1px solid #E5DDD4;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .2s, color .2s;
+}
+.pdp-rev-cancel-btn:hover { border-color: #1C1C1C; color: #1C1C1C; }

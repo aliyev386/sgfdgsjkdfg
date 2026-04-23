@@ -113,7 +113,13 @@ function ReviewForm({ productId, t, onSuccess, authUser }) {
     setSending(true);
     setErr("");
     try {
-      await productApi.addReview({ productId, rating, comment: comment.trim() });
+      await productApi.addReview({
+        productId,
+        rating,
+        comment: comment.trim(),
+        authorName: authorDisplay || authUser?.email || "İstifadəçi",
+        authorEmail: authUser?.email || undefined,
+      });
       setRating(0); setComment("");
       onSuccess();
     } catch(e) {
@@ -167,6 +173,9 @@ export default function ProductDetailPage() {
   const { openAuthModal } = useAuthModal();
 
   const [product,    setProduct]    = useState(null);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editRating,      setEditRating]      = useState(0);
+  const [editComment,     setEditComment]     = useState("");
   const [similar,    setSimilar]    = useState([]);
   const [loading,    setLoading]    = useState(true);
 
@@ -291,6 +300,40 @@ export default function ProductDetailPage() {
     setReviewsPage(1);
     loadReviews(productId, 1, false);
     setTimeout(() => setRevSuccess(false), 4000);
+  };
+
+  const handleEditStart = (r) => {
+    setEditingReviewId(r.id);
+    setEditRating(r.rating);
+    setEditComment(r.comment);
+  };
+
+  const handleEditCancel = () => {
+    setEditingReviewId(null);
+    setEditRating(0);
+    setEditComment("");
+  };
+
+  const handleEditSave = async (id) => {
+    if (!editComment.trim() || editRating < 1) return;
+    try {
+      await productApi.updateReview(id, { rating: editRating, comment: editComment.trim() });
+      setEditingReviewId(null);
+      loadReviews(productId, reviewsPage, false);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm(t("pdp.confirm_delete_review") || "Bu rəyi silmək istədiyinizdən əminsiniz?")) return;
+    try {
+      await productApi.deleteReview(id);
+      loadReviews(productId, 1, false);
+      setReviewsPage(1);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => {
@@ -608,13 +651,11 @@ export default function ProductDetailPage() {
               {product.description || t("pdp.no_description")}
             </p>
 
-            {/* Dimensions & Specs — description ilə birlikdə */}
+            {/* Dimensions & Specs */}
             {hasSpecs && (
               <div style={{ borderTop: "1px solid #E5DDD4", paddingTop: 28 }}>
-                <h4 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, marginBottom: 20, color: "#1C1C1C" }}>
-                  {t("pdp.tab_specs")}
-                </h4>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+                <h4 className="pdp-specs-title">{t("pdp.tab_specs")}</h4>
+                <div className="pdp-specs-grid">
                   {product.category?.name && (
                     <div className="pdp-spec-row"><span className="pdp-spec-label">{t("pdp.spec_category")}</span><span className="pdp-spec-val">{product.category.name}</span></div>
                   )}
@@ -694,23 +735,60 @@ export default function ProductDetailPage() {
             ) : reviews.length > 0 ? (
               <>
                 <div className="pdp-reviews-list">
-                  {reviews.map((r, i) => (
-                    <div key={r.id} className="pdp-review-card" style={{ animationDelay: `${i * 60}ms` }}>
-                      <div className="pdp-review-head">
-                        <div>
-                          <p className="pdp-rev-author">{r.authorName}</p>
-                          <p className="pdp-rev-meta">
-                            {new Date(r.createdAt).toLocaleDateString(
-                              lang === "az" ? "az-AZ" : lang === "ru" ? "ru-RU" : "en-US",
-                              { year: "numeric", month: "long", day: "numeric" }
+                  {reviews.map((r, i) => {
+                    const isOwner = isAuthenticated &&
+                      authUser?.email &&
+                      r.authorEmail &&
+                      authUser.email.toLowerCase() === r.authorEmail.toLowerCase();
+                    const isEditing = editingReviewId === r.id;
+
+                    return (
+                      <div key={r.id} className="pdp-review-card" style={{ animationDelay: `${i * 60}ms` }}>
+                        <div className="pdp-review-head">
+                          <div>
+                            <p className="pdp-rev-author">{r.authorName}</p>
+                            <p className="pdp-rev-meta">
+                              {new Date(r.createdAt).toLocaleDateString(
+                                lang === "az" ? "az-AZ" : lang === "ru" ? "ru-RU" : "en-US",
+                                { year: "numeric", month: "long", day: "numeric" }
+                              )}
+                            </p>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <Stars n={isEditing ? editRating : r.rating} size={13} />
+                            {isOwner && !isEditing && (
+                              <div className="pdp-rev-actions">
+                                <button className="pdp-rev-action-btn edit" onClick={() => handleEditStart(r)} title={t("pdp.edit_review") || "Redaktə et"}>✎</button>
+                                <button className="pdp-rev-action-btn delete" onClick={() => handleDeleteReview(r.id)} title={t("pdp.delete_review") || "Sil"}>✕</button>
+                              </div>
                             )}
-                          </p>
+                          </div>
                         </div>
-                        <Stars n={r.rating} size={13} />
+
+                        {isEditing ? (
+                          <div className="pdp-rev-edit-form">
+                            <div className="pdp-rev-edit-stars">
+                              {[1,2,3,4,5].map(n => (
+                                <button key={n} className={"pdp-star-btn" + (n <= editRating ? " on" : "")} onClick={() => setEditRating(n)}>★</button>
+                              ))}
+                            </div>
+                            <textarea
+                              className="pdp-review-textarea"
+                              value={editComment}
+                              onChange={e => setEditComment(e.target.value)}
+                              rows={3}
+                            />
+                            <div className="pdp-rev-edit-actions">
+                              <button className="pdp-rev-save-btn" onClick={() => handleEditSave(r.id)}>{t("pdp.save_review") || "Yadda saxla"}</button>
+                              <button className="pdp-rev-cancel-btn" onClick={handleEditCancel}>{t("pdp.cancel") || "Ləğv et"}</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="pdp-rev-text">{r.comment}</p>
+                        )}
                       </div>
-                      <p className="pdp-rev-text">{r.comment}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {hasMoreReviews && (

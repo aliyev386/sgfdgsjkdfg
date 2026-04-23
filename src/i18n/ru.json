@@ -367,7 +367,16 @@
     "spec_weight": "Вес (кг)",
     "spec_sku": "Артикул",
     "spec_category": "Категория",
-    "spec_stock": "В наличии"
+    "spec_stock": "В наличии",
+    "reviewing_as": "Отзыв от имени",
+    "review_error_req": "Оценка и отзыв обязательны.",
+    "login_to_review": "Чтобы оставить отзыв,",
+    "login_link": "войдите",
+    "edit_review": "Редактировать",
+    "delete_review": "Удалить",
+    "save_review": "Сохранить",
+    "cancel": "Отмена",
+    "confirm_delete_review": "Вы уверены, что хотите удалить этот отзыв?"
   },
   "rooms_page": {
     "eyebrow": "По комнатам",

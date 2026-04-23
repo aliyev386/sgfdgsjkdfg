@@ -47,29 +47,76 @@ const ProductCard = memo(function ProductCard({ product, idx, addingId, onAddToC
   const wished   = wishlist?.some(w => w.id === product.id);
   const badgeKey = product.badge?.toLowerCase().replace(/\s+/, "_");
   const badgeBg  = BADGE_COLORS[badgeKey] || "#6d9b70";
+  const discPct  = product.oldPrice ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0;
+
   return (
-    <article className="fcp-card" style={{ animationDelay:`${(idx%PAGE_SIZE)*40}ms` }} onClick={() => navigate(`/details/${product.id}`)}>
+    <article
+      className="fcp-card"
+      style={{ animationDelay:`${(idx % PAGE_SIZE) * 40}ms` }}
+      onClick={() => navigate(`/details/${product.id}`)}
+    >
       <div className="fcp-card-img-wrap">
-        <img className="fcp-card-img" src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"} alt={product.name} loading="lazy" />
-        {badgeKey && <span className="fcp-card-badge" style={{ background: badgeBg }}>{product.badge}</span>}
-        <div className="fcp-card-actions">
-          <button className="fcp-card-view" onClick={e => { e.stopPropagation(); navigate(`/details/${product.id}`); }}>{t("fcp.view_details")}</button>
-          <button className="fcp-card-wish" onClick={e => { e.stopPropagation(); dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image })); }}>
-            {wished ? <span style={{ color:"#e53e3e" }}>♥</span> : "♡"}
+        <img
+          className="fcp-card-img"
+          src={product.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80"}
+          alt={product.name}
+          loading="lazy"
+        />
+
+        {/* Badge */}
+        {discPct > 0
+          ? <span className="fcp-card-badge" style={{ background: "#C4923A" }}>−{discPct}%</span>
+          : badgeKey && <span className="fcp-card-badge" style={{ background: badgeBg }}>{product.badge}</span>
+        }
+
+        {/* Wishlist icon — always visible */}
+        <button
+          className={`fcp-card-wish-icon${wished ? " wished" : ""}`}
+          onClick={e => { e.stopPropagation(); dispatch(toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.image })); }}
+          title={wished ? "Seçilmişlərdən çıxar" : "Seçilmişlərə əlavə et"}
+        >
+          <svg viewBox="0 0 24 24" fill={wished ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" width="16" height="16">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Hover overlay */}
+        <div className="fcp-card-overlay">
+          <button
+            className="fcp-card-view-btn"
+            onClick={e => { e.stopPropagation(); navigate(`/details/${product.id}`); }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="14" height="14" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            {t("fcp.view_details")}
+          </button>
+          <button
+            className={`fcp-card-cart-btn${addingId === product.id ? " adding" : ""}`}
+            onClick={e => { e.stopPropagation(); onAddToCart(product); }}
+          >
+            {addingId === product.id ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="14" height="14" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="14" height="14" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+              </svg>
+            )}
+            {addingId === product.id ? "Əlavə edildi" : t("pdp.add_to_cart") || "Səbətə əlavə et"}
           </button>
         </div>
       </div>
+
       <div className="fcp-card-body">
         <h3 className="fcp-card-name">{product.name}</h3>
-        {product.categoryName && <p className="fcp-card-cat">{product.categoryName}</p>}
+        {product.material && <p className="fcp-card-material">{product.material}</p>}
         <div className="fcp-card-foot">
           <div className="fcp-card-prices">
-            <span className="fcp-card-price">{fmt(product.price)}</span>
-            {product.oldPrice && <span className="fcp-card-old">{fmt(product.oldPrice)}</span>}
+            <span className="fcp-card-price">₼{Number(product.price).toLocaleString()}</span>
+            {product.oldPrice && <span className="fcp-card-old">₼{Number(product.oldPrice).toLocaleString()}</span>}
           </div>
-          <button className={`fcp-card-add${addingId===product.id?" adding":""}`} onClick={e => { e.stopPropagation(); onAddToCart(product); }}>
-            {addingId===product.id ? "✓" : "+"}
-          </button>
         </div>
       </div>
     </article>

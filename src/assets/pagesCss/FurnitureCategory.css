@@ -586,140 +586,160 @@
 .fcp-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .fcp-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
+/* ══ PRODUCT CARD — RelCard style ══ */
 .fcp-card {
   background: #fff;
-  border-radius: 14px;
+  border: 1px solid #F0EBE2;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid #e8e4de;
-  transition: transform .32s cubic-bezier(.25,.46,.45,.94),
-              box-shadow .32s cubic-bezier(.25,.46,.45,.94),
-              border-color .2s;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94),
+              box-shadow .4s cubic-bezier(.25,.46,.45,.94);
   animation: fadeUp .45s cubic-bezier(.25,.46,.45,.94) both;
 }
 .fcp-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 48px rgba(0,0,0,.09);
-  border-color: #d8d3cb;
+  transform: translateY(-6px);
+  box-shadow: 0 22px 52px rgba(28,24,20,.11);
 }
 
 .fcp-card-img-wrap {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 4/5;
-  background: #f5f3f0;
+  aspect-ratio: 3/4;
+  background: #F7F3EE;
 }
 .fcp-card-img {
   width: 100%; height: 100%;
   object-fit: cover;
-  transition: transform .65s cubic-bezier(.25,.46,.45,.94);
+  transition: transform .7s cubic-bezier(.25,.46,.45,.94);
 }
 .fcp-card:hover .fcp-card-img { transform: scale(1.06); }
 
 .fcp-card-badge {
   position: absolute;
-  top: 10px; left: 10px;
+  top: 12px; left: 12px;
   color: #fff;
   font-size: 9px;
-  letter-spacing: 1.4px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   padding: 4px 10px;
   font-weight: 700;
-  border-radius: 999px;
-  animation: fadeUp .3s ease both;
   z-index: 2;
 }
 
-.fcp-card-actions {
+/* Wishlist icon — top right, always visible */
+.fcp-card-wish-icon {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 10px 10px;
-  display: flex;
-  gap: 7px;
-  background: linear-gradient(to top, rgba(0,0,0,.82) 0%, transparent 100%);
-  transform: translateY(100%);
-  transition: transform .3s cubic-bezier(.25,.46,.45,.94);
-  z-index: 3;
-}
-.fcp-card:hover .fcp-card-actions { transform: translateY(0); }
-.fcp-card-view {
-  flex: 1;
-  padding: 9px;
-  font-size: 10px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  border: none;
-  background: #fff;
-  color: #111;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  border-radius: 8px;
-  transition: background .25s, color .25s;
-}
-.fcp-card-view:hover { background: #6d9b70; color: #fff; }
-.fcp-card-wish {
-  width: 38px;
-  background: rgba(255,255,255,.12);
-  border: 1.5px solid rgba(255,255,255,.25);
-  color: #fff;
-  cursor: pointer;
-  font-size: 15px;
-  border-radius: 8px;
+  top: 12px; right: 12px;
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(28,24,20,.08);
+  border-radius: 50%;
+  color: #A8A09A;
   display: flex; align-items: center; justify-content: center;
-  transition: background .25s;
-  flex-shrink: 0;
+  cursor: pointer;
+  z-index: 4;
+  transition: background .2s, color .2s, transform .2s;
+  backdrop-filter: blur(4px);
 }
-.fcp-card-wish:hover { background: rgba(255,255,255,.25); }
+.fcp-card-wish-icon:hover { background: #fff; color: #e53e3e; transform: scale(1.1); }
+.fcp-card-wish-icon.wished { color: #e53e3e; background: #fff; }
 
-.fcp-card-body { padding: 14px 14px 16px; }
+/* Hover overlay */
+.fcp-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(20,18,16,.52);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity .3s cubic-bezier(.25,.46,.45,.94);
+  z-index: 3;
+  backdrop-filter: blur(2px);
+}
+.fcp-card:hover .fcp-card-overlay { opacity: 1; }
+
+.fcp-card-view-btn,
+.fcp-card-cart-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 14px;
+  font-size: 11px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: 'DM Sans', sans-serif;
+  transition: background .22s, color .22s, transform .22s, opacity .22s;
+  transform: translateY(8px);
+  opacity: 0;
+}
+.fcp-card:hover .fcp-card-view-btn,
+.fcp-card:hover .fcp-card-cart-btn {
+  transform: translateY(0);
+  opacity: 1;
+}
+.fcp-card:hover .fcp-card-view-btn  { transition-delay: .04s; }
+.fcp-card:hover .fcp-card-cart-btn  { transition-delay: .09s; }
+
+.fcp-card-view-btn {
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.55);
+  color: #fff;
+}
+.fcp-card-view-btn:hover { background: rgba(255,255,255,.28); }
+
+.fcp-card-cart-btn {
+  background: #C4923A;
+  border: 1.5px solid #C4923A;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(196,146,58,.35);
+}
+.fcp-card-cart-btn:hover { background: #A5762A; border-color: #A5762A; }
+.fcp-card-cart-btn.adding {
+  background: #5a9060;
+  border-color: #5a9060;
+}
+
+.fcp-card-body { padding: 16px 16px 20px; }
 .fcp-card-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  font-weight: 500;
-  color: #111;
-  margin-bottom: 8px;
-  line-height: 1.35;
-  transition: color .2s;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: #1C1C1C;
+  margin-bottom: 5px;
+  line-height: 1.25;
+  transition: color .25s;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.fcp-card:hover .fcp-card-name { color: #6d9b70; }
-.fcp-card-cat {
+.fcp-card:hover .fcp-card-name { color: #C4923A; }
+.fcp-card-material {
   font-size: 11px;
-  color: #aaa;
+  color: #A8A09A;
+  letter-spacing: .5px;
   margin-bottom: 10px;
-  letter-spacing: .3px;
 }
 .fcp-card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.fcp-card-prices { display: flex; align-items: baseline; gap: 6px; }
-.fcp-card-price { font-size: 16px; font-weight: 700; color: #111; }
-.fcp-card-old { font-size: 12px; color: #bbb; text-decoration: line-through; }
-.fcp-card-add {
-  width: 34px; height: 34px;
-  border: 1.5px solid #ddd;
-  background: #fff;
-  color: #111;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 9px;
-  transition: all .28s cubic-bezier(.34,1.56,.64,1);
-  flex-shrink: 0;
-  line-height: 1;
+.fcp-card-prices { display: flex; align-items: baseline; gap: 8px; }
+.fcp-card-price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 500; color: #1C1C1C;
 }
-.fcp-card-add:hover { background: #111; border-color: #111; color: #fff; transform: scale(1.1); }
-.fcp-card-add.adding {
-  background: #6d9b70;
-  border-color: #6d9b70;
-  color: #fff;
-  animation: popBtn .32s ease;
+.fcp-card-old {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; color: #B8B0A8;
+  text-decoration: line-through; font-weight: 300;
 }
 
 .fcp-sk-grid {

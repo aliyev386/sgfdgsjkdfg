@@ -1,23 +1,27 @@
-
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectLang } from "../../store/slices/langSlice";
+import { setCart } from "../../store/slices/cartSlice";
 import collectionApi from "../../api/collectionApi";
+import cartApi from "../../api/cartApi";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../assets/pagesCss/RoomCollections.css";
 
-const ACCENTS2 = ["#7A9E7E","#C9A84C","#C1654B","#5C8DB8","#9B8AC4","#7A9E7E","#E8A87C","#A0856C"];
+const ACCENTS2 = ["#7A9E7E","#C9A84C","#C1654B","#5C8DB8","#9B8AC4","#7A9E7E","#E8A87C","#A0856C"]; 
+
+
+const fmt = (n) => `$${Number(n).toLocaleString()}`;
 const BADGE_CLR = { best_seller:"#D4714A", new_in:"#7A9E7E", sale:"#C9A84C" };
 
-const CollCard = memo(function CollCard({ coll, idx, t }) {
+const CollCard = memo(function CollCard({ coll, idx, accent, t }) {
   const navigate = useNavigate();
   return (
     <article
       className="rcp-card"
-      style={{ animationDelay:`${idx * 55}ms` }}
+      style={{ animationDelay:`${idx * 60}ms` }}
       onClick={() => navigate(`/collection-detail/${coll.id}`)}
     >
       <div className="rcp-card-img-box">
@@ -40,6 +44,7 @@ const CollCard = memo(function CollCard({ coll, idx, t }) {
         <div className="rcp-card-foot">
           <button
             className="rcp-explore-btn"
+            style={{"--accent":accent}}
             onClick={e => { e.stopPropagation(); navigate(`/collection-detail/${coll.id}`); }}
           >
             {t("rooms_coll.explore")} →
@@ -50,15 +55,19 @@ const CollCard = memo(function CollCard({ coll, idx, t }) {
   );
 });
 
+
+
 export default function RoomCollectionsPage() {
-  const { categoryId } = useParams();
+  const { categoryId } = useParams(); 
   const { t }          = useTranslation();
+  const navigate       = useNavigate();
+  const dispatch       = useDispatch();
   const lang           = useSelector(selectLang);
 
   const [heroLoaded,  setHeroLoaded]  = useState(false);
   const [loading,     setLoading]     = useState(true);
   const [items,       setItems]       = useState([]);
-  const [allRooms,    setAllRooms]    = useState([]);
+  const [allRooms,    setAllRooms]    = useState([]);  
   const [currentMeta, setCurrentMeta] = useState({ name: "", image: "", accent: "#7A9E7E" });
 
   useEffect(() => {
@@ -95,6 +104,7 @@ export default function RoomCollectionsPage() {
           id:          c.id,
           name:        c.name,
           slug:        String(c.id),
+          pieces:      c.products?.length ?? 0,
           badge:       null,
           image:       c.imageUrl || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700&q=80",
           description: c.description || "",
@@ -126,8 +136,10 @@ export default function RoomCollectionsPage() {
               <span className="rcp-bc-sep">/</span>
               <span className="rcp-bc-cur">{currentMeta.name}</span>
             </div>
-            <span className="rcp-hero-tag">{t("rooms_coll.collections_for")}</span>
-            <h1 className="rcp-hero-title">{currentMeta.name}</h1>
+            <span className="rcp-hero-tag" style={{color:accent}}>{t("rooms_coll.collections_for")}</span>
+            <h1 className="rcp-hero-title" style={{color:"#fff"}}>
+              <em style={{color:accent}}>{currentMeta.name}</em>
+            </h1>
           </div>
           <div className="rcp-hero-stats">
             <span className="rcp-hero-stat-n">{items.length || "—"}</span>
@@ -136,12 +148,13 @@ export default function RoomCollectionsPage() {
         </div>
 
         <nav className="rcp-rooms-nav">
-          <div className="rcp-rooms-nav-inner">
+          <div className="rcp-rooms-nav-inner" style={{"--accent":accent}}>
             {allRooms.map(r => (
               <Link
                 key={r.slug}
                 to={`/room-collections/${r.slug}`}
                 className={"rcp-room-tab" + (String(r.id)===String(categoryId)?" active":"")}
+                style={String(r.id)===String(categoryId) ? {"--accent":accent} : {}}
               >
                 {r.name}
               </Link>
@@ -151,9 +164,9 @@ export default function RoomCollectionsPage() {
 
         <div className="rcp-main">
           <div className="rcp-section-head">
-            <h2 className="rcp-section-title">
-              {t("rooms_coll.section_title_pre")} {currentMeta.name}
-            </h2>
+          <h2 className="rcp-section-title" style={{"--accent":accent}}>
+  {t("rooms_coll.section_title_pre")} <em>{currentMeta.name}</em>
+</h2>
             {!loading && (
               <span className="rcp-section-count">
                 {items.length} {t("rooms_coll.collections")}
@@ -185,7 +198,13 @@ export default function RoomCollectionsPage() {
           {!loading && items.length > 0 && (
             <div className="rcp-grid">
               {items.map((coll, i) => (
-                <CollCard key={coll.id} coll={coll} idx={i} t={t} />
+                <CollCard
+                  key={coll.id}
+                  coll={coll}
+                  idx={i}
+                  accent={accent}
+                  t={t}
+                />
               ))}
             </div>
           )}

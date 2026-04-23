@@ -122,9 +122,11 @@ export default function Navbar() {
                 {t("nav.logout") || "Çıxış"}
               </button>
             </>
-            : <button className="arv-nav-icon" onClick={() => navigate("/login")}>
-              <IconLogin />
-              {t("nav.login") || "Giriş"}
+            : <button className="arv-nav-icon arv-signin-icon" onClick={() => navigate("/login")} aria-label={t("nav.login") || "Giriş"}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
             </button>
           }
           <button className="arv-nav-mobile-toggle" onClick={() => setMobileOpen(o => !o)} aria-label="Menyu">
