@@ -2001,58 +2001,131 @@ const HeroSections = ({ t, lang }) => {
   );
 };
 
+// ── Campaign Rule Presets ─────────────────────────────────────────────────────
+const RULE_PRESETS = [
+  { key: "percent_discount", label: "X% Endirim",         icon: "🏷️", color: "#F59E0B", desc: "Məhsullara faiz endirim tətbiq et" },
+  { key: "min_order",        label: "Minimum Sifariş",    icon: "🛒", color: "#3B82F6", desc: "Müəyyən məbləğdən yuxarı sifarişə endirim" },
+  { key: "buy_x_get_y",     label: "Al X, Ödə Y",        icon: "🎁", color: "#10B981", desc: 'məs: "3 al 2 ödə"' },
+  { key: "new_customer",    label: "Yeni Müştəri",        icon: "👤", color: "#8B5CF6", desc: "Yalnız yeni müştərilərə xüsusi endirim" },
+  { key: "limited_time",    label: "Məhdud Müddət",       icon: "⏰", color: "#EF4444", desc: "Yalnız bu həftə / bu gün" },
+  { key: "selected_items",  label: "Seçilmiş Məhsullar",  icon: "✅", color: "#06B6D4", desc: "Yalnız seçilmiş məhsullara tətbiq et" },
+  { key: "free_shipping",   label: "Pulsuz Çatdırılma",   icon: "🚚", color: "#84CC16", desc: "Müəyyən məbləğdən yuxarı pulsuz çatdır" },
+  { key: "custom",          label: "Xüsusi Qayda",        icon: "⚙️", color: "#6B7280", desc: "Öz qayda mətninizi yazın" },
+];
+
+function CampaignCountdownPreview({ endDate }) {
+  const [left, setLeft] = useState(null);
+  useEffect(() => {
+    const calc = () => {
+      const diff = new Date(endDate) - new Date();
+      if (diff <= 0) { setLeft(null); return; }
+      setLeft({ d: Math.floor(diff/86400000), h: Math.floor((diff%86400000)/3600000), m: Math.floor((diff%3600000)/60000) });
+    };
+    calc();
+    const id = setInterval(calc, 60000);
+    return () => clearInterval(id);
+  }, [endDate]);
+  if (!endDate) return null;
+  if (!left) return <span style={{fontSize:11,color:"#EF4444",fontWeight:600}}>Bitib</span>;
+  return (
+    <span style={{fontSize:11,color:"#7A9E7E",fontWeight:600,display:"flex",alignItems:"center",gap:4}}>
+      {left.d > 0 ? `${left.d}g ` : ""}{String(left.h).padStart(2,"0")}:{String(left.m).padStart(2,"0")} qalıb
+    </span>
+  );
+}
+
 const Campaigns = ({ t, lang }) => {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formLang, setFormLang] = useState("en");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
-  const emptyForm = { name: { az: "", en: "", ru: "" }, description: { az: "", en: "", ru: "" }, discount: "", startDate: "", endDate: "", active: true };
+  const [activeFormTab, setActiveFormTab] = useState("az");
+
+  const emptyForm = {
+    name:          { az: "", en: "", ru: "" },
+    description:   { az: "", en: "", ru: "" },
+    button_text:   { az: "", en: "", ru: "" },
+    buttonLink:    "",
+    discount:      "",
+    startDate:     "",
+    endDate:       "",
+    display_order: 0,
+    imageUrl:      "",
+    ruleType:      "",
+    ruleNote:      { az: "", en: "", ru: "" },
+  };
   const [form, setForm] = useState(emptyForm);
-  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());  
+  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());
+
   const toDateStr = (val) => {
     if (!val) return "";
     if (typeof val === "string" && val.includes("T")) return val.split("T")[0];
     return val;
   };
+  const normalizeLang = (val) => {
+    if (!val) return { az: "", en: "", ru: "" };
+    if (typeof val === "object" && !Array.isArray(val)) return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+    return { az: String(val), en: String(val), ru: String(val) };
+  };
+  const extractTranslations = (c, field) => {
+    if (c.translations && Array.isArray(c.translations)) {
+      return {
+        az: c.translations.find(x => x.lang === "az")?.[field] || "",
+        en: c.translations.find(x => x.lang === "en")?.[field] || "",
+        ru: c.translations.find(x => x.lang === "ru")?.[field] || "",
+      };
+    }
+    return normalizeLang(c[field]);
+  };
 
   const validate = () => {
     const e = {};
     if (!form.name?.az?.trim()) e.name = t.required;
-    if (!form.discount || Number(form.discount) < 1 || Number(form.discount) > 100) e.discount = t.invalidDiscount;
+    if (form.discount && (Number(form.discount) < 1 || Number(form.discount) > 100)) e.discount = t.invalidDiscount;
     if (!form.startDate) e.startDate = t.required;
     if (!form.endDate) e.endDate = t.required;
-    if (form.startDate && form.endDate && form.startDate > form.endDate) e.endDate = t.dateError;
+    if (form.startDate && form.endDate && form.startDate >= form.endDate) e.endDate = t.dateError;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setActiveFormTab("az"); setModal(true); };
   const openEdit = (c) => {
-    const normalizeLang = (val) => {
-      if (!val) return { az: "", en: "", ru: "" };
-      if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
-      return { az: val, en: val, ru: val };
-    };
     setEditing(c.id);
     setForm({
-      name:        normalizeLang(c.title || c.name),
-      description: normalizeLang(c.description),
-      discount:    c.discountPercent ?? c.discount ?? "",
-      startDate:   toDateStr(c.startDate),
-      endDate:     toDateStr(c.endDate),
-      active:      c.isActive !== undefined ? c.isActive : (c.active !== undefined ? c.active : true),
+      name:          extractTranslations(c, "title"),
+      description:   extractTranslations(c, "description"),
+      button_text:   extractTranslations(c, "buttonText"),
+      buttonLink:    c.buttonLink || "",
+      discount:      c.discountPercent ?? c.discount ?? "",
+      startDate:     toDateStr(c.startDate),
+      endDate:       toDateStr(c.endDate),
+      display_order: c.displayOrder ?? 0,
+      imageUrl:      c.imageUrl || "",
+      ruleType:      c.ruleType || "",
+      ruleNote:      normalizeLang(c.ruleNote),
     });
     setErrors({});
+    setActiveFormTab("az");
     setModal(true);
+  };
+
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await campaignApi.uploadImage(file);
+      setForm(f => ({ ...f, imageUrl: res.url || "" }));
+    } catch { setToast({ message: t.error, type: "error" }); }
+    finally { setUploading(false); }
   };
 
   const onToggle = async (c) => {
     try { await campaignApi.toggle(c.id); reload(); }
     catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
   };
-
   const onDelete = async (c) => {
     if (!window.confirm(t.confirmDelete)) return;
     try { await campaignApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
@@ -2063,15 +2136,8 @@ const Campaigns = ({ t, lang }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      const payload = {
-        name:           form.name,
-        description:    form.description,
-        discount:       Number(form.discount),
-        endDate:        form.endDate   ? new Date(form.endDate).toISOString()   : new Date().toISOString(),
-        display_order:  0,
-      };
-      if (editing) await campaignApi.update(editing, payload);
-      else await campaignApi.create(payload);
+      if (editing) await campaignApi.update(editing, form);
+      else await campaignApi.create(form);
       setToast({ message: t.successSaved, type: "success" });
       setModal(false); reload();
     } catch (err) {
@@ -2079,54 +2145,205 @@ const Campaigns = ({ t, lang }) => {
     } finally { setSaving(false); }
   };
 
+  const selectedRule = RULE_PRESETS.find(r => r.key === form.ruleType);
+
   return (
     <div className="space-y-5">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">{t.campaigns}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">{t.campaigns}</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Kampaniyaları idarə et — qayda sistemi, şəkil, geri sayım</p>
+        </div>
         <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
       </div>
-      <Card>
-        <Table
-          t={t}
-          loading={loading}
-          columns={[
-            { key: "title", label: t.name, render: r => <span className="font-semibold text-gray-800">{r.title || (typeof r.name === "object" ? r.name[lang] : r.name)}</span> },
-            { key: "discountPercent", label: t.discount, render: r => {
-              const pct = r.discountPercent ?? r.discount;
-              return pct ? <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold">{pct}% OFF</span> : <span className="text-gray-400 text-xs">—</span>;
-            }},
-            { key: "startDate", label: t.startDate, render: r => <span className="text-gray-500 text-xs">{toDateStr(r.startDate)}</span> },
-            { key: "endDate",   label: t.endDate,   render: r => <span className="text-gray-500 text-xs">{toDateStr(r.endDate)}</span> },
-            { key: "isActive", label: t.status, render: r => {
-              const active = r.isActive !== undefined ? r.isActive : r.active;
-              return (
-                <button onClick={() => onToggle(r)} className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
-                  {active ? t.active : t.inactive}
-                </button>
-              );
-            }},
-          ]}
-          data={camps}
-          onEdit={openEdit}
-          onDelete={onDelete}
-        />
-      </Card>
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? t.edit : t.addNew}>
-        <div className="space-y-4">
+
+      {/* Cards Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1,2,3].map(i => <div key={i} className="h-52 bg-gray-100 rounded-xl animate-pulse" />)}
+        </div>
+      ) : !camps?.length ? (
+        <Card>
+          <div className="text-center py-16">
+            <div className="text-5xl mb-3">🏷️</div>
+            <p className="text-gray-500 font-medium">Kampaniya tapılmadı</p>
+            <p className="text-gray-400 text-sm mt-1">Yeni kampaniya yaratmaq üçün yuxarıdakı düyməyə basın</p>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {camps.map(c => {
+            const active = c.isActive !== undefined ? c.isActive : c.active;
+            const rulePreset = RULE_PRESETS.find(r => r.key === c.ruleType);
+            const title = c.title || (typeof c.name === "object" ? c.name[lang] : c.name) || "—";
+            return (
+              <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                {/* Thumbnail */}
+                <div className="relative h-36 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                  {c.imageUrl
+                    ? <img src={c.imageUrl} alt={title} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-5xl opacity-20">🖼️</div>
+                  }
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap">
+                    {c.discountPercent && (
+                      <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">−{c.discountPercent}%</span>
+                    )}
+                    {rulePreset && (
+                      <span className="text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow" style={{background: rulePreset.color}}>
+                        {rulePreset.icon} {rulePreset.label}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onToggle(c)}
+                    className="absolute top-2 right-2 px-2.5 py-0.5 rounded-full text-xs font-bold shadow transition-colors"
+                    style={{background: active ? "#10B981" : "#9CA3AF", color: "#fff"}}
+                  >
+                    {active ? "● Aktiv" : "○ Deaktiv"}
+                  </button>
+                </div>
+                {/* Body */}
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-800 text-sm truncate mb-1">{title}</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs text-gray-400">📅 {toDateStr(c.startDate)} → {toDateStr(c.endDate)}</span>
+                    <CampaignCountdownPreview endDate={c.endDate} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => openEdit(c)} className="flex-1 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition-colors">
+                      ✏️ Düzəlt
+                    </button>
+                    <button onClick={() => onDelete(c)} className="flex-1 py-1.5 text-xs font-semibold text-red-500 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
+                      🗑️ Sil
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal */}
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? "Kampaniyanı Düzəlt" : "Yeni Kampaniya Yarat"}>
+        <div className="space-y-5" style={{maxHeight:"75vh",overflowY:"auto",paddingRight:4}}>
+
+          {/* IMAGE */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.name} *</label>
-            <div className="grid grid-cols-3 gap-3">
-              <Input label="AZ *" value={form.name.az || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, az: v } }))} required error={errors.name} />
-              <Input label="EN" value={form.name.en || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, en: v } }))} />
-              <Input label="RU" value={form.name.ru || ""} onChange={v => setForm(f => ({ ...f, name: { ...f.name, ru: v } }))} />
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">🖼️ Kampaniya Şəkli</label>
+            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden" style={{height:150}}>
+              {form.imageUrl ? (
+                <>
+                  <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
+                  <button onClick={() => setForm(f => ({ ...f, imageUrl: "" }))} className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 flex items-center justify-center">×</button>
+                </>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-full cursor-pointer gap-2 text-gray-400 hover:text-gray-600 transition-colors" style={{background:"#F9FAFB"}}>
+                  {uploading
+                    ? <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                    : <><span className="text-3xl">📸</span><span className="text-xs font-medium">Şəkil yükləmək üçün basın</span><span className="text-xs text-gray-300">JPG, PNG, WEBP</span></>
+                  }
+                  <input type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(e.target.files[0])} disabled={uploading} />
+                </label>
+              )}
+            </div>
+            <div className="mt-2">
+              <Input label="Şəkil URL (birbaşa link)" value={form.imageUrl} onChange={v => setForm(f => ({ ...f, imageUrl: v }))} placeholder="https://..." />
             </div>
           </div>
-          <Input label={`${t.discount} %`} value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" error={errors.discount} />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label={t.startDate} value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
-            <Input label={t.endDate}   value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
+
+          {/* RULE SYSTEM */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">⚡ Kampaniya Qaydası</label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {RULE_PRESETS.map(rule => (
+                <button key={rule.key} type="button" onClick={() => setForm(f => ({ ...f, ruleType: f.ruleType === rule.key ? "" : rule.key }))}
+                  className="text-left p-3 rounded-xl border-2 transition-all"
+                  style={{ borderColor: form.ruleType === rule.key ? rule.color : "#E5E7EB", background: form.ruleType === rule.key ? rule.color + "15" : "#fff" }}>
+                  <div className="font-bold text-gray-800 text-xs flex items-center gap-1.5 mb-0.5">{rule.icon} {rule.label}</div>
+                  <div className="text-gray-400 text-[10px] leading-tight">{rule.desc}</div>
+                </button>
+              ))}
+            </div>
+            {form.ruleType && (
+              <div className="p-3 rounded-xl border" style={{borderColor: selectedRule?.color, background: selectedRule?.color + "08"}}>
+                <p className="text-xs font-semibold mb-2" style={{color: selectedRule?.color}}>{selectedRule?.icon} Qayda açıqlaması (istifadəçiyə göstərilir)</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {["az","en","ru"].map(l => (
+                    <div key={l}>
+                      <div className="text-[10px] font-bold text-gray-400 mb-1">{l.toUpperCase()}</div>
+                      <textarea rows={2} value={form.ruleNote?.[l] || ""}
+                        onChange={e => setForm(f => ({ ...f, ruleNote: { ...f.ruleNote, [l]: e.target.value } }))}
+                        placeholder={l === "az" ? 'məs: "3 al 2 ödə"' : l === "en" ? '"Buy 3, Pay 2"' : '"Купи 3, плати за 2"'}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs resize-none focus:outline-none focus:border-indigo-300"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* MULTILANG CONTENT */}
+          <div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">📝 Məzmun</label>
+            <div className="flex gap-1 mb-3">
+              {["az","en","ru"].map(l => (
+                <button key={l} type="button" onClick={() => setActiveFormTab(l)}
+                  className="px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                  style={{ background: activeFormTab === l ? "#4F46E5" : "#F3F4F6", color: activeFormTab === l ? "#fff" : "#6B7280" }}>
+                  {l.toUpperCase()} {l === "az" && errors.name ? "⚠" : ""}
+                </button>
+              ))}
+            </div>
+            {["az","en","ru"].map(l => (
+              <div key={l} className={activeFormTab === l ? "space-y-3" : "hidden"}>
+                <Input label={`Başlıq${l === "az" ? " *" : ""} (${l.toUpperCase()})`}
+                  value={form.name?.[l] || ""}
+                  onChange={v => setForm(f => ({ ...f, name: { ...f.name, [l]: v } }))}
+                  error={l === "az" ? errors.name : undefined}
+                  placeholder={l === "az" ? "məs: Yaz Endirim Kampaniyası" : l === "en" ? "e.g. Spring Sale Campaign" : "напр. Весенняя распродажа"} />
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Açıqlama ({l.toUpperCase()})</label>
+                  <textarea rows={3} value={form.description?.[l] || ""}
+                    onChange={e => setForm(f => ({ ...f, description: { ...f.description, [l]: e.target.value } }))}
+                    placeholder={l === "az" ? "Kampaniya haqqında qısa məlumat..." : ""}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-50" />
+                </div>
+                <Input label={`Düymə mətni (${l.toUpperCase()})`}
+                  value={form.button_text?.[l] || ""}
+                  onChange={v => setForm(f => ({ ...f, button_text: { ...f.button_text, [l]: v } }))}
+                  placeholder={l === "az" ? "məs: İndi al" : l === "en" ? "Shop now" : "Купить"} />
+              </div>
+            ))}
+          </div>
+
+          {/* SETTINGS */}
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Endirim % (ixtiyari)" value={form.discount} onChange={v => setForm(f => ({ ...f, discount: v }))} type="number" placeholder="məs: 20" error={errors.discount} />
+            <Input label="Düymə linki" value={form.buttonLink} onChange={v => setForm(f => ({ ...f, buttonLink: v }))} placeholder="/campaigns" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label={`${t.startDate} *`} value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} type="date" error={errors.startDate} />
+            <Input label={`${t.endDate} *`}   value={form.endDate}   onChange={v => setForm(f => ({ ...f, endDate: v }))}   type="date" error={errors.endDate} />
+          </div>
+          <Input label="Göstərilmə sırası" value={form.display_order} onChange={v => setForm(f => ({ ...f, display_order: v }))} type="number" placeholder="0" />
+
+          {/* Countdown Preview */}
+          {form.endDate && (
+            <div className="p-3 bg-gray-50 rounded-xl flex items-center gap-3 border border-gray-100">
+              <span className="text-2xl">⏰</span>
+              <div>
+                <div className="text-xs font-bold text-gray-600 mb-0.5">Geri sayım önizləməsi:</div>
+                <CampaignCountdownPreview endDate={form.endDate} />
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <Btn variant="secondary" onClick={() => setModal(false)} disabled={saving}>{t.cancel}</Btn>
             <Btn onClick={onSave} disabled={saving}>
@@ -2138,6 +2355,7 @@ const Campaigns = ({ t, lang }) => {
     </div>
   );
 };
+
 
 const DiscountCodes = ({ t }) => {
   const [modal, setModal] = useState(false);

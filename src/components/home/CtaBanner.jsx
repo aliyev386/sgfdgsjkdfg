@@ -30,12 +30,9 @@ const ARROW = (
   </svg>
 );
 
-const STYLE_ICONS = ["◻", "◆", "○", "✦"];
-
 function CustomDesignSection({ t }) {
   const [ref, visible] = useReveal();
   const steps = ["step1", "step2", "step3"];
-  const styles = ["style1", "style2", "style3", "style4"];
 
   return (
     <section className={`atl-wrap ${visible ? "atl-in" : ""}`} ref={ref}>
@@ -53,7 +50,6 @@ function CustomDesignSection({ t }) {
         <span className="atl-meta-idx">01 / 02</span>
       </div>
 
-      {/* ── hero headline ── */}
       <div className="atl-hero">
         <h2 className="atl-h">
           <span className="atl-h-thin">{t("custom_design.title")}</span>
@@ -63,16 +59,12 @@ function CustomDesignSection({ t }) {
         <div className="atl-h-accent" aria-hidden="true" />
       </div>
 
-      {/* ── content row ── */}
       <div className="atl-body">
 
-        {/* left: description + cta */}
         <div className="atl-desc-col">
           <p className="atl-desc">{t("custom_design.desc")}</p>
           <div className="atl-cta-row">
-            <Link to="/contact" className="atl-btn-primary">
-              {t("custom_design.btn_main")} {ARROW}
-            </Link>
+{/* //telefon */}
             <a
               href="https://wa.me/994551234567"
               target="_blank"
@@ -83,42 +75,25 @@ function CustomDesignSection({ t }) {
               {t("custom_design.btn_whatsapp")}
             </a>
           </div>
+          <div className="atl-promise-inline">
+            <span className="atl-promise-star">★</span>
+            <span>{t("custom_design.promise")}</span>
+          </div>
         </div>
 
-        {/* right: style cards */}
-        <div className="atl-styles">
-          {styles.map((s, i) => (
-            <div className="atl-style-card" key={s}>
-              <span className="atl-style-icon">{STYLE_ICONS[i]}</span>
-              <span className="atl-style-name">{t(`custom_design.${s}`)}</span>
-              <span className="atl-style-arrow">→</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── horizontal process steps ── */}
-      <div className="atl-process">
-        <div className="atl-process-label">{t("custom_design.process_label")}</div>
-        <div className="atl-steps">
+        {/* right: compact process steps */}
+        <div className="atl-steps-inline">
+          <div className="atl-process-label">{t("custom_design.process_label")}</div>
           {steps.map((key, i) => (
-            <div className="atl-step" key={key} style={{ transitionDelay: `${0.15 + i * 0.12}s` }}>
-              <span className="atl-step-ghost">{String(i + 1).padStart(2, "0")}</span>
-              <div className="atl-step-top">
-                <span className="atl-step-num">{String(i + 1).padStart(2, "0")}</span>
-                <div className="atl-step-divider" />
+            <div className="atl-step-inline" key={key} style={{ transitionDelay: `${0.2 + i * 0.1}s` }}>
+              <span className="atl-step-num-inline">{String(i + 1).padStart(2, "0")}</span>
+              <div className="atl-step-inline-text">
+                <strong className="atl-step-title-inline">{t(`custom_design.${key}_title`)}</strong>
+                <p className="atl-step-desc-inline">{t(`custom_design.${key}_desc`)}</p>
               </div>
-              <strong className="atl-step-title">{t(`custom_design.${key}_title`)}</strong>
-              <p className="atl-step-desc">{t(`custom_design.${key}_desc`)}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* ── promise bar ── */}
-      <div className="atl-promise">
-        <span className="atl-promise-star">★</span>
-        <span>{t("custom_design.promise")}</span>
       </div>
 
     </section>
@@ -148,11 +123,9 @@ function RestorationSection({ t }) {
               </li>
             ))}
           </ul>
+          {/* //telefon */}
           <div className="rst-actions">
-          <Link to="/contact" className="rst-btn">
-            {t("restoration.btn")}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </Link>
+
           <a
             href="https://wa.me/994551234567"
             target="_blank"
