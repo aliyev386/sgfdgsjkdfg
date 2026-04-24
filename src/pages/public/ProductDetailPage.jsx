@@ -188,6 +188,7 @@ export default function ProductDetailPage() {
   const [revSuccess,    setRevSuccess]    = useState(false);
 
   const [activeImg,  setActiveImg]  = useState(0);
+  const [imgFading,  setImgFading]  = useState(false);
   const [lbOpen,     setLbOpen]     = useState(false);
 
   const [selColor,   setSelColor]   = useState(null);
@@ -237,7 +238,17 @@ export default function ProductDetailPage() {
           stock_qty:   p.stock,
           sku:         `ARV-${p.id}`,
           images:      imgs.length ? imgs : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1000&q=90"],
-          colors:      (p.colors || []).map(c => ({ value: c.name, label: c.name, hex: c.hexCode, imageUrl: c.imageUrl || null })),
+          colors:      (p.colors || []).map(c => ({
+            value:    c.name,
+            label:    c.name,
+            hex:      c.hexCode,
+            imageUrl: c.imageUrl || null,
+            images:   (c.images || []).map(img => ({
+              imageUrl:  img.imageUrl || img,
+              isPrimary: img.isPrimary || false,
+              sortOrder: img.sortOrder ?? 0,
+            })).sort((a, b) => a.sortOrder - b.sortOrder),
+          })),
           material:    p.material || null,
           sizes:       [],
           description: p.description || "",
@@ -353,6 +364,8 @@ export default function ProductDetailPage() {
     return product.images;
   }, [product, selColor]);
 
+  // ── Seçilmiş rəngin şəkilləri varsa onları göstər, yoxsa məhsulun ümumi şəkilləri ─
+
   useEffect(() => {
     if (!lbOpen || !displayImages?.length) return;
     const h = (e) => {
@@ -417,8 +430,13 @@ export default function ProductDetailPage() {
 
 
   const handleColorSelect = (colorValue) => {
-    setSelColor(colorValue);
-    setActiveImg(0); // həmişə birinci şəkilə keç
+    if (colorValue === selColor) return;
+    setImgFading(true);
+    setTimeout(() => {
+      setSelColor(colorValue);
+      setActiveImg(0);
+      setImgFading(false);
+    }, 220);
   };
 
   return (
@@ -439,7 +457,11 @@ export default function ProductDetailPage() {
 
         <div className="pdp-gallery">
           <div className="pdp-main-img-wrap" onClick={() => setLbOpen(true)}>
-            <img className="pdp-main-img" src={displayImages[activeImg] || displayImages[0]} alt={product.name} />
+            <img
+              className={`pdp-main-img${imgFading ? " pdp-img-fade-out" : " pdp-img-fade-in"}`}
+              src={displayImages[activeImg] || displayImages[0]}
+              alt={product.name}
+            />
             {product.badge && (
               <span className="pdp-img-badge" style={{ background: BADGE_CLR[product.badge] || "#7A9E7E" }}>
                 {product.badge}
@@ -546,23 +568,41 @@ export default function ProductDetailPage() {
             <div className="pdp-opt-block">
               <p className="pdp-opt-label">
                 {t("pdp.color")}:&nbsp;
-                <span>{selColor || ""}</span>
+                <span className="pdp-selected-color-name">{selColor || ""}</span>
               </p>
               <div className="pdp-colors">
-                {product.colors.map(c => (
-                  <button
-                    key={c.value}
-                    className={`pdp-color-swatch${selColor === c.value ? " active" : ""}`}
-                    style={{
-                      background: c.hex,
-                      outline: selColor === c.value ? "2px solid #1C1C1C" : "2px solid #E5DDD4",
-                      outlineOffset: 2,
-                    }}
-                    title={c.label}
-                    onClick={() => handleColorSelect(c.value)}
-                  />
-                ))}
+                {product.colors.map(col => {
+                  const hasOwnImages = col.images?.length > 0;
+                  const isActive = selColor === col.value;
+                  return (
+                    <button
+                      key={col.value}
+                      className={`pdp-color-swatch${isActive ? " active" : ""}`}
+                      style={{
+                        background:    col.hex,
+                        outline:       isActive ? "2.5px solid #1C1C1C" : "2px solid #E5DDD4",
+                        outlineOffset: 3,
+                      }}
+                      title={`${col.label}${hasOwnImages ? ` (${col.images.length} şəkil)` : ""}`}
+                      onClick={() => handleColorSelect(col.value)}
+                    >
+                      {isActive && <span className="pdp-swatch-check">✓</span>}
+                      {hasOwnImages && !isActive && <span className="pdp-swatch-img-dot" />}
+                    </button>
+                  );
+                })}
               </div>
+              {(() => {
+                const sel = product.colors.find(col => col.value === selColor);
+                if (!sel) return null;
+                return (
+                  <p className="pdp-color-meta">
+                    {sel.images?.length > 0
+                      ? `📷 ${sel.images.length} şəkil`
+                      : "Ümumi şəkillər göstərilir"}
+                  </p>
+                );
+              })()}
             </div>
           )}
 

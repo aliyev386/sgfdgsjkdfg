@@ -808,8 +808,11 @@ const Products = ({ t, lang }) => {
       typeof img === "string" ? img : img?.imageUrl || img?.url || ""
     ).filter(Boolean);
     const clrs = (p.colors || []).map(c => ({
-      name: c.name || "",
-      hex:  c.hexCode || c.hex || "#000000",
+      name:   c.name   || "",
+      hex:    c.hexCode || c.hex || "#000000",
+      images: (c.images || []).map(img =>
+        typeof img === "string" ? img : img.imageUrl || img.url || ""
+      ).filter(Boolean),
     }));
     setForm({
       name:        getLangField("name"),
@@ -996,31 +999,71 @@ const Products = ({ t, lang }) => {
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">{t.colors} *</label>
-            <div className="flex flex-wrap gap-2">
-              {form.colors.map((c, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs">
-                  <div className="w-4 h-4 rounded-full border border-gray-300" style={{ background: c.hex || c.hexCode }} />
-                  <span>{c.name}</span>
-                  <button type="button" onClick={() => setField("colors", form.colors.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500"><Icons.X /></button>
-                </div>
-              ))}
+          {/* ═══════════════════════════════════════════════════════
+               RƏNGLƏR + HƏR RƏNGİN ÖZ ŞƏKİLLƏRİ
+          ═══════════════════════════════════════════════════════ */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t.colors} *</label>
               <Btn size="sm" variant="secondary" onClick={() => {
-                let hex = prompt(t.hexPrompt || "Hex rəng kodu (məs: #FF0000 və ya FF0000)");
+                let hex = prompt(t.hexPrompt || "Hex rəng kodu (məs: #FF0000)");
                 const name = prompt(t.colorNamePrompt || "Rəng adı (məs: Qırmızı)");
                 if (hex && name) {
                   hex = hex.trim();
                   if (!hex.startsWith("#")) hex = "#" + hex;
-                  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-                    alert(t.hexError || "Yanlış hex format! Nümunə: #FF0000");
-                    return;
-                  }
-                  setField("colors", [...form.colors, { hex, name }]);
+                  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) { alert("Yanlış hex format! Nümunə: #FF0000"); return; }
+                  setField("colors", [...form.colors, { hex, name, images: [] }]);
                 }
               }} type="button"><Icons.Plus />{t.addColor}</Btn>
             </div>
-            {errors.colors && <p className="text-xs text-red-500 mt-1">{errors.colors}</p>}
+
+            {form.colors.length === 0 && (
+              <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm">
+                Hələ rəng yoxdur. "Rəng əlavə et" düyməsini basın.
+              </div>
+            )}
+
+            {form.colors.map((color, ci) => (
+              <div key={ci} className="border border-gray-200 rounded-xl overflow-hidden">
+                {/* Rəng başlığı */}
+                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-200">
+                  <div className="w-7 h-7 rounded-full border-2 border-white shadow-sm flex-shrink-0"
+                       style={{ background: color.hex || color.hexCode || "#ccc" }} />
+                  <span className="font-semibold text-gray-800 text-sm flex-1">{color.name}</span>
+                  <span className="text-xs text-gray-400 font-mono">{color.hex || color.hexCode}</span>
+                  <button type="button"
+                    onClick={() => setField("colors", form.colors.filter((_, j) => j !== ci))}
+                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <Icons.X />
+                  </button>
+                </div>
+
+                {/* Bu rəngin şəkilləri */}
+                <div className="p-4">
+                  <p className="text-xs text-gray-500 mb-3">
+                    Bu rəngin şəkilləri — <strong>ilk şəkil əsas şəkil</strong> olacaq (müştəri bu rəngi seçəndə görünür)
+                  </p>
+                  <MultiImageUpload
+                    label=""
+                    images={color.images || []}
+                    onChange={urls => {
+                      const updated = [...form.colors];
+                      updated[ci] = { ...updated[ci], images: urls };
+                      setField("colors", updated);
+                    }}
+                    uploadFn={productApi.uploadImage}
+                    t={t}
+                  />
+                  {(!color.images || color.images.length === 0) && (
+                    <p className="text-xs text-amber-500 mt-2">
+                      ⚠️ Şəkil əlavə etməsəniz məhsulun ümumi şəkilləri göstəriləcək
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {errors.colors && <p className="text-xs text-red-500">{errors.colors}</p>}
           </div>
 
           <MultiImageUpload
