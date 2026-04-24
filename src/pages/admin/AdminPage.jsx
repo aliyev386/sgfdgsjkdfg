@@ -2049,6 +2049,8 @@ const Campaigns = ({ t, lang }) => {
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
   const [activeFormTab, setActiveFormTab] = useState("az");
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 10;
 
   const emptyForm = {
     name:          { az: "", en: "", ru: "" },
@@ -2064,7 +2066,14 @@ const Campaigns = ({ t, lang }) => {
     ruleNote:      { az: "", en: "", ru: "" },
   };
   const [form, setForm] = useState(emptyForm);
-  const { data: camps, loading, reload } = useAdminData(() => campaignApi.getAll());
+  const { data: camps, total, loading, reload } = useAdminData(
+    (params) => campaignApi.getAll(params),
+    []
+  );
+
+  useEffect(() => {
+    reload({ page, limit: PER_PAGE });
+  }, [page]);
 
   const toDateStr = (val) => {
     if (!val) return "";
@@ -2130,12 +2139,12 @@ const Campaigns = ({ t, lang }) => {
   };
 
   const onToggle = async (c) => {
-    try { await campaignApi.toggle(c.id); reload(); }
+    try { await campaignApi.toggle(c.id); reload({ page, limit: PER_PAGE }); }
     catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
   };
   const onDelete = async (c) => {
     if (!window.confirm(t.confirmDelete)) return;
-    try { await campaignApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload(); }
+    try { await campaignApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload({ page, limit: PER_PAGE }); }
     catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
   };
 
@@ -2146,7 +2155,7 @@ const Campaigns = ({ t, lang }) => {
       if (editing) await campaignApi.update(editing, form);
       else await campaignApi.create(form);
       setToast({ message: t.successSaved, type: "success" });
-      setModal(false); reload();
+      setModal(false); reload({ page, limit: PER_PAGE });
     } catch (err) {
       setToast({ message: err?.userMessage || t.error, type: "error" });
     } finally { setSaving(false); }
@@ -2233,6 +2242,10 @@ const Campaigns = ({ t, lang }) => {
             );
           })}
         </div>
+      )}
+
+      {total > PER_PAGE && (
+        <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       )}
 
       {/* Modal */}

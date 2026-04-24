@@ -293,10 +293,8 @@ function buildHeroPayload(form) {
 
 export const campaignApi = {
   getAll: (params = {}) =>
-    axiosInstance.get("/campaigns/all", { params }).then(r => {
-      const arr = r.data?.data ?? r.data;
-      return { data: Array.isArray(arr) ? arr : [], total: Array.isArray(arr) ? arr.length : 0 };
-    }),
+    axiosInstance.get("/campaigns/all", { params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 10, ...params } })
+      .then(unwrapList),
 
   getById: (id) =>
     axiosInstance.get(`/campaigns/${id}`).then(unwrap),
