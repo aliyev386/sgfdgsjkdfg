@@ -2265,7 +2265,7 @@ const Campaigns = ({ t, lang }) => {
 
           {/* RULE SYSTEM */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">⚡ Kampaniya Qaydası</label>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Kampaniya Qaydası</label>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {RULE_PRESETS.map(rule => (
                 <button key={rule.key} type="button" onClick={() => setForm(f => ({ ...f, ruleType: f.ruleType === rule.key ? "" : rule.key }))}
