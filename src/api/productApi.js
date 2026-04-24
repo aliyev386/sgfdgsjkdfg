@@ -3,7 +3,11 @@ import axiosInstance from "./axiosInstance";
 const productApi = {
 
   getAll: (params = {}) =>
-    axiosInstance.get("/products", { params }).then(r => r.data),
+    axiosInstance.get("/products", { params }).then(r => {
+      const d = r.data;
+      const arr = d?.data ?? (Array.isArray(d) ? d : []);
+      return { data: Array.isArray(arr) ? arr : [], pagination: d?.pagination ?? null };
+    }),
 
   getFeatured: () =>
     axiosInstance.get("/products/featured").then(r => r.data?.data ?? r.data),

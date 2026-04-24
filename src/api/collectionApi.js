@@ -24,13 +24,19 @@ const toBackendPayload = (form, id = null) => {
 
 const collectionApi = {
   getAll: () =>
-    axiosInstance.get("/collections").then(r => r.data?.data ?? r.data),
+    axiosInstance.get("/collections").then(r => {
+      const arr = r.data?.data ?? r.data;
+      return Array.isArray(arr) ? arr : [];
+    }),
 
   getById: (id) =>
     axiosInstance.get(`/collections/${id}`).then(r => r.data?.data ?? r.data),
 
   getCategories: () =>
-    axiosInstance.get("/collection-categories").then(r => r.data?.data ?? r.data),
+    axiosInstance.get("/collection-categories").then(r => {
+      const arr = r.data?.data ?? r.data;
+      return Array.isArray(arr) ? arr : [];
+    }),
 
   getByCategory: (categoryId) =>
     axiosInstance.get(`/collections/by-category/${categoryId}`).then(r => r.data?.data ?? r.data),
