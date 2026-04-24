@@ -342,6 +342,17 @@ export default function ProductDetailPage() {
     }
   };
 
+  // Seçilmiş rəngin şəkli varsa, gallery-nin əvvəlinə qoy
+  const displayImages = useMemo(() => {
+    if (!product) return [];
+    const selColorObj = product.colors.find(c => c.value === selColor);
+    if (selColorObj?.imageUrl) {
+      const filtered = product.images.filter(img => img !== selColorObj.imageUrl);
+      return [selColorObj.imageUrl, ...filtered];
+    }
+    return product.images;
+  }, [product, selColor]);
+
   useEffect(() => {
     if (!lbOpen || !displayImages?.length) return;
     const h = (e) => {
@@ -403,15 +414,7 @@ export default function ProductDetailPage() {
   const hasMoreReviews = reviews.length < reviewsTotal;
 
   // Seçilmiş rəngin şəkli varsa, gallery-nin əvvəlinə qoy
-  const displayImages = useMemo(() => {
-    if (!product) return [];
-    const selColorObj = product.colors.find(c => c.value === selColor);
-    if (selColorObj?.imageUrl) {
-      const filtered = product.images.filter(img => img !== selColorObj.imageUrl);
-      return [selColorObj.imageUrl, ...filtered];
-    }
-    return product.images;
-  }, [product, selColor]);
+
 
   const handleColorSelect = (colorValue) => {
     setSelColor(colorValue);

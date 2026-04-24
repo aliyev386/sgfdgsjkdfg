@@ -38,7 +38,7 @@ const MATERIALS = ["Wood","Metal","Fabric","Leather","Velvet","Glass","Rattan"];
 const STYLES    = ["Modern","Classic","Scandinavian","Industrial","Bohemian","Minimalist"];
 const ROOMS     = ["Living Room","Bedroom","Office","Dining Room","Outdoor","Kids Room"];
 
-const fmt   = n => `$${Number(n).toLocaleString()}`;
+const fmt   = n => `₼${Number(n).toLocaleString("az-AZ",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 /* ── Product Card ── */

@@ -1,4 +1,32 @@
 import ReactDOM from "react-dom/client";
+import { Component } from "react";
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) return (
+      <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"'DM Sans',sans-serif",background:"#F7F3EE",padding:40}}>
+        <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
+        <h2 style={{fontSize:22,color:"#1C1C1C",marginBottom:8}}>Xəta baş verdi</h2>
+        <p style={{fontSize:14,color:"#6B6B6B",marginBottom:24,textAlign:"center",maxWidth:400}}>{this.state.error?.message || "Gözlənilməz xəta"}</p>
+        <button onClick={()=>window.location.href="/"} style={{padding:"12px 28px",background:"#1C1C1C",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontSize:14}}>Ana səhifəyə qayıt</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+function RouteError() {
+  return (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"'DM Sans',sans-serif",background:"#F7F3EE",padding:40}}>
+      <div style={{fontSize:48,marginBottom:16}}>🛋️</div>
+      <h2 style={{fontSize:22,color:"#1C1C1C",marginBottom:8}}>Səhifə tapılmadı</h2>
+      <p style={{fontSize:14,color:"#6B6B6B",marginBottom:24}}>Bu səhifə mövcud deyil və ya silinib.</p>
+      <button onClick={()=>window.location.href="/"} style={{padding:"12px 28px",background:"#1C1C1C",color:"#fff",border:"none",borderRadius:4,cursor:"pointer",fontSize:14}}>Ana səhifəyə qayıt</button>
+    </div>
+  );
+}
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
@@ -30,7 +58,6 @@ import AboutPage from "./pages/common/About.jsx";
 import { useSelector } from "react-redux";
 import { selectUser } from "./store/slices/authSlice";
 
-// Admin isə /admin-ə yönləndir, deyilsə normal render et
 function UserOnly({ children }) {
   const user = useSelector((state) => state.auth.user);
   if (user?.role === "Admin") return <Navigate to="/admin" replace />;
@@ -40,6 +67,7 @@ function UserOnly({ children }) {
 const router = createBrowserRouter([
   {
     element: <App />,
+    errorElement: <RouteError />,
     children: [
       { path: "/", element: <UserOnly><HomePage /></UserOnly> },
       { path: "/categories", element: <UserOnly><CategoryPage /></UserOnly> },
@@ -78,8 +106,10 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    </ErrorBoundary>
   </StrictMode>
 );
