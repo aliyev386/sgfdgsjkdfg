@@ -785,29 +785,36 @@ const Products = ({ t, lang }) => {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
-  const openEdit = (p) => {
-    setEditing(p.id);
+  const openEdit = async (p) => {
+    // Bütün dilləri almaq üçün getById çağırırıq
+    let fullProduct = p;
+    try {
+      fullProduct = await productApi.getById(p.id) || p;
+    } catch {
+      fullProduct = p;
+    }
+    setEditing(fullProduct.id || p.id);
 
     const getLangField = (field) => {
       const langs = { az: "", en: "", ru: "" };
-      if (p.translations && Array.isArray(p.translations)) {
-        p.translations.forEach(t => {
+      if (fullProduct.translations && Array.isArray(fullProduct.translations)) {
+        fullProduct.translations.forEach(t => {
           if (t.lang && langs.hasOwnProperty(t.lang)) {
             langs[t.lang] = t[field] || "";
           }
         });
-      } else if (p[field]) {
-        const val = p[field];
+      } else if (fullProduct[field]) {
+        const val = fullProduct[field];
         if (typeof val === "object") return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
         return { az: val, en: val, ru: val };
       }
       return langs;
     };
 
-    const imgUrls = (p.images || []).map(img =>
+    const imgUrls = (fullProduct.images || []).map(img =>
       typeof img === "string" ? img : img?.imageUrl || img?.url || ""
     ).filter(Boolean);
-    const clrs = (p.colors || []).map(c => ({
+    const clrs = (fullProduct.colors || []).map(c => ({
       name:   c.name   || "",
       hex:    c.hexCode || c.hex || "#000000",
       images: (c.images || []).map(img =>
@@ -817,19 +824,19 @@ const Products = ({ t, lang }) => {
     setForm({
       name:        getLangField("name"),
       description: getLangField("description"),
-      price:       p.price ?? "",
-      stock:       p.stock ?? "",
-      category_id: p.furnitureCategoryId || p.category_id || p.category?.id || "",
-      material:    p.material || "",
-      label:       p.label || "",
-      width:       p.width ?? "",
-      height:      p.height ?? "",
-      depth:       p.depth ?? "",
-      weight:      p.weight ?? "",
+      price:       fullProduct.price ?? "",
+      stock:       fullProduct.stock ?? "",
+      category_id: fullProduct.furnitureCategoryId || fullProduct.category_id || fullProduct.category?.id || "",
+      material:    fullProduct.material || "",
+      label:       fullProduct.label || "",
+      width:       fullProduct.width ?? "",
+      height:      fullProduct.height ?? "",
+      depth:       fullProduct.depth ?? "",
+      weight:      fullProduct.weight ?? "",
       colors:        clrs,
       images:        imgUrls,
-      is_featured:   p.isFeatured || false,
-      discount_price: p.discountPrice ?? "",
+      is_featured:   fullProduct.isFeatured || false,
+      discount_price: fullProduct.discountPrice ?? "",
     });
     setErrors({});
     setModal(true);
