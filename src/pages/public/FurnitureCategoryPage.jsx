@@ -230,9 +230,6 @@ function SidebarContent({ categories, selectedCatId, onCategoryChange, filters, 
 
 
 
-      <Section label="Color" open={open.color} onToggle={() => tog("color")} count={(localFilters.colors||[]).length}>
-        <ColorFilter items={apiColors} selected={localFilters.colors||[]} onToggle={v => toggleLocal("colors",v)} />
-      </Section>
 
 
       <Section label={t("fcp.sort_label")} open={open.sort} onToggle={() => tog("sort")}>
