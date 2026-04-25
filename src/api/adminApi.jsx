@@ -2,18 +2,19 @@ import axiosInstance from "./axiosInstance";
 
 
 export const dashboardApi = {
+  // DÜZƏLİŞ: r.data → ApiResponse, r.data.data → actual payload
   getStats: () =>
-    axiosInstance.get("/admin/dashboard/stats").then((r) => r.data),
+    axiosInstance.get("/admin/dashboard/stats").then((r) => r.data?.data ?? r.data),
 
   getTopProducts: (limit = 5) =>
     axiosInstance
       .get("/admin/dashboard/top-products", { params: { limit } })
-      .then((r) => r.data),
+      .then((r) => r.data?.data ?? r.data),
 
   getMonthlyRevenue: (year) =>
     axiosInstance
       .get("/admin/dashboard/monthly-revenue", { params: { year } })
-      .then((r) => r.data),
+      .then((r) => r.data?.data ?? r.data),
 };
 
 const unwrapList = (r) => {

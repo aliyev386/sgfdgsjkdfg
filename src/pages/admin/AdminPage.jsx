@@ -611,28 +611,52 @@ const useAdminData = (fetchFn, deps = []) => {
 const validateRequired = (val) => !val || (typeof val === "string" && val.trim() === "");
 const validateLangField = (obj) => !obj?.az?.trim();
 
+// Ay adları (backend 1-12 rəqəm qaytarır)
+const MONTH_NAMES = ["", "Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sep", "Okt", "Noy", "Dek"];
+
+// Sifariş statusu rəqəm → mətn
+const ORDER_STATUS_LABEL = {
+  0: "Gözləyir",
+  1: "Təsdiqləndi",
+  2: "Hazırlanır",
+  3: "Çatdırılır",
+  4: "Çatdırıldı",
+  5: "Ləğv edildi",
+};
+
+// AZN formatı
+const formatAzn = (val) => {
+  if (val == null) return "—";
+  return `₼${Number(val).toLocaleString("az-AZ", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+};
+
 const Dashboard = ({ t, lang }) => {
   const [stats, setStats] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const [s, tp, mr] = await Promise.all([
+        // dashboardApi artıq .data.data-nı açır — birbaşa payload gəlir
+        const [s, tp, mr, orders] = await Promise.all([
           dashboardApi.getStats(),
           dashboardApi.getTopProducts(5),
           dashboardApi.getMonthlyRevenue(),
+          orderApi.getAll({ page: 1, limit: 5 }),
         ]);
+
         setStats(s);
-        setTopProducts(Array.isArray(tp) ? tp : tp.data || []);
-        setMonthlyData(Array.isArray(mr) ? mr : mr.data || []);
-        const orders = await orderApi.getAll({ page: 1, limit: 5 });
-        setRecentOrders(Array.isArray(orders) ? orders.slice(0, 5) : (orders.data || []).slice(0, 5));
-      } catch {
+        setTopProducts(Array.isArray(tp) ? tp : []);
+        setMonthlyData(Array.isArray(mr) ? mr : []);
+        setRecentOrders((orders?.data || []).slice(0, 5));
+      } catch (err) {
+        setError(err?.userMessage || "Dashboard yüklənərkən xəta baş verdi");
       } finally {
         setLoading(false);
       }
@@ -641,12 +665,22 @@ const Dashboard = ({ t, lang }) => {
   }, []);
 
   const maxRevenue = Math.max(...monthlyData.map(d => d.revenue || 0), 1);
+  const maxSold    = Math.max(...topProducts.map(p => p.soldCount || 0), 1);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64 text-gray-400">
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-sm">{t.loading}</span>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-center">
+        <div className="text-4xl mb-3">⚠️</div>
+        <p className="text-red-500 text-sm font-medium">{error}</p>
       </div>
     </div>
   );
@@ -658,43 +692,85 @@ const Dashboard = ({ t, lang }) => {
         <p className="text-sm text-gray-500 mt-0.5">{t.welcomeAdmin}, Admin 👋</p>
       </div>
 
+      {/* Stat Kartları */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={<Icons.ShoppingCart />} label={t.totalOrders} value={stats?.totalOrders ?? "—"} trend={stats?.ordersTrend} color="bg-blue-50 text-blue-600" />
-        <StatCard icon={<Icons.ShoppingBag />} label={t.todayOrders} value={stats?.todayOrders ?? "—"} trend={stats?.todayTrend} color="bg-emerald-50 text-emerald-600" />
-        <StatCard icon={<Icons.DollarSign />} label={t.totalRevenue} value={stats?.totalRevenue ? `$${(stats.totalRevenue / 1000).toFixed(1)}k` : "—"} trend={stats?.revenueTrend} color="bg-amber-50 text-amber-600" />
-        <StatCard icon={<Icons.Package />} label={t.totalProducts} value={stats?.totalProducts ?? "—"} trend={stats?.productsTrend} color="bg-purple-50 text-purple-600" />
+        <StatCard icon={<Icons.ShoppingCart />} label={t.totalOrders}
+          value={stats?.totalOrders ?? "—"}
+          color="bg-blue-50 text-blue-600" />
+        <StatCard icon={<Icons.ShoppingBag />} label={t.todayOrders}
+          value={stats?.todayOrders ?? "—"}
+          color="bg-emerald-50 text-emerald-600" />
+        <StatCard icon={<Icons.DollarSign />} label={t.totalRevenue}
+          value={formatAzn(stats?.totalRevenue)}
+          color="bg-amber-50 text-amber-600" />
+        <StatCard icon={<Icons.Package />} label={t.totalProducts}
+          value={stats?.totalProducts ?? "—"}
+          color="bg-purple-50 text-purple-600" />
       </div>
 
+      {/* Sifarişlər vəziyyəti sətri */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Gözləyir",    value: stats.pendingOrders,    color: "bg-gray-100 text-gray-600" },
+            { label: "Təsdiqləndi", value: stats.confirmedOrders,  color: "bg-amber-100 text-amber-700" },
+            { label: "Çatdırılır",  value: stats.inProgressOrders, color: "bg-blue-100 text-blue-700" },
+            { label: "Çatdırıldı",  value: stats.deliveredOrders,  color: "bg-emerald-100 text-emerald-700" },
+          ].map(item => (
+            <div key={item.label} className={`rounded-xl px-4 py-3 ${item.color}`}>
+              <p className="text-xs font-medium opacity-70">{item.label}</p>
+              <p className="text-2xl font-bold">{item.value ?? "—"}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-4">
+        {/* Aylıq gəlir qrafiki */}
         {monthlyData.length > 0 && (
           <Card className="p-5">
-            <h2 className="text-sm font-bold text-gray-700 mb-4">{t.revenueOverview}</h2>
-            <div className="flex items-end gap-2 h-36">
+            <h2 className="text-sm font-bold text-gray-700 mb-4">
+              {t.revenueOverview} — {monthlyData[0]?.year ?? new Date().getFullYear()}
+            </h2>
+            <div className="flex items-end gap-1.5 h-36">
               {monthlyData.map((d, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                    {formatAzn(d.revenue)}
+                  </div>
                   <div className="w-full bg-emerald-500 rounded-t-md transition-all hover:bg-emerald-600"
-                    style={{ height: `${((d.revenue || 0) / maxRevenue) * 100}%`, minHeight: "4px" }} />
-                  <span className="text-xs text-gray-400">{d.month}</span>
+                    style={{ height: `${Math.max(((d.revenue || 0) / maxRevenue) * 100, 4)}%` }} />
+                  <span className="text-[10px] text-gray-400">{MONTH_NAMES[d.month] || d.month}</span>
                 </div>
               ))}
             </div>
           </Card>
         )}
 
+        {/* Ən çox satılan məhsullar */}
         {topProducts.length > 0 && (
           <Card className="p-5">
             <h2 className="text-sm font-bold text-gray-700 mb-4">{t.topProducts}</h2>
             <div className="space-y-3">
               {topProducts.map((p, i) => (
                 <div key={p.id} className="flex items-center gap-3">
-                  <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                  <span className="w-5 h-5 flex-shrink-0 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                  {p.imageUrl && (
+                    <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                  )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-700 truncate">{typeof p.name === "object" ? p.name[lang] : p.name}</p>
+                    <p className="text-sm font-medium text-gray-700 truncate">{p.name || "—"}</p>
                     <div className="h-1.5 bg-gray-100 rounded-full mt-1">
-                      <div className="h-1.5 bg-emerald-500 rounded-full" style={{ width: `${Math.min((p.price / (topProducts[0]?.price || 1)) * 100, 100)}%` }} />
+                      {/* DÜZƏLİŞ: price yox, soldCount ilə bar */}
+                      <div className="h-1.5 bg-emerald-500 rounded-full transition-all"
+                        style={{ width: `${Math.min(((p.soldCount || 0) / maxSold) * 100, 100)}%` }} />
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-gray-700">${p.price}</span>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs font-bold text-gray-700">{formatAzn(p.price)}</p>
+                    <p className="text-[10px] text-gray-400">{p.soldCount} satış</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -702,6 +778,7 @@ const Dashboard = ({ t, lang }) => {
         )}
       </div>
 
+      {/* Son sifarişlər */}
       {recentOrders.length > 0 && (
         <Card>
           <div className="px-5 py-4 border-b border-gray-100">
@@ -710,11 +787,11 @@ const Dashboard = ({ t, lang }) => {
           <Table
             t={t}
             columns={[
-              { key: "id", label: t.orderId, render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
-              { key: "user", label: t.user, render: r => typeof r.user === "object" ? `${r.user.name || r.user.firstName || ""} ${r.user.surname || r.user.lastName || ""}`.trim() : r.user },
-              { key: "total", label: t.totalRevenue, render: r => <span className="font-semibold text-gray-800">${r.total?.toLocaleString()}</span> },
-              { key: "status", label: t.status, render: r => <Badge status={r.status} label={t[r.status]} /> },
-              { key: "date", label: t.date, render: r => <span className="text-gray-500 text-xs">{r.date || r.createdAt?.split("T")[0]}</span> },
+              { key: "id",         label: t.orderId,     render: r => <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">#{r.id}</span> },
+              { key: "user",       label: t.user,        render: r => r.userFullName || `${r.userName || ""} ${r.userSurname || ""}`.trim() || "—" },
+              { key: "totalPrice", label: t.totalRevenue,render: r => <span className="font-semibold text-gray-800">{formatAzn(r.totalPrice)}</span> },
+              { key: "status",     label: t.status,      render: r => <Badge status={r.status} label={ORDER_STATUS_LABEL[r.status] ?? r.status} /> },
+              { key: "createdAt",  label: t.date,        render: r => <span className="text-gray-500 text-xs">{r.createdAt?.split("T")[0] || "—"}</span> },
             ]}
             data={recentOrders}
           />
@@ -1217,6 +1294,20 @@ const Collections = ({ t, lang }) => {
   const [toast, setToast] = useState(null);
   const [availableProducts, setAvailableProducts] = useState([]);
   const [availableCategories, setAvailableCategories] = useState([]);
+  const [collScopeLoaded, setCollScopeLoaded] = useState(false);
+
+  const loadCollectionScopeData = useCallback(() => {
+    if (collScopeLoaded) return;
+    productApi.getAll({ limit: 100 }).then(res => {
+      const arr = Array.isArray(res) ? res : (res?.data ?? res?.items ?? []);
+      setAvailableProducts(arr);
+    }).catch(() => {});
+    collectionCategoryApi.getAll().then(res => {
+      const arr = Array.isArray(res) ? res : (res?.data ?? []);
+      setAvailableCategories(arr);
+    }).catch(() => {});
+    setCollScopeLoaded(true);
+  }, [collScopeLoaded]);
 
   const emptyForm = {
     name: { az: "", en: "", ru: "" },
@@ -1232,18 +1323,6 @@ const Collections = ({ t, lang }) => {
 
   const { data: colls, loading, reload } = useAdminData(() => collectionApi.getAll());
 
-  useEffect(() => {
-    productApi.getAll({ limit: 200 }).then(res => {
-      const arr = Array.isArray(res) ? res : (res?.data ?? res?.items ?? []);
-      setAvailableProducts(arr);
-    }).catch(() => {});
-
-    collectionCategoryApi.getAll().then(res => {
-      const arr = Array.isArray(res) ? res : (res?.data ?? []);
-      setAvailableCategories(arr);
-    }).catch(() => {});
-  }, []);
-
   const validate = () => {
     const e = {};
     if (!form.name.az?.trim() && !form.name.en?.trim() && !form.name.ru?.trim()) e.name = t.required;
@@ -1254,8 +1333,9 @@ const Collections = ({ t, lang }) => {
     return Object.keys(e).length === 0;
   };
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
+  const openAdd = () => { loadCollectionScopeData(); setEditing(null); setForm(emptyForm); setErrors({}); setModal(true); };
   const openEdit = (c) => {
+    loadCollectionScopeData();
     const getLangField = (field) => {
       const langs = { az: "", en: "", ru: "" };
       if (c.translations && Array.isArray(c.translations)) {
@@ -2053,13 +2133,15 @@ const Campaigns = ({ t, lang }) => {
   const [scopeSearch, setScopeSearch] = useState("");
   const PER_PAGE = 10;
 
-  // Scope selection data
+  // Scope selection data — yüklənmə yalnız modal açılanda baş verir
   const [allProducts,    setAllProducts]    = useState([]);
   const [allCollections, setAllCollections] = useState([]);
   const [allCategories,  setAllCategories]  = useState([]);
+  const [scopeDataLoaded, setScopeDataLoaded] = useState(false);
 
-  useEffect(() => {
-    productApi.getAll({ page: 1, pageSize: 500 })
+  const loadScopeData = useCallback(() => {
+    if (scopeDataLoaded) return;
+    productApi.getAll({ page: 1, pageSize: 100 })
       .then(r => setAllProducts(Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []))
       .catch(() => {});
     collectionApi.getAll()
@@ -2068,7 +2150,8 @@ const Campaigns = ({ t, lang }) => {
     categoryApi.getAll()
       .then(r => setAllCategories(Array.isArray(r) ? r : r?.data || []))
       .catch(() => {});
-  }, []);
+    setScopeDataLoaded(true);
+  }, [scopeDataLoaded]);
 
   // 0=All, 1=Products, 2=Collections, 3=Categories
   const SCOPE_OPTIONS = [
@@ -2136,10 +2219,12 @@ const Campaigns = ({ t, lang }) => {
   };
 
   const openAdd = () => {
+    loadScopeData();
     setEditing(null); setForm(emptyForm); setErrors({});
     setActiveFormTab("az"); setScopeSearch(""); setModal(true);
   };
   const openEdit = (c) => {
+    loadScopeData();
     setEditing(c.id);
     setForm({
       name:         extractTranslations(c, "title"),
