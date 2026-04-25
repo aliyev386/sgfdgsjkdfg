@@ -611,6 +611,22 @@ function StepPayment({ subtotal, payMethod, setPayMethod, creditSel, setCreditSe
                 <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
               </div>
             )}
+            {/* İlkin ödəniş > 0 olduqda kart formu göstər */}
+            {creditSel && creditSel.result.downAmount > 0 && (
+              <div style={{ animation: "ckFU .3s ease", marginTop: 20 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
+                  color: "#C9A84C", marginBottom: 12, fontWeight: 600,
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="2" width="14" height="14">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  İlkin ödəniş kart ilə — ₼{creditSel.result.downAmount.toFixed(2)}
+                </div>
+                <StripeCardForm cardholderName={cardholderName} onNameChange={onNameChange} nameError={nameError} onCardChange={onCardChange} />
+              </div>
+            )}
           </div>
         )}
         {errors.payment && <div className="ck-alert"><span style={{ color: "#C0392B", fontSize: 16, flexShrink: 0 }}>⚠</span><span className="ck-alert-txt">{errors.payment}</span></div>}
@@ -665,20 +681,28 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName,
           <p className="ck-conf-val">{payLabel}</p>
           {payMethod === "credit" && creditSel && (
             <div className="ck-ibar" style={{ marginTop: 12 }}>
-              <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_down")}</p><p className="ck-ibar-v">₼{creditSel.result.downAmount.toFixed(2)}</p></div>
+              {creditSel.result.downAmount > 0 && (
+                <div className="ck-ibar-i">
+                  <p className="ck-ibar-l">İlkin ödəniş (kart)</p>
+                  <p className="ck-ibar-v" style={{ color: "#C9A84C" }}>₼{creditSel.result.downAmount.toFixed(2)}</p>
+                </div>
+              )}
               <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_monthly")}</p><p className="ck-ibar-v g">₼{creditSel.result.monthly.toFixed(2)}</p></div>
               <div className="ck-ibar-i"><p className="ck-ibar-l">{t("checkout.credit_months")}</p><p className="ck-ibar-v">{creditSel.months} {t("checkout.credit_month_unit")}</p></div>
+              <div className="ck-ibar-i"><p className="ck-ibar-l">Kredit məbləği</p><p className="ck-ibar-v">₼{creditSel.result.principal.toFixed(2)}</p></div>
             </div>
           )}
         </div>
-        {payMethod === "card" && (
+        {(payMethod === "card" || (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0)) && (
           <div className="ck-info">
             <svg viewBox="0 0 20 20" fill="none" width="16" height="16" style={{ flexShrink: 0, marginTop: 2 }}>
               <path d="M10 2L3 6v5c0 4.4 3 8.5 7 9.5 4-1 7-5.1 7-9.5V6L10 2z" stroke="#2E6B32" strokeWidth="1.4"/>
               <path d="M7 10l2 2 4-4" stroke="#2E6B32" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="ck-info-txt">
-              {t("checkout.confirm_stripe_info")}
+              {payMethod === "credit"
+                ? `İlkin ödəniş ₼${creditSel.result.downAmount.toFixed(2)} kart ilə tutulacaq. Qalan ₼${creditSel.result.principal.toFixed(2)} kredit şərtlərinə görə ödənilir.`
+                : t("checkout.confirm_stripe_info")}
             </span>
           </div>
         )}
@@ -694,15 +718,17 @@ function StepConfirm({ userData, addrData, payMethod, creditSel, cardholderName,
         <div className="ck-actions">
           <button className="ck-btn ck-btn-b" onClick={onBack} disabled={placing || payProcessing}>{t("checkout.back")}</button>
           <button
-            className={`ck-btn ${payMethod === "card" ? "ck-btn-stripe" : "ck-btn-p"}`}
+            className={`ck-btn ${(payMethod === "card" || (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0)) ? "ck-btn-stripe" : "ck-btn-p"}`}
             style={{ flex: 1, margin: 0 }}
             disabled={!agreed || placing || payProcessing}
             onClick={onPlace}
           >
             {placing || payProcessing
-              ? <><span className="ck-spin" />{payMethod === "card" ? t("checkout.stripe_processing_btn") : t("checkout.placing")}</>
+              ? <><span className="ck-spin" />{(payMethod === "card" || (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0)) ? t("checkout.stripe_processing_btn") : t("checkout.placing")}</>
               : payMethod === "card"
               ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>{t("checkout.stripe_pay_btn")} — {fmt(totalAmt)}</>
+              : (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0)
+              ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>İlkin ödəniş — {fmt(creditSel.result.downAmount)}</>
               : t("checkout.place_order")}
           </button>
         </div>
@@ -770,27 +796,46 @@ function CheckoutInner() {
       setErrors({ payment: t("checkout.err_credit") });
       return;
     }
+    // Kredit + ilkin ödəniş varsa → kart yoxlanmalıdır
+    if (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0) {
+      const errs = {};
+      if (!cardholderName.trim()) setNameError(t("checkout.err_cardholder"));
+      const allElComplete = cardComplete.number && cardComplete.expiry && cardComplete.cvc;
+      if (!cardholderName.trim() || !allElComplete) {
+        errs.payment = t("checkout.err_card_incomplete");
+        setErrors(errs);
+        return;
+      }
+    }
     setApiError(null);
     setErrors({});
     setStep(3);
   };
 
   const placeOrder = async () => {
-    // Kart adı yoxlaması
-    if (payMethod === "card" && !cardholderName.trim()) {
+    // Kart adı yoxlaması — card və ya kredit+ilkin ödəniş
+    const needsCard = payMethod === "card" || (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0);
+    if (needsCard && !cardholderName.trim()) {
       setNameError(t("checkout.err_cardholder"));
       setStep(2);
       return;
     }
     setNameError(null);
 
-    if (!stripe || !elements) {
+    if (needsCard && (!stripe || !elements)) {
       setApiError(t("checkout.err_stripe_load"));
       return;
     }
 
     setPlacing(true);
     setApiError(null);
+
+    // Stripe ilə charge ediləcək məbləğ
+    const stripeChargeAmt = payMethod === "card"
+      ? totalAmt
+      : (payMethod === "credit" && creditSel && creditSel.result.downAmount > 0)
+        ? creditSel.result.downAmount
+        : 0;
 
     try {
       // 1) Sifariş yarat
@@ -821,7 +866,7 @@ function CheckoutInner() {
         note: addrNote,
         isCustomOrder: addrData.isCustomOrder,
         customDescription: customParts.join(" | ") || null,
-        paidAmount: payMethod === "card" ? totalAmt : null,
+        paidAmount: stripeChargeAmt > 0 ? stripeChargeAmt : null,
         installmentMonths: payMethod === "credit" && creditSel ? creditSel.months : null,
         monthlyPayment:    payMethod === "credit" && creditSel ? Math.round(creditSel.result.monthly * 100) / 100 : null,
         deliveryInfo: {
@@ -845,8 +890,8 @@ function CheckoutInner() {
       const newOrderId = orderData?.id ?? orderData?.data?.id;
       setOrderId(newOrderId);
 
-      // 2) Kart ödənişi → Stripe PaymentIntent
-      if (payMethod === "card") {
+      // 2) Stripe ödənişi — yalnız stripeChargeAmt > 0 olduqda
+      if (stripeChargeAmt > 0) {
         setPayProcessing(true);
 
         try {
