@@ -22,3 +22,25 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# ── Gizli fayllar — heç vaxt Git-ə push etmə! ──
+.env
+.env.local
+.env.*.local
+
+# ── ASP.NET Core User Secrets ──
+**/Properties/secrets.json
+
+# ── Build çıxışları ──
+[Bb]in/
+[Oo]bj/
+*.user
+
+# ── Loglar ──
+logs/
+*.log
+
+# ── IDE ──
+.vs/
+.vscode/
+*.suo
+*.user

@@ -1,12 +1,10 @@
 import { useState, useMemo } from "react";
 
+const DEFAULT_RATE12 = 1.7;
+const DEFAULT_RATE24 = 2.0;
+
 export const AZ_BANKS = [
-  { id: "kapital", name: "Kapital Bank",  logo: "KB", color: "#E30613", rate12: 1.5, rate24: 1.8 },
-  { id: "abb",     name: "ABB",           logo: "ABB", color: "#004A97", rate12: 1.7, rate24: 2.0 },
-  { id: "pasha",   name: "PAŞA Bank",    logo: "PB", color: "#003087", rate12: 1.6, rate24: 1.9 },
-  { id: "access",  name: "AccessBank",   logo: "AC", color: "#E4002B", rate12: 1.8, rate24: 2.1 },
-  { id: "atb",     name: "AtaBank",      logo: "AT", color: "#005B99", rate12: 1.9, rate24: 2.2 },
-  { id: "leobank", name: "Leobank",      logo: "LB", color: "#FF6B00", rate12: 2.0, rate24: 2.3 },
+  { id: "default", name: "Kredit", logo: "", color: "#7A9E7E", rate12: DEFAULT_RATE12, rate24: DEFAULT_RATE24 },
 ];
 
 export const PERIODS = [
@@ -142,12 +140,11 @@ const CSS = `
 `;
 
 export default function CreditCalculator({ price, compact = false, onSelect }) {
-  const [bank,     setBank]    = useState(AZ_BANKS[0].id);
   const [months,   setMonths]  = useState(12);
   const [downPct,  setDownPct] = useState(20);
 
-  const selBank = AZ_BANKS.find(b => b.id === bank);
-  const bankRate = months <= 12 ? selBank?.rate12 : selBank?.rate24;
+  const selBank = AZ_BANKS[0];
+  const bankRate = months <= 12 ? selBank.rate12 : selBank.rate24;
 
   const result = useMemo(() =>
     calcCredit({ price, downPct, months, bankRate }),
@@ -158,24 +155,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
     <>
       <style>{CSS}</style>
       <div className="cc">
-
-        {!compact && (
-          <>
-            <span className="cc-section-lbl">Bank seçin</span>
-            <div className="cc-banks">
-              {AZ_BANKS.map(b => (
-                <button
-                  key={b.id}
-                  className={`cc-bank${bank === b.id ? " sel" : ""}`}
-                  onClick={() => setBank(b.id)}
-                >
-                  <span className="cc-bank-dot" style={{ background: bank === b.id ? "rgba(255,255,255,.6)" : b.color }} />
-                  {b.name}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
 
         <span className="cc-section-lbl">İlkin ödəniş</span>
         <div className="cc-down-grid">
@@ -206,24 +185,6 @@ export default function CreditCalculator({ price, compact = false, onSelect }) {
             </button>
           ))}
         </div>
-
-        {compact && (
-          <>
-            <span className="cc-section-lbl">Bank seçin</span>
-            <div className="cc-banks">
-              {AZ_BANKS.map(b => (
-                <button
-                  key={b.id}
-                  className={`cc-bank${bank === b.id ? " sel" : ""}`}
-                  onClick={() => setBank(b.id)}
-                >
-                  <span className="cc-bank-dot" style={{ background: bank === b.id ? "rgba(255,255,255,.6)" : b.color }} />
-                  {b.name}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
 
         <div className="cc-result">
           <div className="cc-result-main">

@@ -83,6 +83,9 @@ export default function Navbar() {
       <nav className={`arv-nav${scrolled ? " scrolled" : ""}${mobileOpen ? " mobile-open" : ""}`}>
         <Link to="/" className="arv-logo"><span>AMORE</span> MEBEL</Link>
         <ul className={`arv-nav-links${mobileOpen ? " mobile-visible" : ""}`}>
+                    <li><Link to="/shop" className={isActive("/shop")}>{t("nav.shop")}</Link></li>
+                    <li><Link to="/contact" className={isActive("/contact")}>{t("nav.contact")}</Link></li>
+
           <li><Link to="/collections" className={isActive("/collections")}>{t("nav.collections")}</Link></li>
           <li><Link to="/categories" className={isActive("/categories")}>{t("nav.shop")}</Link></li>
           <li><Link to="/about" className={isActive("/about")}>{t("nav.story")}</Link></li>

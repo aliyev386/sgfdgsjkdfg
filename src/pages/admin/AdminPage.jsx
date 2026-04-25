@@ -1544,6 +1544,7 @@ const Orders = ({ t, lang }) => {
   const [adminNote, setAdminNote] = useState("");
   const [estimatedDate, setEstimatedDate] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState([]);
   const PER_PAGE = 8;
 
   const { data: orders, total, loading, reload } = useAdminData(
@@ -1619,6 +1620,18 @@ const Orders = ({ t, lang }) => {
     return map[pm] ?? pm ?? "—";
   };
 
+  const isCancelled = (status) => {
+    const s = typeof status === "string" ? status : (ORDER_STATUS_ENUM[status] ?? "Pending");
+    return s === "Cancelled";
+  };
+
+  const handleDismiss = (row) => {
+    setDismissedIds(prev => [...prev, row.id]);
+    if (detail?.id === row.id) setDetail(null);
+  };
+
+  const visibleOrders = orders.filter(o => !dismissedIds.includes(o.id));
+
   return (
     <div className="space-y-5">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
@@ -1686,21 +1699,34 @@ const Orders = ({ t, lang }) => {
               <span className="text-gray-500 text-xs">{r.createdAt ? new Date(r.createdAt).toLocaleDateString("az-AZ") : "—"}</span>
             )},
           ]}
-          data={orders}
+          data={visibleOrders}
           onView={openDetail}
           extraActions={(row) => {
             const cur = statusIdx(row.status);
             const nextIdx = ORDER_STATUS_FLOW.indexOf(cur);
             const canAdvance = nextIdx !== -1 && nextIdx < ORDER_STATUS_FLOW.length - 1;
             const nextStatus = canAdvance ? ORDER_STATUS_FLOW[nextIdx + 1] : null;
-            return canAdvance ? (
-              <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
-                {advancing === row.id
-                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <Icons.ChevronRight />}
-                {ORDER_STATUS_LABELS[nextStatus]}
-              </Btn>
-            ) : null;
+            return (
+              <div className="flex items-center gap-1">
+                {canAdvance && (
+                  <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
+                    {advancing === row.id
+                      ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      : <Icons.ChevronRight />}
+                    {ORDER_STATUS_LABELS[nextStatus]}
+                  </Btn>
+                )}
+                {isCancelled(row.status) && (
+                  <button
+                    onClick={() => handleDismiss(row)}
+                    title="Siyahıdan sil"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <Icons.Trash />
+                  </button>
+                )}
+              </div>
+            );
           }}
         />
         <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -296,29 +295,7 @@ function ProfileTab({ user, showToast, t }) {
   return (
     <div className="pr-body pr-ani">
       {Modal}
-      <div className="pr-card">
-        <h3 className="pr-card-title">{t("profile.photo_title")}</h3>
-        <div
-          className={`pr-avatar-drop${drag?" drag":""}`}
-          onDragOver={e=>{e.preventDefault();setDrag(true)}}
-          onDragLeave={()=>setDrag(false)}
-          onDrop={e=>{e.preventDefault();setDrag(false);onFile(e.dataTransfer.files[0])}}
-          onClick={()=>fileRef.current?.click()}
-        >
-          <div className="pr-av-circle">
-            {preview
-              ? <img src={preview} alt="" className="pr-av-img"/>
-              : <span className="pr-av-init">{ini}</span>
-            }
-            <div className="pr-av-hover"><Ico n="camera" s={20}/><span>{t("profile.photo_change")}</span></div>
-          </div>
-          <div className="pr-av-info">
-            <p className="pr-av-title">{t("profile.photo_change")}</p>
-            <p className="pr-av-hint">{t("profile.photo_hint")}</p>
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>onFile(e.target.files[0])}/>
-        </div>
-      </div>
+
 
       <div className="pr-card">
         <h3 className="pr-card-title">{t("profile.personal_info")}</h3>
@@ -453,6 +430,23 @@ function PaymentsTab({ showToast, t }) {
   const [newCard, setNewCard] = useState({number:"",name:"",expiry:"",cvv:""});
   const [cardErrors, setCardErrors] = useState({});
 
+  // Kredit sifarişləri API-dan
+  const [creditOrders,    setCreditOrders]    = useState([]);
+  const [creditLoading,   setCreditLoading]   = useState(true);
+
+  useEffect(() => {
+    axiosInstance.get("/orders/my")
+      .then(res => {
+        const arr = res.data?.data ?? res.data ?? [];
+        const credits = (Array.isArray(arr) ? arr : []).filter(o =>
+          o.paymentMethod === 4 || o.paymentMethod === "Installment"
+        );
+        setCreditOrders(credits);
+      })
+      .catch(() => {})
+      .finally(() => setCreditLoading(false));
+  }, []);
+
   const validateCard = () => {
     const e = {};
     const num = newCard.number.replace(/\s/g,"");
@@ -475,96 +469,113 @@ function PaymentsTab({ showToast, t }) {
 
   const addCard = async () => {
     if(!validateCard()) return;
-    const bank = AZ_BANKS.find(b=>b.id===selBank);
     const ok = await confirm({
       title: t("profile.confirm_add_card_title"),
-      message: `${bank?.name||"Kart"} — ${newCard.number}`,
+      message: `Kart — ${newCard.number}`,
       confirmText: t("profile.save_card"), cancelText: t("profile.cancel"),
     });
     if(!ok) return;
     setCards(p=>[...p,{
       id:Date.now(), number:newCard.number||"•••• •••• •••• 0000",
       name:newCard.name||"KART SAHİBİ", expiry:newCard.expiry||"--/--",
-      type:"VISA", bank:bank?.name||"—", bankColor:bank?.color||"#6B7280",
+      type:"VISA",
     }]);
     setNewCard({number:"",name:"",expiry:"",cvv:""}); setSelBank(null); setAddOpen(false); setCardErrors({});
     showToast(t("profile.card_added"),true);
   };
 
+  const fmtC = n => `₼${Number(n).toLocaleString("az-AZ",{minimumFractionDigits:2})}`;
+
+  const getCreditStatus = (status) => {
+    const s = typeof status === "string" ? status
+      : {0:"Pending",1:"Confirmed",2:"InProgress",3:"Delivered",4:"Cancelled"}[status] ?? "Pending";
+    const map = {
+      Pending:    {lbl:"Gözlənilir",   cl:"#C9A84C", bg:"#FFFBEB"},
+      Confirmed:  {lbl:"Təsdiqləndi",  cl:"#2980b9", bg:"#EFF6FF"},
+      InProgress: {lbl:"Hazırlanır",   cl:"#7A9E7E", bg:"#F0F7F1"},
+      Delivered:  {lbl:"Çatdırıldı",   cl:"#2E6B32", bg:"#ECFDF5"},
+      Cancelled:  {lbl:"Ləğv edildi",  cl:"#EF4444", bg:"#FEF2F2"},
+    };
+    return map[s] || map.Pending;
+  };
+
   return (
     <div className="pr-body pr-ani">
       {Modal}
+
+      {/* ── Kredit sifarişləri ── */}
       <div className="pr-card">
         <div className="pr-card-top">
-          <h3 className="pr-card-title">{t("profile.my_cards")}</h3>
-          <button className="pr-btn-add" onClick={()=>setAddOpen(p=>!p)}>
-            {addOpen
-              ? <><Ico n="x" s={11}/> {t("profile.cancel")}</>
-              : <><Ico n="plus" s={11}/> {t("profile.add_card")}</>
-            }
-          </button>
+          <h3 className="pr-card-title">Kredit Sifarişlərim</h3>
+          {creditOrders.length > 0 && (
+            <span className="pr-count-pill">{creditOrders.length}</span>
+          )}
         </div>
-        {cards.length === 0 ? (
+        {creditLoading ? (
+          <div style={{padding:"28px",textAlign:"center"}}><Spin/></div>
+        ) : creditOrders.length === 0 ? (
           <div className="pr-empty">
-            <div className="pr-empty-ic"><Ico n="card" s={40}/></div>
-            <p>{t("profile.no_cards")}</p>
+            <div className="pr-empty-ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="40" height="40">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <p style={{color:"#A8A09A",fontSize:14}}>Kredit sifarişiniz yoxdur</p>
           </div>
         ) : (
-          <div className="pr-cards-row">
-            {cards.map((c,i)=>(
-              <div key={c.id} className="pr-bank-card" style={{"--bk":c.bankColor||"#B8834A",animationDelay:`${i*.08}s`}}>
-                <div className="pr-bc-top">
-                  <span className="pr-bc-bank">{c.bank||"Bank"}</span>
-                  <button className="pr-bc-del" onClick={()=>deleteCard(c.id)}><Ico n="trash" s={13}/></button>
+          <div style={{display:"flex",flexDirection:"column",gap:0}}>
+            {creditOrders.map((o, i) => {
+              const st = getCreditStatus(o.status);
+              return (
+                <div key={o.id} style={{
+                  padding:"16px 0", borderBottom: i < creditOrders.length-1 ? "1px solid #F0EDE8" : "none",
+                  display:"flex", flexDirection:"column", gap:10, animationDelay:`${i*.06}s`
+                }}>
+                  {/* Row 1: ID + status + total */}
+                  <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                    <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:600,color:"#1C1C1C"}}>
+                      #{o.id}
+                    </span>
+                    <span style={{fontSize:11,fontWeight:600,padding:"3px 9px",
+                      background:st.bg,color:st.cl,border:`1px solid ${st.cl}33`}}>
+                      {st.lbl}
+                    </span>
+                    <span style={{marginLeft:"auto",fontSize:15,fontFamily:"'Cormorant Garamond',serif",fontWeight:300}}>
+                      {fmtC(o.totalPrice)}
+                    </span>
+                  </div>
+                  {/* Row 2: kredit detalları */}
+                  <div style={{display:"flex",gap:20,flexWrap:"wrap",
+                    background:"linear-gradient(135deg,#1C1C1C,#2D3A2E)",
+                    padding:"14px 18px"}}>
+                    {o.paidAmount != null && (
+                      <div>
+                        <p style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,.4)",marginBottom:3}}>İlkin ödəniş</p>
+                        <p style={{fontSize:15,color:"#fff",fontFamily:"'Cormorant Garamond',serif",fontWeight:300}}>{fmtC(o.paidAmount)}</p>
+                      </div>
+                    )}
+                    {o.monthlyPayment != null && (
+                      <div>
+                        <p style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,.4)",marginBottom:3}}>Aylıq ödəniş</p>
+                        <p style={{fontSize:15,color:"#7A9E7E",fontFamily:"'Cormorant Garamond',serif",fontWeight:300}}>{fmtC(o.monthlyPayment)}</p>
+                      </div>
+                    )}
+                    {o.installmentMonths != null && (
+                      <div>
+                        <p style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,.4)",marginBottom:3}}>Müddət</p>
+                        <p style={{fontSize:15,color:"#fff",fontFamily:"'Cormorant Garamond',serif",fontWeight:300}}>{o.installmentMonths} ay</p>
+                      </div>
+                    )}
+                    <div>
+                      <p style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,.4)",marginBottom:3}}>Tarix</p>
+                      <p style={{fontSize:13,color:"rgba(255,255,255,.7)"}}>
+                        {new Date(o.createdAt).toLocaleDateString("az-AZ")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="pr-bc-chip"/>
-                <div className="pr-bc-num">{c.number}</div>
-                <div className="pr-bc-bot">
-                  <div><div className="pr-bc-lbl">{t("profile.card_holder")}</div><div className="pr-bc-val">{c.name}</div></div>
-                  <div><div className="pr-bc-lbl">{t("profile.expires")}</div><div className="pr-bc-val">{c.expiry}</div></div>
-                  <div className="pr-bc-type">{c.type}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {addOpen && (
-          <div className="pr-add-form pr-ani">
-            <p className="pr-add-title">{t("profile.choose_bank")}</p>
-            <div className="pr-bank-grid">
-              {AZ_BANKS.map(b=>(
-                <button key={b.id} className={`pr-bank-btn${selBank===b.id?" active":""}`} style={{"--bk":b.color}} onClick={()=>setSelBank(b.id)}>
-                  <span className="pr-bank-dot" style={{background:b.color}}/>{b.name}
-                  {selBank===b.id&&<span className="pr-bank-chk"><Ico n="check" s={9}/></span>}
-                </button>
-              ))}
-            </div>
-            <div className="pr-fg">
-              <div className="pr-field pr-fcol2">
-                <label className="pr-label">{t("profile.card_number")}</label>
-                <input className={`pr-input pr-mono${cardErrors.number?" pr-input-err":""}`} placeholder="0000 0000 0000 0000" maxLength={19} value={newCard.number} onChange={e=>setNewCard(p=>({...p,number:fmt4(e.target.value)}))}/>
-                {cardErrors.number && <span className="pr-field-err">{cardErrors.number}</span>}
-              </div>
-              <div className="pr-field pr-fcol2">
-                <label className="pr-label">{t("profile.card_name")}</label>
-                <input className={`pr-input pr-mono${cardErrors.name?" pr-input-err":""}`} placeholder="AD SOYAD" value={newCard.name} onChange={e=>setNewCard(p=>({...p,name:e.target.value.toUpperCase()}))}/>
-                {cardErrors.name && <span className="pr-field-err">{cardErrors.name}</span>}
-              </div>
-              <div className="pr-field">
-                <label className="pr-label">{t("profile.expiry")}</label>
-                <input className={`pr-input pr-mono${cardErrors.expiry?" pr-input-err":""}`} placeholder="MM/YY" maxLength={5} value={newCard.expiry} onChange={e=>setNewCard(p=>({...p,expiry:fmtE(e.target.value)}))}/>
-                {cardErrors.expiry && <span className="pr-field-err">{cardErrors.expiry}</span>}
-              </div>
-              <div className="pr-field">
-                <label className="pr-label">CVV</label>
-                <input className={`pr-input pr-mono${cardErrors.cvv?" pr-input-err":""}`} placeholder="•••" maxLength={3} type="password" value={newCard.cvv} onChange={e=>setNewCard(p=>({...p,cvv:e.target.value.replace(/\D/g,"").slice(0,3)}))}/>
-                {cardErrors.cvv && <span className="pr-field-err">{cardErrors.cvv}</span>}
-              </div>
-            </div>
-            <div className="pr-ffoot">
-              <button className="pr-btn-save" onClick={addCard}>{t("profile.save_card")}</button>
-              <button className="pr-btn-ghost" onClick={()=>{setAddOpen(false);setSelBank(null);}}>{t("profile.cancel")}</button>
-            </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -658,9 +669,15 @@ function OrderStatusTracker({ status, estimatedDeliveryDate, adminNote }) {
 }
 
 function OrdersTab({ orders, loading, error, reload, t }) {
-  const [open,         setOpen]         = useState(null);
-  const [cancellingId, setCancellingId] = useState(null);
-  const { confirm, Modal: CancelModal } = useConfirm();
+  const [open,           setOpen]           = useState(null);
+  const [cancellingId,   setCancellingId]   = useState(null);
+  const [dismissedIds,   setDismissedIds]   = useState([]);
+
+  const handleDismiss = (e, orderId) => {
+    e.stopPropagation();
+    setDismissedIds(prev => [...prev, orderId]);
+    if (open === orderId) setOpen(null);
+  };
 
   const canCancel = (status) => {
     const s = typeof status === "string" ? status
@@ -670,14 +687,6 @@ function OrdersTab({ orders, loading, error, reload, t }) {
 
   const handleCancel = async (e, orderId) => {
     e.stopPropagation();
-    const ok = await confirm({
-      title: "Sifarişi ləğv et",
-      message: `#${orderId} nömrəli sifarişi ləğv etmək istədiyinizə əminsiniz?`,
-      confirmText: "Bəli, ləğv et",
-      cancelText: "Xeyr",
-      danger: true,
-    });
-    if (!ok) return;
     setCancellingId(orderId);
     try {
       const { default: orderApi } = await import("../../api/orderApi");
@@ -726,7 +735,6 @@ function OrdersTab({ orders, loading, error, reload, t }) {
 
   return (
     <div className="pr-body pr-ani">
-      {CancelModal}
       <div className="pr-card pr-card-flush">
         <div className="pr-card-pad">
           <h3 className="pr-card-title">{t("profile.order_history")}</h3>
@@ -738,11 +746,12 @@ function OrdersTab({ orders, loading, error, reload, t }) {
             <Link to="/categories" className="pr-btn-save" style={{textDecoration:"none",marginTop:12}}>Alış-verişə başla</Link>
           </div>
         ) : (
-          orders.map((o, i) => {
+          orders.filter(o => !dismissedIds.includes(o.id)).map((o, i) => {
             const isOpen = open === o.id;
             const firstImg = o.items?.[0]?.productImage;
             const statusStr = typeof o.status === "string" ? o.status
               : { 0:"Pending",1:"Confirmed",2:"InProgress",3:"Delivered",4:"Cancelled" }[o.status] ?? "Pending";
+            const isCancelledOrder = statusStr === "Cancelled" || o.status === 4 || Number(o.status) === 4;
 
             return (
               <div key={o.id} className={`pr-ord-item${isOpen?" open":""}`} style={{animationDelay:`${i*.05}s`}}>
@@ -771,6 +780,21 @@ function OrdersTab({ orders, loading, error, reload, t }) {
                   }}>{getStatusLabel(o.status)}</span>
                   <span className="pr-ord-total">{fmt(o.totalPrice)}</span>
                   <span className={`pr-ord-chev${isOpen?" up":""}`}><Ico n="chevron" s={16}/></span>
+                  {isCancelledOrder && (
+                    <button
+                      onClick={(e) => handleDismiss(e, o.id)}
+                      title="Siyahıdan sil"
+                      style={{
+                        background:"none", border:"none", cursor:"pointer",
+                        color:"#9B9189", padding:"4px", display:"flex",
+                        alignItems:"center", transition:"color .2s", flexShrink:0,
+                      }}
+                      onMouseEnter={e=>e.currentTarget.style.color="#EF4444"}
+                      onMouseLeave={e=>e.currentTarget.style.color="#9B9189"}
+                    >
+                      <Ico n="trash" s={15}/>
+                    </button>
+                  )}
                 </div>
 
                 {isOpen && (
@@ -948,7 +972,7 @@ function SavedTab({ showToast, t }) {
 const TABS = [
   { id:"overview", ik:"profile.tab_overview", ico:"overview" },
   { id:"profile",  ik:"profile.tab_profile",  ico:"user"     },
-  { id:"security", ik:"profile.tab_security", ico:"shield"   },
+  // { id:"security", ik:"profile.tab_security", ico:"shield"   },
   { id:"payments", ik:"profile.tab_payments", ico:"card"     },
   { id:"orders",   ik:"profile.tab_orders",   ico:"package"  },
   { id:"saved",    ik:"profile.tab_saved",    ico:"heart"    },
@@ -1038,15 +1062,9 @@ export default function ProfilePage() {
         {/* LAYOUT */}
         <div className="pr-layout">
           <aside className="pr-sidebar">
-            <div className="pr-sidebar-header">
-              <div className="pr-sb-av">{initials}</div>
-              <div className="pr-sb-info">
-                <p className="pr-sb-name">{user?.name || fullName.split(" ")[0]}</p>
-                <p className="pr-sb-email">{user?.email || ""}</p>
-              </div>
-            </div>
+            
             <nav className="pr-nav">
-              <p className="pr-nav-label-section">Menyu</p>
+              <p className="pr-nav-label-section">Menu</p>
               {TABS.map(tb=>(
                 <button key={tb.id} className={`pr-nav-item${tab===tb.id?" active":""}`} onClick={()=>setTab(tb.id)}>
                   <span className="pr-nav-icon"><Ico n={tb.ico} s={17}/></span>
