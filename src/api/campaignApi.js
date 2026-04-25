@@ -8,6 +8,9 @@ const campaignApi = {
 
   getById: (id) =>
     axiosInstance.get(`/campaigns/${id}`).then(unwrap),
+
+  getProducts: (campaignId, params = {}) =>
+    axiosInstance.get(`/campaigns/${campaignId}/products`, { params }).then(r => r.data),
 };
 
 export default campaignApi;

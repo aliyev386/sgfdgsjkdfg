@@ -294,42 +294,35 @@ export default function CampaignsPage() {
   const dispatch = useDispatch();
   const { openAuthModal } = useAuthModal();
 
-  const [campaigns, setCampaigns]   = useState([]);
-  const [products, setProducts]     = useState([]);
-  const [collections, setCollections] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [prodLoading, setProdLoading] = useState(true);
-  const [collLoading, setCollLoading] = useState(true);
-  const [adding, setAdding]         = useState(null);
-  const [toast, setToast]           = useState(null);
-  const [activeTab, setActiveTab]       = useState("all");
-  const [activeCat, setActiveCat]       = useState("all");
-  const [page, setPage]                 = useState(1);
-  const [collTab, setCollTab]           = useState("all");
+  const [campaigns, setCampaigns]         = useState([]);
+  const [activeCampaign, setActiveCampaign] = useState(null); // selected campaign for products
+  const [products, setProducts]           = useState([]);
+  const [prodTotal, setProdTotal]         = useState(0);
+  const [collections, setCollections]     = useState([]);
+  const [categories, setCategories]       = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [prodLoading, setProdLoading]     = useState(false);
+  const [collLoading, setCollLoading]     = useState(true);
+  const [adding, setAdding]               = useState(null);
+  const [toast, setToast]                 = useState(null);
+  const [activeCat, setActiveCat]         = useState("all");
+  const [page, setPage]                   = useState(1);
+  const [collTab, setCollTab]             = useState("all");
   const [collCategories, setCollCategories] = useState([]);
   const [activeCollCat, setActiveCollCat]   = useState("all");
 
+  // Load campaigns and supporting data once
   useEffect(() => {
     window.scrollTo({ top: 0 });
 
     campaignApi.getActive()
-      .then(res => setCampaigns(Array.isArray(res) ? res : []))
+      .then(res => {
+        const arr = Array.isArray(res) ? res : [];
+        setCampaigns(arr);
+        if (arr.length > 0) setActiveCampaign(arr[0]);
+      })
       .catch(() => setCampaigns([]))
       .finally(() => setLoading(false));
-
-    productApi.getAll({ page: 1, pageSize: 200 })
-      .then(res => {
-        const arr = res?.data ?? (Array.isArray(res) ? res : []);
-        const sorted = [...arr].sort((a, b) => {
-          const aD = a.discountPrice ? (1 - a.discountPrice / a.price) : 0;
-          const bD = b.discountPrice ? (1 - b.discountPrice / b.price) : 0;
-          return bD - aD;
-        });
-        setProducts(sorted);
-      })
-      .catch(() => setProducts([]))
-      .finally(() => setProdLoading(false));
 
     collectionApi.getAll()
       .then(res => setCollections(Array.isArray(res) ? res : []))
@@ -345,8 +338,22 @@ export default function CampaignsPage() {
       .catch(() => setCollCategories([]));
   }, [lang]);
 
-  // Reset page when filters change
-  useEffect(() => { setPage(1); }, [activeTab, activeCat]);
+  // Load products for active campaign — paginated from backend by scope
+  useEffect(() => {
+    if (!activeCampaign) return;
+    setProdLoading(true);
+    campaignApi.getProducts(activeCampaign.id, { page, pageSize: PAGE_SIZE })
+      .then(res => {
+        const arr = res?.data || res?.items || (Array.isArray(res) ? res : []);
+        setProducts(Array.isArray(arr) ? arr : []);
+        setProdTotal(res?.pagination?.totalCount ?? res?.total ?? (Array.isArray(arr) ? arr.length : 0));
+      })
+      .catch(() => { setProducts([]); setProdTotal(0); })
+      .finally(() => setProdLoading(false));
+  }, [activeCampaign, page, lang]);
+
+  // Reset page when campaign or category filter changes
+  useEffect(() => { setPage(1); }, [activeCampaign, activeCat]);
 
   const handleAddCart = useCallback(async (productId) => {
     if (!isAuth) { openAuthModal("login"); return; }
@@ -363,39 +370,26 @@ export default function CampaignsPage() {
     }
   }, [isAuth, openAuthModal, dispatch, t]);
 
-  // Filter
-  const filtered = products.filter(p => {
-    const tabMatch =
-      activeTab === "all"        ? true :
-      activeTab === "sale"       ? !!p.discountPrice :
-      activeTab === "new"        ? p.label === "new_in" :
-      activeTab === "bestseller" ? p.label === "best_seller" :
-      true;
-    const catMatch =
-      activeCat === "all" ? true :
-      String(p.furnitureCategoryId) === String(activeCat) ||
-      String(p.categoryId)          === String(activeCat);
-    return tabMatch && catMatch;
-  });
+  // Client-side category filter (only when scope=All, otherwise backend already scoped)
+  const filtered = activeCampaign?.scopeType === 0
+    ? products.filter(p =>
+        activeCat === "all" ? true :
+        String(p.furnitureCategoryId) === String(activeCat) ||
+        String(p.categoryId) === String(activeCat)
+      )
+    : products; // already scoped by backend
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil((activeCampaign?.scopeType === 0 ? filtered.length : prodTotal) / PAGE_SIZE);
+  const paginated  = activeCampaign?.scopeType === 0
+    ? filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    : filtered; // already paginated from server
 
   const saleCount       = products.filter(p => p.discountPrice).length;
-  const newCount        = products.filter(p => p.label === "new_in").length;
-  const bestsellerCount = products.filter(p => p.label === "best_seller").length;
 
   const handlePageChange = (p) => {
     setPage(p);
     document.getElementById("camp-products")?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const tabs = [
-    { key: "all",        label: t("featured_products.tabs.all", "Hamısı"),       count: products.length },
-    { key: "sale",       label: t("common.sale", "Endirimdə"),                   count: saleCount },
-    { key: "new",        label: t("common.new_in", "Yeni gələn"),                count: newCount },
-    { key: "bestseller", label: t("common.best_seller", "Ən çox satan"),         count: bestsellerCount },
-  ];
 
   // Collection filtering
   const filteredCollections = collections.filter(c => {
@@ -435,8 +429,8 @@ export default function CampaignsPage() {
       <div className="cp-stats-bar">
         <div className="cp-stats-inner">
           <div className="cp-stat">
-            <span className="cp-stat-n">{saleCount}</span>
-            <span className="cp-stat-l">{t("shop.sale_products", "Endirimli məhsul")}</span>
+            <span className="cp-stat-n">{prodTotal || products.length}</span>
+            <span className="cp-stat-l">{t("shop.sale_products", "Kampaniya məhsulu")}</span>
           </div>
           <div className="cp-stat-div" />
           <div className="cp-stat">
@@ -463,33 +457,35 @@ export default function CampaignsPage() {
           <div className="cp-section-head">
             <div>
               <div className="cp-eyebrow">
-                <span />{t("shop.sale_eyebrow", "ENDİRİMLİ MƏHSULLAR")}
+                <span />{t("shop.sale_eyebrow", "KAMPANİYA MƏHSULLARİ")}
               </div>
               <h2 className="cp-h2">
-                {t("shop.best_picks", "Ən Yaxşı")}{" "}
-                <em>{t("shop.best_picks_em", "Seçimlər")}</em>
+                {activeCampaign?.title || t("shop.best_picks", "Kampaniya")}{" "}
+                <em>{activeCampaign?.discountPercent ? `−${activeCampaign.discountPercent}%` : t("shop.best_picks_em", "Seçimlər")}</em>
               </h2>
             </div>
           </div>
 
-          {/* Tab filter */}
-          <div className="cp-tabs">
-            {tabs.map(tab => (
-              <button
-                key={tab.key}
-                className={`cp-tab ${activeTab === tab.key ? "on" : ""}`}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="cp-tab-count">{tab.count}</span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Campaign selector tabs — if multiple campaigns */}
+          {campaigns.length > 1 && (
+            <div className="cp-tabs">
+              {campaigns.map(camp => (
+                <button
+                  key={camp.id}
+                  className={`cp-tab ${activeCampaign?.id === camp.id ? "on" : ""}`}
+                  onClick={() => { setActiveCampaign(camp); setPage(1); setActiveCat("all"); }}
+                >
+                  {camp.title}
+                  {camp.discountPercent && (
+                    <span className="cp-tab-count">−{camp.discountPercent}%</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* Category pill buttons */}
-          {categories.length > 0 && (
+          {/* Category pill buttons — only shown when scope is All */}
+          {(activeCampaign?.scopeType ?? 0) === 0 && categories.length > 0 && (
             <div className="cp-cat-filters">
               <button
                 className={`cp-cat-btn ${activeCat === "all" ? "on" : ""}`}
@@ -501,9 +497,7 @@ export default function CampaignsPage() {
                 <button
                   key={cat.id}
                   className={`cp-cat-btn ${String(activeCat) === String(cat.id) ? "on" : ""}`}
-                  onClick={() =>
-                    setActiveCat(String(activeCat) === String(cat.id) ? "all" : cat.id)
-                  }
+                  onClick={() => setActiveCat(String(activeCat) === String(cat.id) ? "all" : cat.id)}
                 >
                   {cat.name}
                 </button>
@@ -512,9 +506,9 @@ export default function CampaignsPage() {
           )}
 
           {/* Results info */}
-          {!prodLoading && filtered.length > 0 && (
+          {!prodLoading && (prodTotal > 0 || filtered.length > 0) && (
             <div className="cp-results-info">
-              {filtered.length} {t("shop.products_found", "məhsul tapıldı")}
+              {prodTotal || filtered.length} {t("shop.products_found", "məhsul tapıldı")}
               {totalPages > 1 && (
                 <span className="cp-results-page">
                   — {t("shop.page", "Səhifə")} {page}/{totalPages}

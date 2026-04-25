@@ -293,7 +293,7 @@ function buildHeroPayload(form) {
 
 export const campaignApi = {
   getAll: (params = {}) =>
-    axiosInstance.get("/campaigns/all", { params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 10, ...params } })
+    axiosInstance.get("/campaigns/all", { params: { page: params.page || 1, pageSize: params.limit || params.pageSize || 10 } })
       .then(unwrapList),
 
   getById: (id) =>
@@ -310,8 +310,17 @@ export const campaignApi = {
 
   remove: (id) =>
     axiosInstance.delete(`/campaigns/${id}`).then(unwrap),
+
+  uploadImage: (file) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return axiosInstance
+      .post("/media/upload?folder=campaigns", fd, { headers: { "Content-Type": "multipart/form-data" } })
+      .then(r => ({ url: r.data?.data?.url ?? r.data?.url ?? r.data }));
+  },
 };
 
+// scopeType: 0=All, 1=Products, 2=Collections, 3=Categories
 function buildCampaignPayload(form) {
   const rawStart = form.startDate || form.start_date;
   const rawEnd   = form.endDate   || form.end_date;
@@ -322,6 +331,10 @@ function buildCampaignPayload(form) {
     startDate:       rawStart ? new Date(rawStart).toISOString() : new Date().toISOString(),
     endDate:         rawEnd   ? new Date(rawEnd).toISOString()   : new Date().toISOString(),
     displayOrder:    form.display_order || 0,
+    scopeType:       Number(form.scopeType ?? 0),
+    productIds:      form.productIds     || [],
+    collectionIds:   form.collectionIds  || [],
+    categoryIds:     form.categoryIds    || [],
     translations: ["az","en","ru"].map(lang => ({
       lang,
       title:       form.name?.[lang]        || form.name?.az        || "",

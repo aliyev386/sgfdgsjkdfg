@@ -1544,7 +1544,6 @@ const Orders = ({ t, lang }) => {
   const [adminNote, setAdminNote] = useState("");
   const [estimatedDate, setEstimatedDate] = useState("");
   const [saving, setSaving] = useState(false);
-  const [dismissedIds, setDismissedIds] = useState([]);
   const PER_PAGE = 8;
 
   const { data: orders, total, loading, reload } = useAdminData(
@@ -1620,18 +1619,6 @@ const Orders = ({ t, lang }) => {
     return map[pm] ?? pm ?? "—";
   };
 
-  const isCancelled = (status) => {
-    const s = typeof status === "string" ? status : (ORDER_STATUS_ENUM[status] ?? "Pending");
-    return s === "Cancelled";
-  };
-
-  const handleDismiss = (row) => {
-    setDismissedIds(prev => [...prev, row.id]);
-    if (detail?.id === row.id) setDetail(null);
-  };
-
-  const visibleOrders = orders.filter(o => !dismissedIds.includes(o.id));
-
   return (
     <div className="space-y-5">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
@@ -1699,34 +1686,21 @@ const Orders = ({ t, lang }) => {
               <span className="text-gray-500 text-xs">{r.createdAt ? new Date(r.createdAt).toLocaleDateString("az-AZ") : "—"}</span>
             )},
           ]}
-          data={visibleOrders}
+          data={orders}
           onView={openDetail}
           extraActions={(row) => {
             const cur = statusIdx(row.status);
             const nextIdx = ORDER_STATUS_FLOW.indexOf(cur);
             const canAdvance = nextIdx !== -1 && nextIdx < ORDER_STATUS_FLOW.length - 1;
             const nextStatus = canAdvance ? ORDER_STATUS_FLOW[nextIdx + 1] : null;
-            return (
-              <div className="flex items-center gap-1">
-                {canAdvance && (
-                  <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
-                    {advancing === row.id
-                      ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      : <Icons.ChevronRight />}
-                    {ORDER_STATUS_LABELS[nextStatus]}
-                  </Btn>
-                )}
-                {isCancelled(row.status) && (
-                  <button
-                    onClick={() => handleDismiss(row)}
-                    title="Siyahıdan sil"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    <Icons.Trash />
-                  </button>
-                )}
-              </div>
-            );
+            return canAdvance ? (
+              <Btn size="sm" variant="success" onClick={() => advanceStatus(row)} disabled={advancing === row.id}>
+                {advancing === row.id
+                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Icons.ChevronRight />}
+                {ORDER_STATUS_LABELS[nextStatus]}
+              </Btn>
+            ) : null;
           }}
         />
         <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
@@ -2068,38 +2042,63 @@ function CampaignCountdownPreview({ endDate }) {
 }
 
 const Campaigns = ({ t, lang }) => {
-  const [modal, setModal] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const [modal, setModal]         = useState(false);
+  const [editing, setEditing]     = useState(null);
+  const [saving, setSaving]       = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [toast, setToast] = useState(null);
+  const [errors, setErrors]       = useState({});
+  const [toast, setToast]         = useState(null);
   const [activeFormTab, setActiveFormTab] = useState("az");
-  const [page, setPage] = useState(1);
+  const [page, setPage]           = useState(1);
+  const [scopeSearch, setScopeSearch] = useState("");
   const PER_PAGE = 10;
 
-  const emptyForm = {
-    name:          { az: "", en: "", ru: "" },
-    description:   { az: "", en: "", ru: "" },
-    button_text:   { az: "", en: "", ru: "" },
-    buttonLink:    "",
-    discount:      "",
-    startDate:     "",
-    endDate:       "",
-    display_order: 0,
-    imageUrl:      "",
-    ruleType:      "",
-    ruleNote:      { az: "", en: "", ru: "" },
-  };
-  const [form, setForm] = useState(emptyForm);
-  const { data: camps, total, loading, reload } = useAdminData(
-    (params) => campaignApi.getAll(params),
-    []
-  );
+  // Scope selection data
+  const [allProducts,    setAllProducts]    = useState([]);
+  const [allCollections, setAllCollections] = useState([]);
+  const [allCategories,  setAllCategories]  = useState([]);
 
   useEffect(() => {
-    reload({ page, limit: PER_PAGE });
-  }, [page]);
+    productApi.getAll({ page: 1, pageSize: 500 })
+      .then(r => setAllProducts(Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : []))
+      .catch(() => {});
+    collectionApi.getAll()
+      .then(r => setAllCollections(Array.isArray(r) ? r : r?.data || []))
+      .catch(() => {});
+    categoryApi.getAll()
+      .then(r => setAllCategories(Array.isArray(r) ? r : r?.data || []))
+      .catch(() => {});
+  }, []);
+
+  // 0=All, 1=Products, 2=Collections, 3=Categories
+  const SCOPE_OPTIONS = [
+    { value: 0, label: "🌐 Bütün məhsullar",   desc: "Endirim hamı üçün tətbiq olunur",           color: "#10B981" },
+    { value: 1, label: "📦 Konkret məhsullar", desc: "Yalnız seçdiyiniz məhsullara",              color: "#6366F1" },
+    { value: 2, label: "🛋️ Kolleksiyalar",      desc: "Seçilmiş kolleksiyaların məhsullarına",    color: "#F59E0B" },
+    { value: 3, label: "📂 Kateqoriyalar",      desc: "Seçilmiş kateqoriyaların bütün məhsullarına", color: "#EC4899" },
+  ];
+
+  const emptyForm = {
+    name:         { az: "", en: "", ru: "" },
+    description:  { az: "", en: "", ru: "" },
+    button_text:  { az: "", en: "", ru: "" },
+    buttonLink:   "",
+    discount:     "",
+    startDate:    "",
+    endDate:      "",
+    display_order: 0,
+    imageUrl:     "",
+    scopeType:    0,
+    productIds:   [],
+    collectionIds:[],
+    categoryIds:  [],
+  };
+  const [form, setForm] = useState(emptyForm);
+
+  const { data: camps, total, loading, reload } = useAdminData(
+    (params) => campaignApi.getAll(params), []
+  );
+  useEffect(() => { reload({ page, limit: PER_PAGE }); }, [page, reload]);
 
   const toDateStr = (val) => {
     if (!val) return "";
@@ -2108,15 +2107,15 @@ const Campaigns = ({ t, lang }) => {
   };
   const normalizeLang = (val) => {
     if (!val) return { az: "", en: "", ru: "" };
-    if (typeof val === "object" && !Array.isArray(val)) return { az: val.az || "", en: val.en || "", ru: val.ru || "" };
+    if (typeof val === "object" && !Array.isArray(val)) return { az: val.az||"", en: val.en||"", ru: val.ru||"" };
     return { az: String(val), en: String(val), ru: String(val) };
   };
   const extractTranslations = (c, field) => {
     if (c.translations && Array.isArray(c.translations)) {
       return {
-        az: c.translations.find(x => x.lang === "az")?.[field] || "",
-        en: c.translations.find(x => x.lang === "en")?.[field] || "",
-        ru: c.translations.find(x => x.lang === "ru")?.[field] || "",
+        az: c.translations.find(x => x.lang==="az")?.[field] || "",
+        en: c.translations.find(x => x.lang==="en")?.[field] || "",
+        ru: c.translations.find(x => x.lang==="ru")?.[field] || "",
       };
     }
     return normalizeLang(c[field]);
@@ -2127,31 +2126,37 @@ const Campaigns = ({ t, lang }) => {
     if (!form.name?.az?.trim()) e.name = t.required;
     if (form.discount && (Number(form.discount) < 1 || Number(form.discount) > 100)) e.discount = t.invalidDiscount;
     if (!form.startDate) e.startDate = t.required;
-    if (!form.endDate) e.endDate = t.required;
+    if (!form.endDate)   e.endDate   = t.required;
     if (form.startDate && form.endDate && form.startDate >= form.endDate) e.endDate = t.dateError;
+    if (form.scopeType === 1 && form.productIds.length   === 0) e.scopeIds = "Ən az 1 məhsul seçin";
+    if (form.scopeType === 2 && form.collectionIds.length === 0) e.scopeIds = "Ən az 1 kolleksiya seçin";
+    if (form.scopeType === 3 && form.categoryIds.length   === 0) e.scopeIds = "Ən az 1 kateqoriya seçin";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setErrors({}); setActiveFormTab("az"); setModal(true); };
+  const openAdd = () => {
+    setEditing(null); setForm(emptyForm); setErrors({});
+    setActiveFormTab("az"); setScopeSearch(""); setModal(true);
+  };
   const openEdit = (c) => {
     setEditing(c.id);
     setForm({
-      name:          extractTranslations(c, "title"),
-      description:   extractTranslations(c, "description"),
-      button_text:   extractTranslations(c, "buttonText"),
-      buttonLink:    c.buttonLink || "",
-      discount:      c.discountPercent ?? c.discount ?? "",
-      startDate:     toDateStr(c.startDate),
-      endDate:       toDateStr(c.endDate),
+      name:         extractTranslations(c, "title"),
+      description:  extractTranslations(c, "description"),
+      button_text:  extractTranslations(c, "buttonText"),
+      buttonLink:   c.buttonLink || "",
+      discount:     c.discountPercent ?? c.discount ?? "",
+      startDate:    toDateStr(c.startDate),
+      endDate:      toDateStr(c.endDate),
       display_order: c.displayOrder ?? 0,
-      imageUrl:      c.imageUrl || "",
-      ruleType:      c.ruleType || "",
-      ruleNote:      normalizeLang(c.ruleNote),
+      imageUrl:     c.imageUrl || "",
+      scopeType:    c.scopeType ?? 0,
+      productIds:   c.productIds   || [],
+      collectionIds:c.collectionIds || [],
+      categoryIds:  c.categoryIds  || [],
     });
-    setErrors({});
-    setActiveFormTab("az");
-    setModal(true);
+    setErrors({}); setActiveFormTab("az"); setScopeSearch(""); setModal(true);
   };
 
   const handleImageUpload = async (file) => {
@@ -2173,13 +2178,12 @@ const Campaigns = ({ t, lang }) => {
     try { await campaignApi.remove(c.id); setToast({ message: t.successDeleted, type: "success" }); reload({ page, limit: PER_PAGE }); }
     catch (err) { setToast({ message: err?.userMessage || t.error, type: "error" }); }
   };
-
   const onSave = async () => {
     if (!validate()) return;
     setSaving(true);
     try {
       if (editing) await campaignApi.update(editing, form);
-      else await campaignApi.create(form);
+      else         await campaignApi.create(form);
       setToast({ message: t.successSaved, type: "success" });
       setModal(false); reload({ page, limit: PER_PAGE });
     } catch (err) {
@@ -2187,7 +2191,15 @@ const Campaigns = ({ t, lang }) => {
     } finally { setSaving(false); }
   };
 
-  const selectedRule = RULE_PRESETS.find(r => r.key === form.ruleType);
+  // Scope toggle helpers
+  const toggleId = (field, id) =>
+    setForm(f => ({
+      ...f,
+      [field]: f[field].includes(id) ? f[field].filter(x => x !== id) : [...f[field], id]
+    }));
+
+  const currentScope = SCOPE_OPTIONS.find(s => s.value === form.scopeType);
+  const totalPages = Math.ceil((total || 0) / PER_PAGE);
 
   return (
     <div className="space-y-5">
@@ -2197,7 +2209,7 @@ const Campaigns = ({ t, lang }) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{t.campaigns}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Kampaniyaları idarə et — qayda sistemi, şəkil, geri sayım</p>
+          <p className="text-sm text-gray-500 mt-0.5">Kampaniyaları idarə et — scope sistemi, şəkil, geri sayım</p>
         </div>
         <Btn onClick={openAdd}><Icons.Plus />{t.addNew}</Btn>
       </div>
@@ -2219,11 +2231,10 @@ const Campaigns = ({ t, lang }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {camps.map(c => {
             const active = c.isActive !== undefined ? c.isActive : c.active;
-            const rulePreset = RULE_PRESETS.find(r => r.key === c.ruleType);
-            const title = c.title || (typeof c.name === "object" ? c.name[lang] : c.name) || "—";
+            const title  = c.title || (typeof c.name === "object" ? c.name?.[lang] : c.name) || "—";
+            const scope  = SCOPE_OPTIONS.find(s => s.value === (c.scopeType ?? 0));
             return (
               <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                {/* Thumbnail */}
                 <div className="relative h-36 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                   {c.imageUrl
                     ? <img src={c.imageUrl} alt={title} className="w-full h-full object-cover" />
@@ -2234,34 +2245,36 @@ const Campaigns = ({ t, lang }) => {
                     {c.discountPercent && (
                       <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">−{c.discountPercent}%</span>
                     )}
-                    {rulePreset && (
-                      <span className="text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow" style={{background: rulePreset.color}}>
-                        {rulePreset.icon} {rulePreset.label}
+                    {scope && (
+                      <span className="text-white text-xs font-semibold px-2 py-0.5 rounded-full shadow" style={{background: scope.color}}>
+                        {scope.label.split(" ")[0]} {scope.label.split(" ").slice(1).join(" ")}
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={() => onToggle(c)}
+                  <button onClick={() => onToggle(c)}
                     className="absolute top-2 right-2 px-2.5 py-0.5 rounded-full text-xs font-bold shadow transition-colors"
-                    style={{background: active ? "#10B981" : "#9CA3AF", color: "#fff"}}
-                  >
+                    style={{background: active ? "#10B981" : "#9CA3AF", color: "#fff"}}>
                     {active ? "● Aktiv" : "○ Deaktiv"}
                   </button>
                 </div>
-                {/* Body */}
                 <div className="p-4">
                   <h3 className="font-bold text-gray-800 text-sm truncate mb-1">{title}</h3>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-gray-400">📅 {toDateStr(c.startDate)} → {toDateStr(c.endDate)}</span>
-                    <CampaignCountdownPreview endDate={c.endDate} />
                   </div>
+                  {/* Scope summary */}
+                  {(c.scopeType ?? 0) !== 0 && (
+                    <div className="text-xs mb-2 px-2 py-1 rounded-lg" style={{background: (scope?.color || "#6366F1") + "15", color: scope?.color || "#6366F1"}}>
+                      {scope?.label} — {
+                        c.scopeType === 1 ? `${(c.productIds||[]).length} məhsul` :
+                        c.scopeType === 2 ? `${(c.collectionIds||[]).length} kolleksiya` :
+                        `${(c.categoryIds||[]).length} kateqoriya`
+                      }
+                    </div>
+                  )}
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(c)} className="flex-1 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition-colors">
-                      ✏️ Düzəlt
-                    </button>
-                    <button onClick={() => onDelete(c)} className="flex-1 py-1.5 text-xs font-semibold text-red-500 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
-                      🗑️ Sil
-                    </button>
+                    <button onClick={() => openEdit(c)} className="flex-1 py-1.5 text-xs font-semibold text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-50 transition-colors">✏️ Düzəlt</button>
+                    <button onClick={() => onDelete(c)} className="flex-1 py-1.5 text-xs font-semibold text-red-500 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">🗑️ Sil</button>
                   </div>
                 </div>
               </div>
@@ -2270,18 +2283,19 @@ const Campaigns = ({ t, lang }) => {
         </div>
       )}
 
-      {total > PER_PAGE && (
+      {/* Pagination */}
+      {totalPages > 1 && (
         <Pagination t={t} total={total} page={page} perPage={PER_PAGE} onChange={setPage} />
       )}
 
       {/* Modal */}
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? "Kampaniyanı Düzəlt" : "Yeni Kampaniya Yarat"}>
-        <div className="space-y-5" style={{maxHeight:"75vh",overflowY:"auto",paddingRight:4}}>
+        <div className="space-y-5" style={{maxHeight:"80vh",overflowY:"auto",paddingRight:4}}>
 
           {/* IMAGE */}
           <div>
             <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">🖼️ Kampaniya Şəkli</label>
-            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden" style={{height:150}}>
+            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden" style={{height:140}}>
               {form.imageUrl ? (
                 <>
                   <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
@@ -2302,33 +2316,152 @@ const Campaigns = ({ t, lang }) => {
             </div>
           </div>
 
-          {/* RULE SYSTEM */}
+          {/* ── SCOPE ── */}
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">Kampaniya Qaydası</label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {RULE_PRESETS.map(rule => (
-                <button key={rule.key} type="button" onClick={() => setForm(f => ({ ...f, ruleType: f.ruleType === rule.key ? "" : rule.key }))}
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
+              🎯 Kampaniya Tətbiq Dairəsi
+            </label>
+            <p className="text-xs text-gray-400 mb-3">Bu kampaniya hansı məhsullara endirim tətbiq edəcək?</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {SCOPE_OPTIONS.map(opt => (
+                <button key={opt.value} type="button"
+                  onClick={() => { setForm(f => ({ ...f, scopeType: opt.value, productIds: [], collectionIds: [], categoryIds: [] })); setScopeSearch(""); }}
                   className="text-left p-3 rounded-xl border-2 transition-all"
-                  style={{ borderColor: form.ruleType === rule.key ? rule.color : "#E5E7EB", background: form.ruleType === rule.key ? rule.color + "15" : "#fff" }}>
-                  <div className="font-bold text-gray-800 text-xs flex items-center gap-1.5 mb-0.5">{rule.icon} {rule.label}</div>
-                  <div className="text-gray-400 text-[10px] leading-tight">{rule.desc}</div>
+                  style={{
+                    borderColor: form.scopeType === opt.value ? opt.color : "#E5E7EB",
+                    background:  form.scopeType === opt.value ? opt.color + "15" : "#fff"
+                  }}>
+                  <div className="font-bold text-gray-800 text-xs mb-0.5">{opt.label}</div>
+                  <div className="text-gray-400 text-[10px] leading-tight">{opt.desc}</div>
                 </button>
               ))}
             </div>
-            {form.ruleType && (
-              <div className="p-3 rounded-xl border" style={{borderColor: selectedRule?.color, background: selectedRule?.color + "08"}}>
-                <p className="text-xs font-semibold mb-2" style={{color: selectedRule?.color}}>{selectedRule?.icon} Qayda açıqlaması (istifadəçiyə göstərilir)</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {["az","en","ru"].map(l => (
-                    <div key={l}>
-                      <div className="text-[10px] font-bold text-gray-400 mb-1">{l.toUpperCase()}</div>
-                      <textarea rows={2} value={form.ruleNote?.[l] || ""}
-                        onChange={e => setForm(f => ({ ...f, ruleNote: { ...f.ruleNote, [l]: e.target.value } }))}
-                        placeholder={l === "az" ? 'məs: "3 al 2 ödə"' : l === "en" ? '"Buy 3, Pay 2"' : '"Купи 3, плати за 2"'}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs resize-none focus:outline-none focus:border-indigo-300"
-                      />
-                    </div>
-                  ))}
+
+            {/* Products selector */}
+            {form.scopeType === 1 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-indigo-700">
+                    📦 Məhsullar seçin — {form.productIds.length} seçilib
+                  </span>
+                  {form.productIds.length > 0 && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, productIds: [] }))}
+                      className="text-xs text-red-400 hover:text-red-600">Hamısını sil</button>
+                  )}
+                </div>
+                {errors.scopeIds && <p className="text-xs text-red-500 mb-2">{errors.scopeIds}</p>}
+                <input
+                  type="text" placeholder="Məhsul adı ilə axtar..." value={scopeSearch}
+                  onChange={e => setScopeSearch(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs mb-2 focus:outline-none focus:border-indigo-300"
+                />
+                <div className="border border-gray-200 rounded-xl overflow-hidden" style={{maxHeight:220,overflowY:"auto"}}>
+                  {allProducts
+                    .filter(p => !scopeSearch || (p.name||"").toLowerCase().includes(scopeSearch.toLowerCase()))
+                    .map(p => {
+                      const selected = form.productIds.includes(p.id);
+                      return (
+                        <button key={p.id} type="button" onClick={() => toggleId("productIds", p.id)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                          style={{background: selected ? "#6366F115" : undefined}}>
+                          <div className="w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center"
+                            style={{borderColor: selected ? "#6366F1" : "#D1D5DB", background: selected ? "#6366F1" : "transparent"}}>
+                            {selected && <span className="text-white text-[10px] font-bold">✓</span>}
+                          </div>
+                          {p.images?.[0]?.imageUrl && (
+                            <img src={p.images[0].imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium text-gray-800 truncate">{p.name || "—"}</div>
+                            <div className="text-[10px] text-gray-400">₼{p.price} {p.discountPrice ? `→ ₼${p.discountPrice}` : ""}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  {allProducts.length === 0 && (
+                    <div className="text-center py-6 text-xs text-gray-400">Məhsul yüklənir...</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Collections selector */}
+            {form.scopeType === 2 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-amber-700">
+                    🛋️ Kolleksiyalar seçin — {form.collectionIds.length} seçilib
+                  </span>
+                  {form.collectionIds.length > 0 && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, collectionIds: [] }))}
+                      className="text-xs text-red-400 hover:text-red-600">Hamısını sil</button>
+                  )}
+                </div>
+                {errors.scopeIds && <p className="text-xs text-red-500 mb-2">{errors.scopeIds}</p>}
+                <div className="border border-gray-200 rounded-xl overflow-hidden" style={{maxHeight:220,overflowY:"auto"}}>
+                  {allCollections.map(c => {
+                    const selected = form.collectionIds.includes(c.id);
+                    const name = c.name || (typeof c.translations === "object" ? Object.values(c.translations)[0] : "") || "—";
+                    return (
+                      <button key={c.id} type="button" onClick={() => toggleId("collectionIds", c.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                        style={{background: selected ? "#F59E0B15" : undefined}}>
+                        <div className="w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center"
+                          style={{borderColor: selected ? "#F59E0B" : "#D1D5DB", background: selected ? "#F59E0B" : "transparent"}}>
+                          {selected && <span className="text-white text-[10px] font-bold">✓</span>}
+                        </div>
+                        {c.imagesUrl && (
+                          <img src={c.imagesUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-gray-800 truncate">{name}</div>
+                          <div className="text-[10px] text-gray-400">₼{c.totalPrice}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {allCollections.length === 0 && (
+                    <div className="text-center py-6 text-xs text-gray-400">Kolleksiya yüklənir...</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Categories selector */}
+            {form.scopeType === 3 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-pink-700">
+                    📂 Kateqoriyalar seçin — {form.categoryIds.length} seçilib
+                  </span>
+                  {form.categoryIds.length > 0 && (
+                    <button type="button" onClick={() => setForm(f => ({ ...f, categoryIds: [] }))}
+                      className="text-xs text-red-400 hover:text-red-600">Hamısını sil</button>
+                  )}
+                </div>
+                {errors.scopeIds && <p className="text-xs text-red-500 mb-2">{errors.scopeIds}</p>}
+                <div className="grid grid-cols-2 gap-2">
+                  {allCategories.map(cat => {
+                    const selected = form.categoryIds.includes(cat.id);
+                    const name = cat.name || "—";
+                    return (
+                      <button key={cat.id} type="button" onClick={() => toggleId("categoryIds", cat.id)}
+                        className="flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all"
+                        style={{
+                          borderColor: selected ? "#EC4899" : "#E5E7EB",
+                          background:  selected ? "#EC489915" : "#fff"
+                        }}>
+                        <div className="w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center"
+                          style={{borderColor: selected ? "#EC4899" : "#D1D5DB", background: selected ? "#EC4899" : "transparent"}}>
+                          {selected && <span className="text-white text-[10px] font-bold">✓</span>}
+                        </div>
+                        <span className="text-xs font-medium text-gray-800 truncate">{name}</span>
+                      </button>
+                    );
+                  })}
+                  {allCategories.length === 0 && (
+                    <div className="text-center py-6 text-xs text-gray-400 col-span-2">Kateqoriya yüklənir...</div>
+                  )}
                 </div>
               </div>
             )}
@@ -2348,22 +2481,22 @@ const Campaigns = ({ t, lang }) => {
             </div>
             {["az","en","ru"].map(l => (
               <div key={l} className={activeFormTab === l ? "space-y-3" : "hidden"}>
-                <Input label={`Başlıq${l === "az" ? " *" : ""} (${l.toUpperCase()})`}
+                <Input label={`Başlıq${l==="az" ? " *" : ""} (${l.toUpperCase()})`}
                   value={form.name?.[l] || ""}
                   onChange={v => setForm(f => ({ ...f, name: { ...f.name, [l]: v } }))}
                   error={l === "az" ? errors.name : undefined}
-                  placeholder={l === "az" ? "məs: Yaz Endirim Kampaniyası" : l === "en" ? "e.g. Spring Sale Campaign" : "напр. Весенняя распродажа"} />
+                  placeholder={l==="az" ? "məs: Yaz Endirim Kampaniyası" : l==="en" ? "e.g. Spring Sale" : "напр. Весенняя распродажа"} />
                 <div>
                   <label className="text-xs font-semibold text-gray-600 block mb-1">Açıqlama ({l.toUpperCase()})</label>
                   <textarea rows={3} value={form.description?.[l] || ""}
                     onChange={e => setForm(f => ({ ...f, description: { ...f.description, [l]: e.target.value } }))}
-                    placeholder={l === "az" ? "Kampaniya haqqında qısa məlumat..." : ""}
+                    placeholder={l==="az" ? "Kampaniya haqqında qısa məlumat..." : ""}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-indigo-300 focus:ring-2 focus:ring-indigo-50" />
                 </div>
                 <Input label={`Düymə mətni (${l.toUpperCase()})`}
                   value={form.button_text?.[l] || ""}
                   onChange={v => setForm(f => ({ ...f, button_text: { ...f.button_text, [l]: v } }))}
-                  placeholder={l === "az" ? "məs: İndi al" : l === "en" ? "Shop now" : "Купить"} />
+                  placeholder={l==="az" ? "məs: İndi al" : l==="en" ? "Shop now" : "Купить"} />
               </div>
             ))}
           </div>
@@ -2401,7 +2534,6 @@ const Campaigns = ({ t, lang }) => {
     </div>
   );
 };
-
 
 const DiscountCodes = ({ t }) => {
   const [modal, setModal] = useState(false);
@@ -2587,20 +2719,6 @@ const Header = ({ t, lang, setLang, page }) => {
             {l.toUpperCase()}
           </button>
         ))}
-      </div>
-      <div className="relative">
-        <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors">
-          <Icons.Bell />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white text-xs font-bold">A</div>
-        <div className="hidden md:block">
-          <p className="text-xs font-semibold text-gray-800">Admin</p>
-          <p className="text-xs text-gray-400">admin@furni.az</p>
-        </div>
-        <Icons.ChevronDown />
       </div>
     </header>
   );
