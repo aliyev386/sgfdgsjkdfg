@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -550,7 +549,7 @@ export default function CartDrawer({ isOpen, onClose }) {
 
               {items.map((item, idx) => {
                 const price    = item.productPrice ?? item.collectionPrice ?? 0;
-                const image    = item.productImage ?? null;
+                const image    = item.productImage ?? item.collectionImage ?? null;
                 const name     = item.productName ?? item.collectionName ?? "—";
                 const isUpd    = updating.has(item.id);
                 return (

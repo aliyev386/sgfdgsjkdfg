@@ -16,6 +16,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
 const PAGE_SIZE = 12;
+const COLL_PAGE_SIZE = 9;
 
 const fmt = (n) =>
   `₼${Number(n).toLocaleString("az-AZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -308,6 +309,7 @@ export default function CampaignsPage() {
   const [activeCat, setActiveCat]         = useState("all");
   const [page, setPage]                   = useState(1);
   const [collTab, setCollTab]             = useState("all");
+  const [collPage, setCollPage]           = useState(1);
   const [collCategories, setCollCategories] = useState([]);
   const [activeCollCat, setActiveCollCat]   = useState("all");
 
@@ -354,6 +356,8 @@ export default function CampaignsPage() {
 
   // Reset page when campaign or category filter changes
   useEffect(() => { setPage(1); }, [activeCampaign, activeCat]);
+  // Reset coll page when tab or category changes
+  useEffect(() => { setCollPage(1); }, [collTab, activeCollCat]);
 
   const handleAddCart = useCallback(async (productId) => {
     if (!isAuth) { openAuthModal("login"); return; }
@@ -391,6 +395,11 @@ export default function CampaignsPage() {
     document.getElementById("camp-products")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleCollPageChange = (p) => {
+    setCollPage(p);
+    document.getElementById("camp-collections")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   // Collection filtering
   const filteredCollections = collections.filter(c => {
     const tabMatch =
@@ -405,6 +414,8 @@ export default function CampaignsPage() {
     return tabMatch && catMatch;
   });
 
+  const collTotalPages      = Math.ceil(filteredCollections.length / COLL_PAGE_SIZE);
+  const paginatedCollections = filteredCollections.slice((collPage - 1) * COLL_PAGE_SIZE, collPage * COLL_PAGE_SIZE);
   const collSaleCount       = collections.filter(c => c.discountPrice).length;
   const collNewCount        = collections.filter(c => c.isNew || c.label === "new_in").length;
   const collBestCount       = collections.filter(c => c.isBestSeller || c.label === "best_seller").length;
@@ -587,7 +598,7 @@ export default function CampaignsPage() {
               <button
                 key={tab.key}
                 className={`cp-tab ${collTab === tab.key ? "on" : ""}`}
-                onClick={() => { setCollTab(tab.key); setActiveCollCat("all"); }}
+                onClick={() => { setCollTab(tab.key); setActiveCollCat("all"); setCollPage(1); }}
               >
                 {tab.label}
                 {tab.count > 0 && (
@@ -610,9 +621,10 @@ export default function CampaignsPage() {
                 <button
                   key={cat.id}
                   className={`cp-cat-btn ${String(activeCollCat) === String(cat.id) ? "on" : ""}`}
-                  onClick={() =>
-                    setActiveCollCat(String(activeCollCat) === String(cat.id) ? "all" : cat.id)
-                  }
+                  onClick={() => {
+                    setActiveCollCat(String(activeCollCat) === String(cat.id) ? "all" : cat.id);
+                    setCollPage(1);
+                  }}
                 >
                   {cat.name}
                 </button>
@@ -620,14 +632,33 @@ export default function CampaignsPage() {
             </div>
           )}
 
+          {/* Results info for collections */}
+          {!collLoading && filteredCollections.length > 0 && (
+            <div className="cp-results-info">
+              {filteredCollections.length} {t("footer.collections", "kolleksiya")}
+              {collTotalPages > 1 && (
+                <span className="cp-results-page">
+                  — {t("shop.page", "Səhifə")} {collPage}/{collTotalPages}
+                </span>
+              )}
+            </div>
+          )}
+
           {collLoading ? (
             <Skeleton count={3} type="coll" />
-          ) : filteredCollections.length > 0 ? (
-            <div className="cp-coll-grid">
-              {filteredCollections.map(c => (
-                <CollectionCard key={c.id} col={c} />
-              ))}
-            </div>
+          ) : paginatedCollections.length > 0 ? (
+            <>
+              <div className="cp-coll-grid">
+                {paginatedCollections.map(c => (
+                  <CollectionCard key={c.id} col={c} />
+                ))}
+              </div>
+              <Pagination
+                current={collPage}
+                total={collTotalPages}
+                onChange={handleCollPageChange}
+              />
+            </>
           ) : (
             <div className="cp-empty">
               <span className="cp-empty-ic">🛋️</span>

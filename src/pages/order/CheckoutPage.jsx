@@ -415,8 +415,8 @@ function OrderSummary({ cartItems, payMethod, creditSel, t }) {
           const price = (it.productPrice ?? it.collectionPrice ?? 0) * it.quantity;
           return (
             <div key={it.id} className="ck-sum-row">
-              {it.productImage
-                ? <img src={it.productImage} alt={name} className="ck-sum-img" />
+              {(it.productImage ?? it.collectionImage)
+                ? <img src={it.productImage ?? it.collectionImage} alt={name} className="ck-sum-img" />
                 : <div className="ck-sum-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#C4B9AD" }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" width="20" height="20"><path d="M12 2l9 5v10l-9 5-9-5V7z" /></svg>
                   </div>}
